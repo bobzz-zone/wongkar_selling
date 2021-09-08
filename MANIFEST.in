@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include wongkar_selling *.css
+recursive-include wongkar_selling *.csv
+recursive-include wongkar_selling *.html
+recursive-include wongkar_selling *.ico
+recursive-include wongkar_selling *.js
+recursive-include wongkar_selling *.json
+recursive-include wongkar_selling *.md
+recursive-include wongkar_selling *.png
+recursive-include wongkar_selling *.py
+recursive-include wongkar_selling *.svg
+recursive-include wongkar_selling *.txt
+recursive-exclude wongkar_selling *.pyc
