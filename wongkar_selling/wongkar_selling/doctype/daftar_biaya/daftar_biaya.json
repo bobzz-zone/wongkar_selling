@@ -1,0 +1,45 @@
+{
+ "actions": [],
+ "creation": "2021-09-08 11:51:25.450977",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "jenis_biaya",
+  "nominal",
+  "coa"
+ ],
+ "fields": [
+  {
+   "fieldname": "jenis_biaya",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Jenis Biaya"
+  },
+  {
+   "fieldname": "nominal",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Nominal"
+  },
+  {
+   "fieldname": "coa",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "COA",
+   "options": "Account"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-09-13 09:14:56.915924",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Daftar Biaya",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

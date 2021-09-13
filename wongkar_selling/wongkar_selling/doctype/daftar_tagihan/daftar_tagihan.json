@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "creation": "2021-09-13 16:00:14.010441",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "no_sinv",
+  "tanggal_inv",
+  "no_rangka",
+  "type",
+  "nilai"
+ ],
+ "fields": [
+  {
+   "fieldname": "no_sinv",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No Sinv"
+  },
+  {
+   "fieldname": "tanggal_inv",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tanggal Inv"
+  },
+  {
+   "fieldname": "no_rangka",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No Rangka"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type"
+  },
+  {
+   "fieldname": "nilai",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Nilai"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-09-13 16:33:02.702615",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Daftar Tagihan",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

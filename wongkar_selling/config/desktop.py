@@ -5,10 +5,10 @@ from frappe import _
 def get_data():
 	return [
 		{
-			"module_name": "wongkar_selling",
-			"color": "grey",
-			"icon": "octicon octicon-file-directory",
+			"module_name": "Wongkar Selling",
+			"color": "w",
+			"icon": "w",
 			"type": "module",
-			"label": _("wongkar_selling")
+			"label": _("Wongkar Selling")
 		}
 	]

@@ -10,9 +10,9 @@ from wongkar_selling import __version__ as version
 setup(
 	name='wongkar_selling',
 	version=version,
-	description='wongkar_selling',
-	author='Wongkar',
-	author_email='wahyulutfi97@gmail.com',
+	description='w',
+	author='w',
+	author_email='w',
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,

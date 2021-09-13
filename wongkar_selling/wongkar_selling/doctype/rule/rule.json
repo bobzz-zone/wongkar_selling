@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2021-09-08 11:44:45.487096",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "section_break_2",
+  "type",
+  "section_break_4",
+  "customer",
+  "valid_from",
+  "valid_to",
+  "item_code",
+  "customer_group",
+  "territory",
+  "discount",
+  "amount",
+  "percent",
+  "coa_expense",
+  "coa_receivable",
+  "disable"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "RULE-.MM.-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To",
+   "reqd": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "customer.territory",
+   "fieldname": "territory",
+   "fieldtype": "Data",
+   "label": "Territory"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Select",
+   "label": "Discount",
+   "options": "\nAmount\nPercent"
+  },
+  {
+   "depends_on": "eval:doc.discount == \"Amount\"",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "depends_on": "eval:doc.discount == \"Percent\"",
+   "fieldname": "percent",
+   "fieldtype": "Percent",
+   "label": "Percent"
+  },
+  {
+   "fieldname": "coa_expense",
+   "fieldtype": "Link",
+   "label": "COA Expense",
+   "options": "Account"
+  },
+  {
+   "fieldname": "coa_receivable",
+   "fieldtype": "Link",
+   "label": "COA Receivable",
+   "options": "Account"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_group",
+   "fieldname": "customer_group",
+   "fieldtype": "Data",
+   "label": "Customer Group"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable",
+   "fieldtype": "Check",
+   "label": "Disable"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-09-13 12:24:07.464675",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Rule",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "customer",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
