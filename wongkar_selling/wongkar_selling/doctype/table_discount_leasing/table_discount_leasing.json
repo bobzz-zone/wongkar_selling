@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "creation": "2021-09-18 09:05:52.078637",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "coa",
+  "discount",
+  "amount",
+  "percent"
+ ],
+ "fields": [
+  {
+   "fieldname": "coa",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "COA",
+   "options": "Account"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Discount",
+   "options": "\nAmount\nPercent"
+  },
+  {
+   "depends_on": "eval:doc.discount == \"Amount\"",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "depends_on": "eval:doc.discount == \"Percent\"",
+   "fieldname": "percent",
+   "fieldtype": "Percent",
+   "label": "Percent"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-11-05 14:17:36.741672",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Table Discount Leasing",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

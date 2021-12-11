@@ -6,3 +6,10 @@ frappe.ui.form.on('Rule Biaya', {
 
 	// }
 });
+
+frappe.ui.form.on("Rule Biaya", "vendor", function(frm) {
+	if(!cur_frm.doc.vendor){
+		frm.set_value("territory","")
+		// frm.set_value("amount","")
+	}
+});

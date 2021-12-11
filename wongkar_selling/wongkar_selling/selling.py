@@ -3,130 +3,875 @@ from __future__ import unicode_literals
 import frappe
 from datetime import date
 import datetime
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice
+from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
+from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
+from erpnext.accounts.utils import get_account_currency
+from erpnext.accounts.doctype.invoice_discounting.invoice_discounting import get_party_account_based_on_invoice_discounting
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
+from frappe import _, scrub, ValidationError
+from erpnext.accounts.doctype.bank_account.bank_account import get_party_bank_account, get_bank_account_details
+from erpnext.accounts.utils import get_outstanding_invoices, get_account_currency, get_balance_on
+import frappe, erpnext, json
+from six import string_types, iteritems
+from erpnext.setup.utils import get_exchange_rate
+
+# ACC-SINV-2021-00017-8
+def custom_get_gl_entries(self, warehouse_account=None):
+	from erpnext.accounts.general_ledger import merge_similar_entries
+
+	gl_entries = []
+
+	make_customer_gl_entry_custom(self,gl_entries)
+	make_disc_gl_entry_custom(self,gl_entries)
+	make_disc_gl_entry_custom_leasing(self, gl_entries)
+	# make_sales_gl_entry_custom(self, gl_entries)
+	# make_vat_gl_entry_custom(self, gl_entries)
+	make_biaya_gl_entry_custom(self, gl_entries)
+	# make_utama_gl_entry_custom(self, gl_entries)
+	# make_disc_gl_entry_custom_credit(self,gl_entries)f
+	# make_tax_gl_entries_custom(self, gl_entries)
+	make_adj_disc_gl_entry(self, gl_entries)
+
+	self.make_tax_gl_entries(gl_entries)
+	self.make_internal_transfer_gl_entries(gl_entries)
+
+	self.make_item_gl_entries(gl_entries)
+
+	# merge gl entries before adding pos entries
+	gl_entries = merge_similar_entries(gl_entries)
+
+	self.make_loyalty_point_redemption_gle(gl_entries)
+	self.make_pos_gl_entries(gl_entries)
+	self.make_gle_for_change_amount(gl_entries)
+
+	self.make_write_off_gl_entry(gl_entries)
+	self.make_gle_for_rounding_adjustment(gl_entries)
+
+	return gl_entries
+
+def make_customer_gl_entry_custom(self, gl_entries):
+	tot_disc = 0
+	for d in self.get('table_discount'):
+		tot_disc = tot_disc + d.nominal
+
+	tot_discl = 0	
+	for l in self.get('table_discount_leasing'):
+		tot_discl = tot_discl + l.nominal
+
+	tot_biaya = 0	
+	for b in self.get('tabel_biaya_motor'):
+		tot_biaya = tot_biaya + b.amount
+
+	gl_entries.append(
+		self.get_gl_dict({
+			"account": self.debit_to,
+			"party_type": "Customer",
+			"party": self.customer,
+			"due_date": self.due_date,
+			"against": self.against_income_account,
+			"debit": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
+			"debit_in_account_currency": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
+			"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+			"against_voucher_type": self.doctype,
+			"cost_center": self.cost_center,
+			"project": self.project,
+			"remarks": "coba Lutfi xxxxx!"
+		}, self.party_account_currency, item=self)
+	)
+
+def make_disc_gl_entry_custom(self, gl_entries):
+	for d in self.get('table_discount'):
+		gl_entries.append(
+			self.get_gl_dict({
+				"account": d.coa_receivable,
+				"party_type": "Customer",
+				"party": d.customer,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"debit": d.nominal,
+				"debit_in_account_currency": d.nominal,
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi yyyyy!"
+			}, self.party_account_currency, item=self)
+		)
+
+def make_disc_gl_entry_custom_leasing(self, gl_entries):
+	for d in self.get('table_discount_leasing'):
+		gl_entries.append(
+			self.get_gl_dict({
+				"account": d.coa,
+				"party_type": "Customer",
+				"party": self.nama_leasing,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"debit": d.nominal,
+				"debit_in_account_currency": d.nominal,
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi zzzzz!"
+			}, self.party_account_currency, item=self)
+		)
+
+def make_vat_gl_entry_custom(self, gl_entries):
+	for d in self.get('items'):
+		gl_entries.append(
+			self.get_gl_dict({
+				"account": "1111.001 - Kas Kecil - DAS",
+				"party_type": "Customer",
+				"party": self.customer,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"credit": d.amount * 0.1,
+				"credit_in_account_currency": d.amount * 0.1,
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi aaaaa!"
+			}, self.party_account_currency, item=self)
+		)
+
+def make_sales_gl_entry_custom(self, gl_entries):
+	for d in self.get('taxes'):
+		gl_entries.append(
+			self.get_gl_dict({
+				"account": d.account_head,
+				"party_type": "Customer",
+				"party": self.customer,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"credit": d.total,
+				"credit_in_account_currency": d.total,
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi bbbbbb!"
+			}, self.party_account_currency, item=self)
+		)
+
+def make_biaya_gl_entry_custom(self, gl_entries):
+	for d in self.get('tabel_biaya_motor'):
+		gl_entries.append(
+			self.get_gl_dict({
+				"account": d.coa,
+				"party_type": "Customer",
+				"party": d.vendor,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"credit": d.amount ,
+				"credit_in_account_currency": d.amount,
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi cccccc!"
+			}, self.party_account_currency, item=self)
+		)
+
+def make_utama_gl_entry_custom(self, gl_entries):
+	tot_disc = 0
+	for d in self.get('table_discount'):
+		tot_disc = tot_disc + d.nominal
+
+	tot_discl = 0	
+	for l in self.get('table_discount_leasing'):
+		tot_discl = tot_discl + l.nominal
+	
+	gl_entries.append(
+		self.get_gl_dict({
+			"account": "1111.002 - Kas Besar - DAS",
+			"party_type": "Customer",
+			"party": self.nama_leasing,
+			"due_date": self.due_date,
+			"against": self.against_income_account,
+			"debit": (self.harga-tot_disc-tot_discl)-self.grand_total,
+			"debit_in_account_currency": (self.harga-tot_disc-tot_discl)-self.grand_total,
+			"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+			"against_voucher_type": self.doctype,
+			"cost_center": self.cost_center,
+			"project": self.project,
+			"remarks": "coba Lutfi ddddddd!"
+		}, self.party_account_currency, item=self)
+	)
+
+
+def make_adj_disc_gl_entry(self, gl_entries):
+	if self.account_adj_discount:
+		test = str(self.adj_discount)
+		if '-' in test:
+			gl_entries.append(
+			self.get_gl_dict({
+				"account": self.account_adj_discount,
+				"party_type": "Customer",
+				"party": self.nama_leasing,
+				"due_date": self.due_date,
+				"against": self.against_income_account,
+				"debit": abs(self.adj_discount),
+				"debit_in_account_currency": abs(self.adj_discount),
+				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+				"against_voucher_type": self.doctype,
+				"cost_center": self.cost_center,
+				"project": self.project,
+				"remarks": "coba Lutfi ffff!"
+			}, self.party_account_currency, item=self)
+		)
+		else:
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.account_adj_discount,
+					"party_type": "Customer",
+					"party": self.nama_leasing,
+					"due_date": self.due_date,
+					"against": self.against_income_account,
+					"credit": abs(self.adj_discount),
+					"credit_in_account_currency": abs(self.adj_discount),
+					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+					"against_voucher_type": self.doctype,
+					"cost_center": self.cost_center,
+					"project": self.project,
+					"remarks": "coba Lutfi ffff!"
+				}, self.party_account_currency, item=self)
+			)
+
+# def make_disc_gl_entry_custom_credit(self, gl_entries):
+# 	for d in self.get('table_discount'):
+# 		gl_entries.append(
+# 			self.get_gl_dict({
+# 				"account": d.coa_expense,
+# 				"party_type": "Customer",
+# 				"party": d.customer,
+# 				"due_date": self.due_date,
+# 				"against": self.against_income_account,
+# 				"credit": d.nominal,
+# 				"credit_in_account_currency": d.nominal,
+# 				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+# 				"against_voucher_type": self.doctype,
+# 				"cost_center": self.cost_center,
+# 				"project": self.project,
+# 				"remarks": "coba Lutfi !"
+# 			}, self.party_account_currency, item=self)
+# 		)
+
+# def make_tax_gl_entries_custom(self, gl_entries):
+# 	for tax in self.get("tabel_biaya_motor"):
+# 		account_currency = get_account_currency(tax.account_head)
+# 		gl_entries.append(
+# 			self.get_gl_dict({
+# 				"account": tax.account_head,
+# 				"against": tax.vendor,
+# 				"credit": tax.tax_amount,
+# 				"credit_in_account_currency": tax.tax_amount,
+# 				"cost_center": tax.cost_center
+# 			}, account_currency, item=tax)
+# 		)
 
 
 @frappe.whitelist()
-def get_disc(item_code,dp,tenor):
-	# frappe.msgprint("masuk fungsi")
-	data = frappe.db.get_list('Rule',filters={'item_code': item_code},fields=['*'])
-	harga = frappe.get_value("Item Price",{"item_code": item_code}, "price_list_rate")
-	nominal = float(harga)
-	frappe.msgprint(str(data))
-	disc=[]
-	today = date.today()
-	dm = 0.0
-	dl = 0.0
-	dd = 0.0
-	dd = 0.0
-	dmd = 0.0
-	bs = 0.0
-	bb = 0.0
-	bg = 0.0
-	cbj = ""
-	cbb = ""
-	cbg = ""
-
-	for i in data:
-		# amount
-		if i ['discount'] == 'Amount':
-			if i['type'] == 'Manufacture':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					frappe.msgprint("benar")
-					dm = i['amount']
-			if i['type'] == 'Leasing':
-				if i['valid_from'] <= today and i['valid_to'] >= today and i['besar_dp'] == dp and i['tenor'] == tenor:
-					dl = i['amount']
-			if i['type'] == 'Dealer':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					dd = i['amount']
-			if i['type'] == 'Main Dealer':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					dmd = i['amount']
-
-		# Percent
-		if i ['discount'] == 'Percent':
-			if i['type'] == 'Manufacture':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					frappe.msgprint("benar")
-					dm = i['percent'] * nominal / 100
-			if i['type'] == 'Leasing':
-				if i['valid_from'] <= today and i['valid_to'] >= today and i['besar_dp'] == dp and i['tenor'] == tenor:
-					frappe.msgprint("percent"+str(i['percent']))
-					dl = i['percent'] * nominal / 100
-			if i['type'] == 'Dealer':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					dd = i['percent'] * nominal / 100
-			if i['type'] == 'Main Dealer':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					dmd = i['percent'] * nominal / 100
-		# Biaya
-		if i['discount'] == "":
-			if i['type'] == 'Biaya Penjualan Kendaraan':
-				if i['valid_from'] <= today and i['valid_to'] >= today:
-					biaya = frappe.db.get_list('Daftar Biaya',filters={'parent': i['name']},fields=['*'])
-					for j in biaya:
-						if j['jenis_biaya'] == 'BPKB':
-							bs = j['nominal']
-							cbj = j['coa']
-						if j['jenis_biaya'] == 'STNK':
-							bb = j['nominal']
-							cbb = j['coa']
-						if j['jenis_biaya'] == 'Gift':
-							bg = j['nominal']
-							cbg = j['coa']
+def overide_make_gl(self,method):
+	if self.type_penjualan == "Penjualan Motor":
+		SalesInvoice.get_gl_entries = custom_get_gl_entries
 
 
-	return dm,dd,dmd,dl,bs,bb,bg,harga,cbj,cbb,cbg
-	# dl = frappe.get_value("Rule",{"item_code": item_code,"type": "Leasing"}, "amount")
+
+# pe 
+def set_missing_values_custom(self):
+	# frappe.msgprint("masuk sini set_missing_values_custom")
+	if self.payment_type == "Internal Transfer":
+		for field in ("party", "party_balance", "total_allocated_amount",
+			"base_total_allocated_amount", "unallocated_amount"):
+				self.set(field, None)
+		self.references = []
+	else:
+		if not self.party_type:
+			frappe.throw(_("Party Type is mandatory"))
+
+		if not self.party:
+			frappe.throw(_("Party is mandatory"))
+
+		_party_name = "title" if self.party_type in ("Student", "Shareholder") else self.party_type.lower() + "_name"
+		self.party_name = frappe.db.get_value(self.party_type, self.party, _party_name)
+		# test = frappe.db.get_value(self.party_type, self.party, _party_name)
+		# frappe.msgprint(_party_name)
+		# frappe.msgprint(test)
+
+	if self.party:
+		if not self.party_balance:
+			self.party_balance = get_balance_on(party_type=self.party_type,
+				party=self.party, date=self.posting_date, company=self.company)
+
+		if not self.party_account:
+			party_account = get_party_account(self.party_type, self.party, self.company)
+			self.set(self.party_account_field, party_account)
+			self.party_account = party_account
+
+	if self.paid_from and not (self.paid_from_account_currency or self.paid_from_account_balance):
+		acc = get_account_details(self.paid_from, self.posting_date, self.cost_center)
+		self.paid_from_account_currency = acc.account_currency
+		self.paid_from_account_balance = acc.account_balance
+
+	if self.paid_to and not (self.paid_to_account_currency or self.paid_to_account_balance):
+		acc = get_account_details(self.paid_to, self.posting_date, self.cost_center)
+		self.paid_to_account_currency = acc.account_currency
+		self.paid_to_account_balance = acc.account_balance
+
+	self.party_account_currency = self.paid_from_account_currency \
+		if self.payment_type=="Receive" else self.paid_to_account_currency
+
+	set_missing_ref_details_custom(self)
+
+def set_missing_ref_details_custom(self, force=False):
+	# frappe.msgprint("set_missing_ref_details_custom masu sini")
+	for d in self.get("references"):
+		if d.allocated_amount:
+			ref_details = get_reference_details_custom(d.reference_doctype,
+				d.reference_name, self.party_account_currency)
+
+			for field, value in iteritems(ref_details):
+				if field == 'exchange_rate' or not d.get(field) or force:
+					d.set(field, value)
 
 @frappe.whitelist()
-def buat_gl(doc,method):
-	if doc.type_penjualan == "Penjualan Motor":
-		cost_center = frappe.get_value("Sales Invoice Item",{"parent": doc.name}, "cost_center")
-		
-		if doc.nama_leasing:
-			coa_receivable = frappe.get_value("Rule Discount Leasing",{"leasing": doc.nama_leasing,"nama_promo": doc.promo}, "coa_receivable")
-			coa_expense = frappe.get_value("Rule Discount Leasing",{"leasing": doc.nama_leasing,"nama_promo": doc.promo}, "coa_expense")
-			amount = frappe.get_value("Rule Discount Leasing",{"leasing": doc.nama_leasing,"nama_promo": doc.promo}, "amount")
-			buat_gl2(coa_receivable,amount,0,amount,0,doc.customer,doc.name,cost_center,doc.due_date) # debit
-			buat_gl2(coa_expense,0,amount,0,amount,doc.customer,doc.name,cost_center,doc.due_date) # kredit
-		
-		disc = frappe.db.get_list('Table Discount',filters={'parent': doc.name},fields=['*'])
-		for i in disc:
-			data = frappe.db.get_list('Rule',filters={'name': i['rule']},fields=['*'])
-			for d in data:
-				coa_receivable = frappe.get_value("Rule",{"name": d['name']}, "coa_receivable")
-				coa_expense = frappe.get_value("Rule",{"name": d['name']}, "coa_expense")
-				amount = frappe.get_value("Rule",{"name": d['name']}, "amount")
-				buat_gl2(coa_receivable,amount,0,amount,0,doc.customer,doc.name,cost_center,doc.due_date) # debit
-				buat_gl2(coa_expense,0,amount,0,amount,doc.customer,doc.name,cost_center,doc.due_date) # kredit
-			
-@frappe.whitelist()
-def buat_gl2(akun,debit,kredit,debitcr,kreditcr,customer,name,cost_center,due_date):	
-	mydate= datetime.date.today()
-	docgl = frappe.new_doc('GL Entry')
-	docgl.posting_date = date.today()
-	docgl.party_type = "Customer"
-	docgl.party = customer
-	docgl.account = akun
-	docgl.cost_center = cost_center
-	docgl.debit = debit
-	docgl.credit = kredit
-	docgl.debit_in_account_currency = debitcr
-	docgl.credit_in_account_currency = kreditcr
-	docgl.against = "4110.000 - Penjualan - DAS"
-	docgl.against_voucher_type = "Sales Invoice"
-	docgl.against_voucher = name
-	docgl.voucher_type = "Sales Invoice"
-	docgl.voucher_no = name
-	docgl.remarks = "No Remarks"
-	docgl.is_opening = "No"
-	docgl.is_advance = "No"
-	# docgl.company = "DAS"
-	docgl.fiscal_year = mydate.year
-	docgl.due_date = due_date
-	docgl.docstatus = 1
-	docgl.flags.ignore_permission = True
-	docgl.save()
-	frappe.msgprint("buat GL akun berhasil !")
+def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
+	# frappe.msgprint("get_payment_entry_custom")
+	test2 =[]
+	reference_doc = None
+	doc = frappe.get_doc(dt, dn)
+	if dt in ("Sales Order", "Purchase Order") and flt(doc.per_billed, 2) > 0:
+		frappe.throw(_("Can only make payment against unbilled {0}").format(dt))
 
+	party_type = set_party_type_custom(dt)
+	party_account = set_party_account(dt, dn, doc, party_type)
+	party_account_currency = set_party_account_currency(dt, party_account, doc)
+	payment_type = set_payment_type(dt, doc)
+	grand_total, outstanding_amount = set_grand_total_and_outstanding_amount(party_amount, dt, party_account_currency, doc)
+
+	# bank or cash
+	bank = get_bank_cash_account(doc, bank_account)
+
+	paid_amount, received_amount = set_paid_amount_and_received_amount(
+		dt, party_account_currency, bank, outstanding_amount, payment_type, bank_amount, doc)
+
+	paid_amount, received_amount, discount_amount = apply_early_payment_discount(paid_amount, received_amount, doc)
+
+	pe = frappe.new_doc("Payment Entry")
+	pe.payment_type = payment_type
+	pe.company = doc.company
+	pe.cost_center = doc.get("cost_center")
+	pe.posting_date = nowdate()
+	pe.mode_of_payment = doc.get("mode_of_payment")
+	pe.party_type = party_type
+	pe.party = doc.get(scrub(party_type))
+	coba = doc.get(scrub(party_type))
+	# frappe.msgprint(party_type)
+	# frappe.msgprint(coba)
+	pe.contact_person = doc.get("contact_person")
+	pe.contact_email = doc.get("contact_email")
+	pe.ensure_supplier_is_not_blocked()
+
+	pe.paid_from = party_account if payment_type=="Receive" else bank.account
+	pe.paid_to = party_account if payment_type=="Pay" else bank.account
+	pe.paid_from_account_currency = party_account_currency \
+		if payment_type=="Receive" else bank.account_currency
+	pe.paid_to_account_currency = party_account_currency if payment_type=="Pay" else bank.account_currency
+	pe.paid_amount = paid_amount
+	pe.received_amount = received_amount
+	pe.letter_head = doc.get("letter_head")
+
+	if pe.party_type in ["Customer", "Supplier"]:
+		bank_account = get_party_bank_account(pe.party_type, pe.party)
+		pe.set("bank_account", bank_account)
+		pe.set_bank_account_data()
+
+	# only Purchase Invoice can be blocked individually
+	if doc.doctype == "Purchase Invoice" and doc.invoice_is_blocked():
+		frappe.msgprint(_('{0} is on hold till {1}').format(doc.name, doc.release_date))
+	else:
+		if (doc.doctype in ('Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor')
+			and frappe.get_value('Payment Terms Template',
+			{'name': doc.payment_terms_template}, 'allocate_payment_based_on_payment_terms')):
+
+			for reference in get_reference_as_per_payment_terms(doc.payment_schedule, dt, dn, doc, grand_total, outstanding_amount):
+				pe.append('references', reference)
+		else:
+			if dt == "Dunning":
+				pe.append("references", {
+					'reference_doctype': 'Sales Invoice',
+					'reference_name': doc.get('sales_invoice'),
+					"bill_no": doc.get("bill_no"),
+					"due_date": doc.get("due_date"),
+					'total_amount': doc.get('outstanding_amount'),
+					'outstanding_amount': doc.get('outstanding_amount'),
+					'allocated_amount': doc.get('outstanding_amount')
+				})
+				pe.append("references", {
+					'reference_doctype': dt,
+					'reference_name': dn,
+					"bill_no": doc.get("bill_no"),
+					"due_date": doc.get("due_date"),
+					'total_amount': doc.get('dunning_amount'),
+					'outstanding_amount': doc.get('dunning_amount'),
+					'allocated_amount': doc.get('dunning_amount')
+				})
+			else:
+				pe.append("references", {
+					'reference_doctype': dt,
+					'reference_name': dn,
+					"bill_no": doc.get("bill_no"),
+					"due_date": doc.get("due_date"),
+					'total_amount': grand_total,
+					'outstanding_amount': outstanding_amount,
+					'allocated_amount': outstanding_amount
+				})
+
+	pe.setup_party_account_field()
+	# docpe = frappe.new_doc("Payment Entry")
+	# meta = frappe.get_meta('Payment Entry')
+	# test = ({'payment_type': pe.payment_type})
+	# test2.append(test)
+	# coba=set_party_type_custom(dt)
+	# coba2= set_payment_type(dt, doc)
+	# frappe.msgprint(str(test['payment_type']))
+	set_missing_values_custom(pe) # = set_missing_values_custom()
+
+	if party_account and bank:
+		if dt == "Employee Advance":
+			reference_doc = doc
+		set_exchange_rate(pe,ref_doc=reference_doc)
+		pe.set_amounts()
+		if discount_amount:
+			pe.set_gain_or_loss(account_details={
+				'account': frappe.get_cached_value('Company', pe.company, "default_discount_account"),
+				'cost_center': pe.cost_center or frappe.get_cached_value('Company', pe.company, "cost_center"),
+				'amount': discount_amount * (-1 if payment_type == "Pay" else 1)
+			})
+			pe.set_difference_amount()
+
+	return pe
+
+def set_exchange_rate(self, ref_doc=None):
+	# frappe.msgprint("set_exchange_rate sini")
+	self.set_source_exchange_rate(ref_doc)
+	self.set_target_exchange_rate(ref_doc)
+
+# @frappe.whitelist()
+def set_party_type_custom(dt):
+	# frappe.msgprint("masuk custom sini lutfi")
+	if dt in ("Sales Invoice", "Sales Order", "Dunning","Sales Invoice Penjualan Motor","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor"):
+		party_type = "Customer"
+	elif dt in ("Purchase Invoice", "Purchase Order","Pembayaran Tagihan Motor"):
+		party_type = "Supplier"
+	elif dt in ("Expense Claim", "Employee Advance", "Gratuity"):
+		party_type = "Employee"
+	elif dt == "Fees":
+		party_type = "Student"
+	elif dt == "Donation":
+		party_type = "Donor"
+	return party_type
+
+def set_party_account(dt, dn, doc, party_type):
+	if dt == "Sales Invoice" or dt == "Sales Invoice Penjualan Motor":
+		party_account = get_party_account_based_on_invoice_discounting(dn) or doc.debit_to
+	elif dt == "Purchase Invoice":
+		party_account = doc.credit_to
+	elif dt == "Fees":
+		party_account = doc.receivable_account
+	elif dt == "Employee Advance":
+		party_account = doc.advance_account
+	elif dt == "Expense Claim":
+		party_account = doc.payable_account
+	elif dt == "Gratuity":
+		party_account = doc.payable_account
+	elif dt == "Tagihan Discount":
+		party_account = doc.coa_tagihan_discount
+	elif dt == "Tagihan Discount Leasing":
+		party_account = doc.coa_tagihan_discount_leasing
+	elif dt == "Pembayaran Credit Motor":
+		party_account = doc.coa_credit_motor
+	elif dt == "Pembayaran Tagihan Motor":
+		party_account = doc.coa_biaya_motor
+	else:
+		party_account = get_party_account(party_type, doc.get(party_type.lower()), doc.company)
+	return party_account
+
+def set_party_account_currency(dt, party_account, doc):
+	if dt not in ("Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor"):
+		party_account_currency = get_account_currency(party_account)
+	else:
+		party_account_currency = doc.get("party_account_currency") or get_account_currency(party_account)
+	return party_account_currency
+
+def set_payment_type(dt, doc):
+	if (dt in ("Sales Order", "Donation","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor") or (dt in ("Sales Invoice", "Fees", "Dunning","Sales Invoice Penjualan Motor") and doc.outstanding_amount > 0)) \
+		or (dt=="Purchase Invoice" and doc.outstanding_amount < 0):
+			payment_type = "Receive"
+	else:
+		payment_type = "Pay"
+	return payment_type
+
+def set_grand_total_and_outstanding_amount(party_amount, dt, party_account_currency, doc):
+	#frappe.msgprint('set_grand_total_and_outstanding_amount')
+	grand_total = outstanding_amount = 0
+	if party_amount:
+		grand_total = outstanding_amount = party_amount
+	elif dt in ("Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor"):
+		if party_account_currency == doc.company_currency:
+			#frappe.throw("wahyu lutfi y123")
+			grand_total = doc.base_rounded_total or doc.base_grand_total
+		else:
+			#frappe.throw("wahyu lutfi y")
+			grand_total = doc.rounded_total or doc.grand_total
+		outstanding_amount = doc.outstanding_amount
+	elif dt in ("Expense Claim"):
+		grand_total = doc.total_sanctioned_amount + doc.total_taxes_and_charges
+		outstanding_amount = doc.grand_total \
+			- doc.total_amount_reimbursed
+	elif dt == "Employee Advance":
+		grand_total = flt(doc.advance_amount)
+		outstanding_amount = flt(doc.advance_amount) - flt(doc.paid_amount)
+		if party_account_currency != doc.currency:
+			grand_total = flt(doc.advance_amount) * flt(doc.exchange_rate)
+			outstanding_amount = (flt(doc.advance_amount) - flt(doc.paid_amount)) * flt(doc.exchange_rate)
+	elif dt == "Fees":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.outstanding_amount
+	elif dt == "Dunning":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.grand_total
+	elif dt == "Donation":
+		grand_total = doc.amount
+		outstanding_amount = doc.amount
+	elif dt == "Gratuity":
+		grand_total = doc.amount
+		outstanding_amount = flt(doc.amount) - flt(doc.paid_amount)
+	elif dt == "Tagihan Discount":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.grand_total
+	elif dt == "Tagihan Discount Leasing":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.grand_total
+	elif dt == "Pembayaran Credit Motor":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.grand_total
+	elif dt == "Pembayaran Tagihan Motor":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.grand_total
+	else:
+		if party_account_currency == doc.company_currency:
+			grand_total = flt(doc.get("base_rounded_total") or doc.base_grand_total)
+		else:
+			grand_total = flt(doc.get("rounded_total") or doc.grand_total)
+		outstanding_amount = grand_total - flt(doc.advance_paid)
+	return grand_total, outstanding_amount
+
+def get_bank_cash_account(doc, bank_account):
+	if doc.company:
+		bank = get_default_bank_cash_account(doc.company, "Bank", mode_of_payment=doc.get("mode_of_payment"),
+			account=bank_account)
+
+		if not bank:
+			bank = get_default_bank_cash_account(doc.company, "Cash", mode_of_payment=doc.get("mode_of_payment"),
+				account=bank_account)
+	else:
+		bank = get_default_bank_cash_account("DAS", "Bank", mode_of_payment=doc.get("mode_of_payment"),
+			account=bank_account)
+
+		if not bank:
+			bank = get_default_bank_cash_account("DAS", "Cash", mode_of_payment=doc.get("mode_of_payment"),
+				account=bank_account)
+
+	return bank
+
+def set_paid_amount_and_received_amount(dt, party_account_currency, bank, outstanding_amount, payment_type, bank_amount, doc):
+	paid_amount = received_amount = 0
+	if party_account_currency == bank.account_currency:
+		paid_amount = received_amount = abs(outstanding_amount)
+	elif payment_type == "Receive":
+		paid_amount = abs(outstanding_amount)
+		if bank_amount:
+			received_amount = bank_amount
+		else:
+			received_amount = paid_amount * doc.get('conversion_rate', 1)
+			if dt == "Employee Advance":
+				received_amount = paid_amount * doc.get('exchange_rate', 1)
+	else:
+		received_amount = abs(outstanding_amount)
+		if bank_amount:
+			paid_amount = bank_amount
+		else:
+			# if party account currency and bank currency is different then populate paid amount as well
+			paid_amount = received_amount * doc.get('conversion_rate', 1)
+			if dt == "Employee Advance":
+				paid_amount = received_amount * doc.get('exchange_rate', 1)
+	return paid_amount, received_amount
+
+def apply_early_payment_discount(paid_amount, received_amount, doc):
+	total_discount = 0
+	if doc.doctype in ['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor'] and doc.payment_schedule:
+		for term in doc.payment_schedule:
+			if not term.discounted_amount and term.discount and getdate(nowdate()) <= term.discount_date:
+				if term.discount_type == 'Percentage':
+					discount_amount = flt(doc.get('grand_total')) * (term.discount / 100)
+				else:
+					discount_amount = term.discount
+
+				discount_amount_in_foreign_currency = discount_amount * doc.get('conversion_rate', 1)
+
+				if doc.doctype == 'Sales Invoice':
+					paid_amount -= discount_amount
+					received_amount -= discount_amount_in_foreign_currency
+				else:
+					received_amount -= discount_amount
+					paid_amount -= discount_amount_in_foreign_currency
+
+				total_discount += discount_amount
+
+		if total_discount:
+			money = frappe.utils.fmt_money(total_discount, currency=doc.get('currency'))
+			frappe.msgprint(_("Discount of {} applied as per Payment Term").format(money), alert=1)
+
+	return paid_amount, received_amount, total_discount
+
+@frappe.whitelist()
+def get_reference_details_custom(reference_doctype, reference_name, party_account_currency):
+	# frappe.msgprint("coba-coba")
+	total_amount = outstanding_amount = exchange_rate = bill_no = None
+	ref_doc = frappe.get_doc(reference_doctype, reference_name)
+	company_currency = ref_doc.get("company_currency") or erpnext.get_company_currency(ref_doc.company)
+
+	if reference_doctype == "Fees":
+		total_amount = ref_doc.get("grand_total")
+		exchange_rate = 1
+		outstanding_amount = ref_doc.get("outstanding_amount")
+	elif reference_doctype == "Donation":
+		total_amount = ref_doc.get("amount")
+		exchange_rate = 1
+	elif reference_doctype == "Dunning":
+		total_amount = ref_doc.get("dunning_amount")
+		exchange_rate = 1
+		outstanding_amount = ref_doc.get("dunning_amount")
+	elif reference_doctype == "Journal Entry" and ref_doc.docstatus == 1:
+		total_amount = ref_doc.get("total_amount")
+		if ref_doc.multi_currency:
+			exchange_rate = get_exchange_rate(party_account_currency, company_currency, ref_doc.posting_date)
+		else:
+			exchange_rate = 1
+			outstanding_amount = get_outstanding_on_journal_entry(reference_name)
+	elif reference_doctype != "Journal Entry":
+		if ref_doc.doctype == "Expense Claim":
+				total_amount = flt(ref_doc.total_sanctioned_amount) + flt(ref_doc.total_taxes_and_charges)
+		elif ref_doc.doctype == "Employee Advance":
+			total_amount = ref_doc.advance_amount
+			exchange_rate = ref_doc.get("exchange_rate")
+			if party_account_currency != ref_doc.currency:
+				total_amount = flt(total_amount) * flt(exchange_rate)
+		elif ref_doc.doctype == "Gratuity":
+				total_amount = ref_doc.amount
+		if not total_amount:
+			if party_account_currency == company_currency:
+				total_amount = ref_doc.base_grand_total
+				exchange_rate = 1
+			else:
+				total_amount = ref_doc.grand_total
+		if not exchange_rate:
+			# Get the exchange rate from the original ref doc
+			# or get it based on the posting date of the ref doc.
+			exchange_rate = ref_doc.get("conversion_rate") or \
+				get_exchange_rate(party_account_currency, company_currency, ref_doc.posting_date)
+		if reference_doctype in ("Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor"):
+			outstanding_amount = ref_doc.get("outstanding_amount")
+			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Tagihan Discount":
+			# frappe.msgprint("Tagihan Discount")
+			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Tagihan Discount Leasing":
+			# frappe.msgprint("Tagihan Discount Leasing")
+			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Pembayaran Credit Motor":
+			# frappe.msgprint("Pembayaran Credit Motor")
+			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Pembayaran Tagihan Motor":
+			# frappe.msgprint("Pembayaran Tagihan Motor")
+			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Expense Claim":
+			outstanding_amount = flt(ref_doc.get("total_sanctioned_amount")) + flt(ref_doc.get("total_taxes_and_charges"))\
+				- flt(ref_doc.get("total_amount_reimbursed")) - flt(ref_doc.get("total_advance_amount"))
+		elif reference_doctype == "Employee Advance":
+			outstanding_amount = (flt(ref_doc.advance_amount) - flt(ref_doc.paid_amount))
+			if party_account_currency != ref_doc.currency:
+				outstanding_amount = flt(outstanding_amount) * flt(exchange_rate)
+				if party_account_currency == company_currency:
+					exchange_rate = 1
+		elif reference_doctype == "Gratuity":
+			outstanding_amount = ref_doc.amount - flt(ref_doc.paid_amount)
+		else:
+			outstanding_amount = flt(total_amount) - flt(ref_doc.advance_paid)
+	else:
+		# Get the exchange rate based on the posting date of the ref doc.
+		exchange_rate = get_exchange_rate(party_account_currency,
+			company_currency, ref_doc.posting_date)
+
+	return frappe._dict({
+		"due_date": ref_doc.get("due_date"),
+		"total_amount": total_amount,
+		"outstanding_amount": outstanding_amount,
+		"exchange_rate": exchange_rate,
+		"bill_no": bill_no
+	})
+
+def validate_reference_documents_custom(self):
+	# frappe.msgprint('masuk valiasi custom')
+	if self.party_type == "Student":
+		valid_reference_doctypes = ("Fees")
+	elif self.party_type == "Customer":
+		valid_reference_doctypes = ("Sales Order", "Sales Invoice", "Journal Entry", "Dunning","Sales Invoice Penjualan Motor")
+	elif self.party_type == "Supplier":
+		valid_reference_doctypes = ("Purchase Order", "Purchase Invoice", "Journal Entry")
+	elif self.party_type == "Employee":
+		valid_reference_doctypes = ("Expense Claim", "Journal Entry", "Employee Advance", "Gratuity")
+	elif self.party_type == "Shareholder":
+		valid_reference_doctypes = ("Journal Entry")
+	elif self.party_type == "Donor":
+		valid_reference_doctypes = ("Donation")
+
+	for d in self.get("references"):
+		if not d.allocated_amount:
+			continue
+		if d.reference_doctype not in valid_reference_doctypes:
+			frappe.throw(_("Reference Doctype must be one of {0}")
+				.format(comma_or(valid_reference_doctypes)))
+
+		elif d.reference_name:
+			if not frappe.db.exists(d.reference_doctype, d.reference_name):
+				frappe.throw(_("{0} {1} does not exist").format(d.reference_doctype, d.reference_name))
+			else:
+				ref_doc = frappe.get_doc(d.reference_doctype, d.reference_name)
+
+				if d.reference_doctype != "Journal Entry":
+					if self.party != ref_doc.get(scrub(self.party_type)):
+						frappe.throw(_("{0} {1} is not associated with {2} {3}")
+							.format(d.reference_doctype, d.reference_name, self.party_type, self.party))
+				else:
+					self.validate_journal_entry()
+
+				if d.reference_doctype in ("Sales Invoice", "Purchase Invoice", "Expense Claim", "Fees","Sales Invoice Penjualan Motor"):
+					if self.party_type == "Customer":
+						ref_party_account = get_party_account_based_on_invoice_discounting(d.reference_name) or ref_doc.debit_to
+					elif self.party_type == "Student":
+						ref_party_account = ref_doc.receivable_account
+					elif self.party_type=="Supplier":
+						ref_party_account = ref_doc.credit_to
+					elif self.party_type=="Employee":
+						ref_party_account = ref_doc.payable_account
+
+					if ref_party_account != self.party_account:
+							frappe.throw(_("{0} {1} is associated with {2}, but Party Account is {3}")
+								.format(d.reference_doctype, d.reference_name, ref_party_account, self.party_account))
+
+				if ref_doc.docstatus != 1:
+					frappe.throw(_("{0} {1} must be submitted")
+						.format(d.reference_doctype, d.reference_name))
+
+@frappe.whitelist()
+def overide_make_pe(self,method):
+	# frappe.msgprint("overide_make_pe sini")
+	# PaymentEntry.validate_reference_documents = validate_reference_documents_custom
+	PaymentEntry.get_reference_details = get_reference_details_custom
+	# PaymentEntry.get_payment_entry = get_payment_entry_custom
+	# PaymentEntry.set_missing_ref_details = set_missing_ref_details_custom
+
+@frappe.whitelist()
+def get_outstanding_reference_documents_custom(args):
+	# frappe.msgprint("masuk get_outstanding_reference_documents_custom")
+	if isinstance(args, string_types):
+		args = json.loads(args)
+
+	if args.get('party_type') == 'Member':
+		return
+
+	# confirm that Supplier is not blocked
+	if args.get('party_type') == 'Supplier':
+		supplier_status = get_supplier_block_status(args['party'])
+		if supplier_status['on_hold']:
+			if supplier_status['hold_type'] == 'All':
+				return []
+			elif supplier_status['hold_type'] == 'Payments':
+				if not supplier_status['release_date'] or getdate(nowdate()) <= supplier_status['release_date']:
+					return []
+
+	party_account_currency = get_account_currency(args.get("party_account"))
+	company_currency = frappe.get_cached_value('Company',  args.get("company"),  "default_currency")
+
+	# Get negative outstanding sales /purchase invoices
+	negative_outstanding_invoices = []
+	if args.get("party_type") not in ["Student", "Employee"] and not args.get("voucher_no"):
+		negative_outstanding_invoices = get_negative_outstanding_invoices(args.get("party_type"), args.get("party"),
+			args.get("party_account"), args.get("company"), party_account_currency, company_currency)
+
+	# Get positive outstanding sales /purchase invoices/ Fees
+	condition = ""
+	if args.get("voucher_type") and args.get("voucher_no"):
+		condition = " and voucher_type={0} and voucher_no={1}"\
+			.format(frappe.db.escape(args["voucher_type"]), frappe.db.escape(args["voucher_no"]))
+
+	# Add cost center condition
+	if args.get("cost_center"):
+		condition += " and cost_center='%s'" % args.get("cost_center")
+
+	date_fields_dict = {
+		'posting_date': ['from_posting_date', 'to_posting_date'],
+		'due_date': ['from_due_date', 'to_due_date']
+	}
+
+	for fieldname, date_fields in date_fields_dict.items():
+		if args.get(date_fields[0]) and args.get(date_fields[1]):
+			condition += " and {0} between '{1}' and '{2}'".format(fieldname,
+				args.get(date_fields[0]), args.get(date_fields[1]))
+
+	if args.get("company"):
+		condition += " and company = {0}".format(frappe.db.escape(args.get("company")))
+
+	outstanding_invoices = get_outstanding_invoices(args.get("party_type"), args.get("party"),
+		args.get("party_account"), filters=args, condition=condition)
+
+	outstanding_invoices = split_invoices_based_on_payment_terms(outstanding_invoices)
+
+	for d in outstanding_invoices:
+		d["exchange_rate"] = 1
+		if party_account_currency != company_currency:
+			if d.voucher_type in ("Sales Invoice", "Purchase Invoice", "Expense Claim"):
+				d["exchange_rate"] = frappe.db.get_value(d.voucher_type, d.voucher_no, "conversion_rate")
+			elif d.voucher_type == "Journal Entry":
+				d["exchange_rate"] = get_exchange_rate(
+					party_account_currency,	company_currency, d.posting_date
+				)
+		if d.voucher_type in ("Purchase Invoice"):
+			d["bill_no"] = frappe.db.get_value(d.voucher_type, d.voucher_no, "bill_no")
+
+	# Get all SO / PO which are not fully billed or aginst which full advance not paid
+	orders_to_be_billed = []
+	if (args.get("party_type") != "Student"):
+		orders_to_be_billed =  get_orders_to_be_billed(args.get("posting_date"),args.get("party_type"),
+			args.get("party"), args.get("company"), party_account_currency, company_currency, filters=args)
+
+	data = negative_outstanding_invoices + outstanding_invoices + orders_to_be_billed
+
+	if not data:
+		frappe.msgprint(_("No outstanding invoices found for the {0} {1} which qualify the filters you have specified.")
+			.format(args.get("party_type").lower(), frappe.bold(args.get("party"))))
+
+	return data

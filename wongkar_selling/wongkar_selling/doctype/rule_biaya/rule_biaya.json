@@ -32,29 +32,37 @@
   {
    "fieldname": "type",
    "fieldtype": "Data",
-   "label": "Type"
+   "in_list_view": 1,
+   "label": "Type",
+   "reqd": 1
   },
   {
    "fieldname": "vendor",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Vendor",
-   "options": "Customer"
+   "options": "Supplier",
+   "reqd": 1
   },
   {
    "fieldname": "valid_from",
    "fieldtype": "Date",
-   "label": "Valid From"
+   "label": "Valid From",
+   "reqd": 1
   },
   {
    "fieldname": "valid_to",
    "fieldtype": "Date",
-   "label": "Valid To"
+   "label": "Valid To",
+   "reqd": 1
   },
   {
    "fieldname": "item_code",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Item Code",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1
   },
   {
    "fieldname": "amount",
@@ -68,10 +76,10 @@
    "options": "Account"
   },
   {
-   "fetch_from": "vendor.territory",
    "fieldname": "territory",
-   "fieldtype": "Data",
-   "label": "Territory"
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
   },
   {
    "default": "0",
@@ -82,7 +90,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-13 11:57:50.725132",
+ "modified": "2021-12-09 13:06:06.839236",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Biaya",
@@ -101,6 +109,7 @@
    "write": 1
   }
  ],
+ "search_fields": "vendor,type",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

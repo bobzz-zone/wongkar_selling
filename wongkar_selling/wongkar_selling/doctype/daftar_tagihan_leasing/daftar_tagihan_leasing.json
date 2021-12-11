@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "creation": "2021-09-14 12:14:48.794978",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "no_invoice",
+  "tanggal_inv",
+  "no_rangka",
+  "nama_promo",
+  "nilai"
+ ],
+ "fields": [
+  {
+   "fieldname": "no_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "No Invoice",
+   "options": "Sales Invoice Penjualan Motor"
+  },
+  {
+   "fieldname": "tanggal_inv",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tanggal Inv"
+  },
+  {
+   "fieldname": "no_rangka",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No Rangka"
+  },
+  {
+   "fieldname": "nama_promo",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Promo"
+  },
+  {
+   "fieldname": "nilai",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Nilai"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-11-04 14:34:46.609250",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Daftar Tagihan Leasing",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

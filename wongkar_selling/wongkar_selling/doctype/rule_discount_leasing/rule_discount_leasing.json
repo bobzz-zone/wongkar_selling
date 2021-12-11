@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "naming_series:",
+ "autoname": "field:nama_promo",
  "creation": "2021-09-13 11:37:44.770795",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -20,12 +20,14 @@
   "percent",
   "coa_expense",
   "coa_receivable",
+  "table_discount_leasing",
   "disable"
  ],
  "fields": [
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Series",
    "options": "RULE-L-.MM.-.YYYY.-.#####"
   },
@@ -38,45 +40,54 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Leasing",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "nama_promo",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Nama Promo"
+   "label": "Nama Promo",
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "valid_from",
    "fieldtype": "Date",
-   "label": "Valid From"
+   "label": "Valid From",
+   "reqd": 1
   },
   {
    "fieldname": "valid_to",
    "fieldtype": "Date",
-   "label": "Valid To"
+   "label": "Valid To",
+   "reqd": 1
   },
   {
    "fieldname": "item_code",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Item Code",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1
   },
   {
    "fetch_from": "leasing.customer_group",
    "fieldname": "customer_group",
    "fieldtype": "Data",
-   "label": "Customer Group"
+   "label": "Customer Group",
+   "read_only": 1
   },
   {
-   "fetch_from": "leasing.territory",
    "fieldname": "territory",
-   "fieldtype": "Data",
-   "label": "Territory"
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
   },
   {
    "fieldname": "discount",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Discount",
    "options": "\nAmount\nPercent"
   },
@@ -95,12 +106,14 @@
   {
    "fieldname": "coa_expense",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "COA Expense",
    "options": "Account"
   },
   {
    "fieldname": "coa_receivable",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "COA Receivable",
    "options": "Account"
   },
@@ -109,11 +122,17 @@
    "fieldname": "disable",
    "fieldtype": "Check",
    "label": "Disable"
+  },
+  {
+   "fieldname": "table_discount_leasing",
+   "fieldtype": "Table",
+   "label": "Table Discount Leasing",
+   "options": "Table Discount Leasing"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-13 11:52:40.348191",
+ "modified": "2021-12-09 13:05:45.668046",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",
@@ -132,6 +151,7 @@
    "write": 1
   }
  ],
+ "search_fields": "leasing,nama_promo",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

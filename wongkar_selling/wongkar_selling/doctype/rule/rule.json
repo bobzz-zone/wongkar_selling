@@ -38,7 +38,8 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Type"
+   "label": "Type",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_4",
@@ -65,10 +66,11 @@
    "reqd": 1
   },
   {
-   "fetch_from": "customer.territory",
    "fieldname": "territory",
-   "fieldtype": "Data",
-   "label": "Territory"
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Territory",
+   "options": "Territory"
   },
   {
    "fieldname": "discount",
@@ -91,6 +93,7 @@
   {
    "fieldname": "coa_expense",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "COA Expense",
    "options": "Account"
   },
@@ -103,14 +106,17 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fetch_from": "customer.customer_group",
    "fieldname": "customer_group",
    "fieldtype": "Data",
-   "label": "Customer Group"
+   "label": "Customer Group",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -121,7 +127,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-13 12:24:07.464675",
+ "modified": "2021-12-09 14:12:24.051404",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",
@@ -140,7 +146,7 @@
    "write": 1
   }
  ],
- "search_fields": "customer",
+ "search_fields": "customer,type",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

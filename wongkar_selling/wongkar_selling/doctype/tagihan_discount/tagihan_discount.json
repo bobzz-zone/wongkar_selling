@@ -9,9 +9,17 @@
   "naming_series",
   "section_break_2",
   "date",
+  "customer_rule",
   "customer",
+  "type",
   "territory",
-  "daftar_tagihan"
+  "coa_tagihan_discount",
+  "grand_total",
+  "daftar_tagihan",
+  "company",
+  "amended_from",
+  "base_grand_total",
+  "status"
  ],
  "fields": [
   {
@@ -25,33 +33,92 @@
    "fieldtype": "Section Break"
   },
   {
-   "default": "Today",
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "label": "Date"
-  },
-  {
    "fieldname": "customer",
    "fieldtype": "Link",
-   "label": "Customer",
-   "options": "Rule"
+   "in_list_view": 1,
+   "label": "Nama Customer",
+   "options": "Customer"
   },
   {
    "fetch_from": "customer.territory",
    "fieldname": "territory",
    "fieldtype": "Data",
-   "label": "Territory"
+   "label": "Territory",
+   "read_only": 1
   },
   {
    "fieldname": "daftar_tagihan",
    "fieldtype": "Table",
    "label": "Daftar Tagihan",
    "options": "Daftar Tagihan"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Tagihan Discount",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "label": "Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coa_tagihan_discount",
+   "fieldtype": "Link",
+   "label": "COA Tagihan Discount",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_grand_total",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "base_grand_total"
+  },
+  {
+   "fieldname": "customer_rule",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Customer Rule",
+   "options": "Rule"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2021-09-13 16:03:30.913453",
+ "modified": "2021-11-05 13:08:48.749789",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount",

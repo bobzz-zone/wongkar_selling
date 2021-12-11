@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "creation": "2021-09-18 09:36:14.776607",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "coa",
+  "nominal"
+ ],
+ "fields": [
+  {
+   "fieldname": "coa",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "COA",
+   "options": "Account"
+  },
+  {
+   "fieldname": "nominal",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Nominal"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-09-18 09:36:14.776607",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Table Disc Leasing",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

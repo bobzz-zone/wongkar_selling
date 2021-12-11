@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2021-09-14 12:54:06.430346",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "section_break_2",
+  "date",
+  "vendor",
+  "supplier",
+  "nama_vendor",
+  "type",
+  "territory",
+  "coa_biaya_motor",
+  "grand_total",
+  "tagihan_biaya_motor",
+  "amended_from",
+  "company",
+  "base_grand_total",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "Tagihan-B-.MM.-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Rule Biaya"
+  },
+  {
+   "fetch_from": "vendor.vendor",
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vendor.vendor",
+   "fieldname": "nama_vendor",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Nama Vendor",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vendor.type",
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vendor.territory",
+   "fieldname": "territory",
+   "fieldtype": "Data",
+   "label": "Territory",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coa_biaya_motor",
+   "fieldtype": "Link",
+   "label": "Coa Biaya Motor",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tagihan_biaya_motor",
+   "fieldtype": "Table",
+   "label": "Tagihan Biaya Motor",
+   "options": "Child Tagihan Biaya Motor"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Tagihan Biaya Motor",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "base_grand_total",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "base_grand_total"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2021-12-08 16:53:33.257005",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Tagihan Biaya Motor",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

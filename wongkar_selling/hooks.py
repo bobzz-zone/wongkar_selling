@@ -11,6 +11,13 @@ app_color = "w"
 app_email = "w"
 app_license = "MIT"
 
+jenv = {
+    "filters": [
+        "number2word:wongkar_selling.wongkar_selling.jinja.toTerbilang",
+        "outhari:wongkar_selling.wongkar_selling.jinja.hari"
+    ]
+}
+
 # Includes in <head>
 # ------------------
 
@@ -34,7 +41,11 @@ app_license = "MIT"
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_motor.js",
+"Tagihan Discount": "public/js/ls_tagihan_discount.js",
+"Tagihan Discount Leasing": "public/js/ls_tagihan_discount_leasing.js",
+"Pembayaran Tagihan Motor": "public/js/ls_pembayaran_tagihan_motor.js",
+"Pembayaran Credit Motor": "public/js/ls_pembayaran_credit_motor.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -91,13 +102,30 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Sales Invoice": {
+		"before_submit" : ["wongkar_selling.wongkar_selling.selling.overide_make_gl"]
+	},
+	"Payment Entry": {
+		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
+		# "after_insert" : ["wongkar_selling.wongkar_selling.pe.overide_make_pe2"]
+		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
+		"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel"],
+		"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_payment_entry.kalkulasi_tagihan"],
+		"on_cancel" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa_cancel","wongkar_selling.custom_payment_entry.kalkulasi_tagihan_cancel"]
+	}
+	# "Territory": {
+	# 	"after_insert": ["wongkar_selling.wongkar_selling.gen_wh.gen_warehouse"]
+	# }
+	# "Sales Invoice Penjualan Motor": {
+	# 	"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel"]
+	# }
+	# "*": {
+	# 	"on_update": "method",
+	# 	"on_cancel": "method",
+	# 	"on_trash": "method"
+	# }
+}
 
 # Scheduled Tasks
 # ---------------
@@ -128,10 +156,21 @@ app_license = "MIT"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "wongkar_selling.event.get_events"
-# }
+override_whitelisted_methods = {
+	#"frappe.desk.doctype.event.event.get_events": "wongkar_selling.event.get_events"
+	# "erpnext.accounts.doctype.payment_entry.payment_entry.make_payment_order": "wongkar_selling.wongkar_selling.selling.make_payment_order",
+	"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry": "wongkar_selling.wongkar_selling.selling.get_payment_entry_custom",
+	"erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents": "wongkar_selling.wongkar_selling.selling.get_outstanding_reference_documents_custom",
+	"erpnext.controllers.taxes_and_totals.calculate_totals": "wongkar_selling.wongkar_selling.override_controler.calculate_totals_custom"
+	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_reference_details": "wongkar_selling.custom_payment_entry.get_reference_details_chandra",
+	# "erpnext.accounts.doctype.payment_entry.payment_entry.set_missing_values": "wongkar_selling.wongkar_selling.selling.set_missing_values_custom",
+}
+	
+
 #
+# override_doctype_class = {
+#     'PaymentEntry': 'wongkar_selling.wongkar_selling.pe.CustomPaymentEntry'
+# }
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
