@@ -36,7 +36,7 @@ def custom_get_gl_entries(self, warehouse_account=None):
 	self.make_tax_gl_entries(gl_entries)
 	self.make_internal_transfer_gl_entries(gl_entries)
 
-	self.make_item_gl_entries(gl_entries)
+	make_item_gl_entries(self,gl_entries)
 
 	# merge gl entries before adding pos entries
 	gl_entries = merge_similar_entries(gl_entries)
@@ -79,6 +79,53 @@ def make_customer_gl_entry_custom(self, gl_entries):
 			"remarks": "coba Lutfi xxxxx!"
 		}, self.party_account_currency, item=self)
 	)
+
+def make_item_gl_entries(self, gl_entries):
+	# income account gl entries
+	for item in self.get("items"):
+		if flt(item.base_net_amount, item.precision("base_net_amount")):
+			if item.is_fixed_asset:
+				asset = frappe.get_doc("Asset", item.asset)
+
+				if (len(asset.finance_books) > 1 and not item.finance_book
+					and asset.finance_books[0].finance_book):
+					frappe.throw(_("Select finance book for the item {0} at row {1}")
+						.format(item.item_code, item.idx))
+
+				fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(asset,
+					item.base_net_amount, item.finance_book)
+
+				for gle in fixed_asset_gl_entries:
+					gle["against"] = self.customer
+					gl_entries.append(self.get_gl_dict(gle, item=item))
+
+				asset.db_set("disposal_date", self.posting_date)
+				asset.set_status("Sold" if self.docstatus==1 else None)
+			else:
+				# Do not book income for transfer within same company
+				if not self.is_internal_transfer():
+					income_account = (item.income_account
+						if (not item.enable_deferred_revenue or self.is_return) else item.deferred_revenue_account)
+
+					account_currency = get_account_currency(income_account)
+					gl_entries.append(
+						self.get_gl_dict({
+							"account": income_account,
+							"against": self.customer,
+							"credit": flt(item.base_net_amount, item.precision("base_net_amount")),
+							"credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount"))
+								if account_currency==self.company_currency
+								else flt(item.net_amount, item.precision("net_amount"))),
+							"cost_center": item.cost_center,
+							"project": item.project or self.project,
+							"remarks": "coba Lutfi xxxxx 12345!"
+						}, account_currency, item=item)
+					)
+
+	# expense account gl entries
+	if cint(self.update_stock) and \
+		erpnext.is_perpetual_inventory_enabled(self.company):
+		gl_entries += super(SalesInvoice, self).get_gl_entries()
 
 def make_disc_gl_entry_custom(self, gl_entries):
 	for d in self.get('table_discount'):

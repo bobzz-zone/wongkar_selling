@@ -1901,7 +1901,7 @@ var add_taxes_from_item_tax_template= function(item_tax_map) {
 }
 
 var get_incoming_rate= function(item, posting_date, posting_time, voucher_type, company) {
-	// frappe.msgprint("masuk get_incoming_rate")
+	frappe.msgprint("masuk get_incoming_rate")
 	let item_args = {
 		'item_code': item.item_code,
 		'warehouse': in_list('Purchase Receipt', 'Purchase Invoice') ? item.from_warehouse : item.warehouse,
@@ -2208,25 +2208,27 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 		// table biaya
 	    frappe.db.get_list('Rule Biaya',{ filters: { 'item_code':  cur_frm.doc.item_code,'territory': cur_frm.doc.territory_real,'disable': 0}, fields: ['*']})
 		.then(data => {
-	        //console.log(data)
+	        console.log(data,"data")
 	        cur_frm.clear_table("tabel_biaya_motor");
 	        cur_frm.refresh_field("tabel_biaya_motor");    
 
 	        if(data.length > 0){
-	        	var child_b = cur_frm.add_child("tabel_biaya_motor");
+	        	
 		        for (let i = 0; i < data.length; i++) {
 					if (data[i].valid_from <= today && data[i].valid_to >= today){
+						var child_b = cur_frm.add_child("tabel_biaya_motor");
 						frappe.model.set_value(child_b.doctype, child_b.name, "rule", data[i].name);
 				        frappe.model.set_value(child_b.doctype, child_b.name, "vendor", data[i].vendor);
 				        frappe.model.set_value(child_b.doctype, child_b.name, "type", data[i].type);
 				        frappe.model.set_value(child_b.doctype, child_b.name, "amount", data[i].amount);
-			            frappe.model.set_value(child_b.doctype, child_b.name, "coa", data[i].coa);	     
+			            frappe.model.set_value(child_b.doctype, child_b.name, "coa", data[i].coa);
+			            cur_frm.refresh_field("tabel_biaya_motor");	     
 					}else{
 						frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
 					}
 				}
-				cur_frm.refresh_field("tabel_biaya_motor");
-				frappe.msgprint("tabel_biaya_motor2 !!")
+				
+				//frappe.msgprint("tabel_biaya_motor2 !!")
 				let sum = 0;
 				let sum2=0
 			
@@ -2243,6 +2245,7 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 				console.log(akhir, "akhir")
 
 				// table item
+				
 				cur_frm.clear_table("items");
 				cur_frm.refresh_field("items");
 				var child_i = cur_frm.add_child("items");
@@ -2266,6 +2269,13 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 					frappe.model.set_value(child_i.doctype, child_i.name, "uom", data.message.stock_uom);
 			    });
 			    frappe.model.set_value(child_i.doctype, child_i.name, "stock_qty", 1)
+			    frappe.model.set_value(child_i.doctype, child_i.name, "incoming_rate", 4000000);
+			    //frappe.model.set_value(child_i.doctype, child_i.name, "expense_account", "4210.000 - HPP Pembelian - DAS")
+
+			    /*frappe.db.get_value("Bin", {"item_code": cur_frm.doc.item_code,"warehouse":cur_frm.doc.set_warehouse}, "valuation_rate")
+				.then(data => { 
+					frappe.model.set_value(child_i.doctype, child_i.name, "incoming_rate", data.message.valuation_rate);
+			    });*/
 				frappe.db.get_value("Company", {"name": cur_frm.doc.company}, "default_income_account")
 				.then(data => { 
 					frappe.model.set_value(child_i.doctype, child_i.name, "income_account", data.message.default_income_account);
@@ -2312,6 +2322,8 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 				.then(data => { 
 					frappe.model.set_value(child_i2.doctype, child_i2.name, "income_account", data.message.default_income_account);
 			    });
+			    frappe.model.set_value(child_i2.doctype, child_i2.name, "incoming_rate", 4000000)
+			    //frappe.model.set_value(child_i2.doctype, child_i2.name, "expense_account", "4210.000 - HPP Pembelian - DAS")
 		    }
 		});
 

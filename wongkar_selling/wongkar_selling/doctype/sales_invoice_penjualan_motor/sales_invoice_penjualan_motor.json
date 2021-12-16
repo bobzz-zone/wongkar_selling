@@ -1177,6 +1177,7 @@
    "print_hide": 1
   },
   {
+   "depends_on": "eval:!doc.grand_total",
    "fieldname": "base_grand_total",
    "fieldtype": "Currency",
    "hide_days": 1,
@@ -2201,7 +2202,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-10 10:39:34.021135",
+ "modified": "2021-12-15 11:46:12.486527",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

@@ -38,7 +38,9 @@ from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_a
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 from erpnext.utilities.transaction_base import validate_uom_is_integer
 from erpnext.accounts.utils import get_fiscal_year, check_if_stock_and_account_balance_synced
-
+from erpnext.stock import get_warehouse_account_map
+from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries, process_gl_map
+from erpnext.stock.stock_ledger import get_valuation_rate
 
 
 form_grid_templates = {
@@ -1376,6 +1378,7 @@ class SalesInvoicePenjualanMotor(Document):
 		self.make_disc_gl_entry_custom_leasing(gl_entries)
 		self.make_biaya_gl_entry_custom(gl_entries)
 		self.make_adj_disc_gl_entry(gl_entries)
+		# self.make_cogs_entry_credit(gl_entries)
 		# self.make_disc_gl_entry_lawan_custom(gl_entries)
 
 		self.make_tax_gl_entries(gl_entries)
@@ -1394,6 +1397,29 @@ class SalesInvoicePenjualanMotor(Document):
 		self.make_gle_for_rounding_adjustment(gl_entries)
 
 		return gl_entries
+
+	def make_cogs_entry_credit(self, gl_entries):
+		wh_account = frappe.get_value("Company",{"name" : self.company}, "default_inventory_account")
+		expense_account = frappe.get_value("Company",{"name" : self.company}, "default_expense_account")
+		cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+		gl_entries.append(self.get_gl_dict({
+			"account": wh_account,
+			"against": expense_account,
+			"cost_center": cost_center,
+			"remarks": "tes r 123",
+			"debit": flt(4000000,2),
+			"is_opening": "No",
+		}, self.party_account_currency, item=self))
+
+		gl_entries.append(self.get_gl_dict({
+			"account": expense_account,
+			"against": wh_account,
+			"cost_center": cost_center,
+			#"project": item_row.project or self.get('project'),
+			"remarks": "tes r 321",
+			"credit": flt(4000000,2),
+			"is_opening":  "No"
+		}, item=self))
 
 	def make_customer_gl_entry(self, gl_entries):
 		# # Checked both rounding_adjustment and rounded_total
@@ -1648,11 +1674,170 @@ class SalesInvoicePenjualanMotor(Document):
 					)
 
 		# expense account gl entries
-		# if cint(self.update_stock) and \
-		# 	erpnext.is_perpetual_inventory_enabled(self.company):
-		# 	# gl_entries += super(SalesInvoicePenjualanMotor, self).get_gl_entries()
-		# 	self.get_gl_entries()
+		if cint(self.update_stock) and \
+			erpnext.is_perpetual_inventory_enabled(self.company):
+			# gl_entries += super(SalesInvoice, self).get_gl_entries()
+			self.get_gl_entries_stock()
 
+	# jurnal stock
+	def get_gl_entries_stock(self, warehouse_account=None, default_expense_account=None,
+			default_cost_center=None):
+
+		if not warehouse_account:
+			warehouse_account = get_warehouse_account_map(self.company)
+			# frappe.throw(str(warehouse_account))
+
+		sle_map = self.get_stock_ledger_details()
+		voucher_details = self.get_voucher_details(default_expense_account, default_cost_center, sle_map)
+
+		gl_list = []
+		warehouse_with_no_account = []
+		precision = self.get_debit_field_precision()
+		for item_row in voucher_details:
+
+			sle_list = sle_map.get(item_row.name)
+			if sle_list:
+				# frappe.throw(str(sle_list))
+				for sle in sle_list:
+					if warehouse_account.get(sle.warehouse):
+						# from warehouse account
+
+						self.check_expense_account(item_row)
+
+						# If the item does not have the allow zero valuation rate flag set
+						# and ( valuation rate not mentioned in an incoming entry
+						# or incoming entry not found while delivering the item),
+						# try to pick valuation rate from previous sle or Item master and update in SLE
+						# Otherwise, throw an exception
+
+						if not sle.stock_value_difference and self.doctype != "Stock Reconciliation" \
+							and not item_row.get("allow_zero_valuation_rate"):
+
+							sle = self.update_stock_ledger_entries(sle)
+							frappe.throw(str(sle))
+						# expense account/ target_warehouse / source_warehouse
+						if item_row.get('target_warehouse'):
+							warehouse = item_row.get('target_warehouse')
+							expense_account = warehouse_account[warehouse]["account"]
+						else:
+							expense_account = item_row.expense_account
+
+						gl_list.append(self.get_gl_dict({
+							"account": warehouse_account[sle.warehouse]["account"],
+							"against": expense_account,
+							"cost_center": item_row.cost_center,
+							"project": item_row.project or self.get('project'),
+							"remarks": self.get("remarks") or "Accounting Entry for Stock",
+							"debit": flt(sle.stock_value_difference, precision),
+							"is_opening": item_row.get("is_opening") or self.get("is_opening") or "No",
+						}, warehouse_account[sle.warehouse]["account_currency"], item=item_row))
+
+						gl_list.append(self.get_gl_dict({
+							"account": expense_account,
+							"against": warehouse_account[sle.warehouse]["account"],
+							"cost_center": item_row.cost_center,
+							"project": item_row.project or self.get('project'),
+							"remarks": self.get("remarks") or "Accounting Entry for Stock",
+							"credit": flt(sle.stock_value_difference, precision),
+							"project": item_row.get("project") or self.get("project"),
+							"is_opening": item_row.get("is_opening") or self.get("is_opening") or "No"
+						}, item=item_row))
+						frappe.msgprint(str(gl_list))
+					elif sle.warehouse not in warehouse_with_no_account:
+						warehouse_with_no_account.append(sle.warehouse)
+
+		if warehouse_with_no_account:
+			for wh in warehouse_with_no_account:
+				if frappe.db.get_value("Warehouse", wh, "company"):
+					frappe.throw(_("Warehouse {0} is not linked to any account, please mention the account in the warehouse record or set default inventory account in company {1}.").format(wh, self.company))
+
+		return process_gl_map(gl_list, precision=precision)
+
+	def get_stock_ledger_details(self):
+		stock_ledger = {}
+		stock_ledger_entries = frappe.db.sql("""
+			select
+				name, warehouse, stock_value_difference, valuation_rate,
+				voucher_detail_no, item_code, posting_date, posting_time,
+				actual_qty, qty_after_transaction
+			from
+				`tabStock Ledger Entry`
+			where
+				voucher_type=%s and voucher_no=%s
+		""", (self.doctype, self.name), as_dict=True)
+
+		for sle in stock_ledger_entries:
+			stock_ledger.setdefault(sle.voucher_detail_no, []).append(sle)
+		return stock_ledger
+
+	def get_voucher_details(self, default_expense_account, default_cost_center, sle_map):
+		if self.doctype == "Stock Reconciliation":
+			reconciliation_purpose = frappe.db.get_value(self.doctype, self.name, "purpose")
+			is_opening = "Yes" if reconciliation_purpose == "Opening Stock" else "No"
+			details = []
+			for voucher_detail_no in sle_map:
+				details.append(frappe._dict({
+					"name": voucher_detail_no,
+					"expense_account": default_expense_account,
+					"cost_center": default_cost_center,
+					"is_opening": is_opening
+				}))
+			return details
+		else:
+			details = self.get("items")
+
+			if default_expense_account or default_cost_center:
+				for d in details:
+					if default_expense_account and not d.get("expense_account"):
+						d.expense_account = default_expense_account
+					if default_cost_center and not d.get("cost_center"):
+						d.cost_center = default_cost_center
+
+			return details
+
+	def get_debit_field_precision(self):
+		if not frappe.flags.debit_field_precision:
+			frappe.flags.debit_field_precision = frappe.get_precision("GL Entry", "debit_in_account_currency")
+
+		return frappe.flags.debit_field_precision
+
+	def check_expense_account(self, item):
+		if not item.get("expense_account"):
+			msg = _("Please set an Expense Account in the Items table")
+			frappe.throw(_("Row #{0}: Expense Account not set for the Item {1}. {2}")
+				.format(item.idx, frappe.bold(item.item_code), msg), title=_("Expense Account Missing"))
+
+		else:
+			is_expense_account = frappe.get_cached_value("Account",
+				item.get("expense_account"), "report_type")=="Profit and Loss"
+			if self.doctype not in ("Purchase Receipt", "Purchase Invoice", "Stock Reconciliation", "Stock Entry") and not is_expense_account:
+				frappe.throw(_("Expense / Difference account ({0}) must be a 'Profit or Loss' account")
+					.format(item.get("expense_account")))
+			if is_expense_account and not item.get("cost_center"):
+				frappe.throw(_("{0} {1}: Cost Center is mandatory for Item {2}").format(
+					_(self.doctype), self.name, item.get("item_code")))
+
+	def update_stock_ledger_entries(self, sle):
+		sle.valuation_rate = get_valuation_rate(sle.item_code, sle.warehouse,
+			self.doctype, self.name, currency=self.company_currency, company=self.company)
+
+		sle.stock_value = flt(sle.qty_after_transaction) * flt(sle.valuation_rate)
+		sle.stock_value_difference = flt(sle.actual_qty) * flt(sle.valuation_rate)
+
+		if sle.name:
+			frappe.db.sql("""
+				update
+					`tabStock Ledger Entry`
+				set
+					stock_value = %(stock_value)s,
+					valuation_rate = %(valuation_rate)s,
+					stock_value_difference = %(stock_value_difference)s
+				where
+					name = %(name)s""", (sle))
+
+		return sle
+
+	# akhir
 	def make_loyalty_point_redemption_gle(self, gl_entries):
 		if cint(self.redeem_loyalty_points):
 			gl_entries.append(
