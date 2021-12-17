@@ -75,6 +75,7 @@
   "cb_sinvm0",
   "no_po_leasing",
   "po_attch",
+  "nama_diskon",
   "tertagih",
   "sb_tb_disc_section",
   "table_discount",
@@ -2199,6 +2200,12 @@
    "fieldtype": "Link",
    "label": "Territory Biaya",
    "options": "Territory"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "nama_diskon",
+   "fieldtype": "Select",
+   "label": "Nama Diskon"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2210,7 +2217,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-17 15:17:03.368355",
+ "modified": "2021-12-17 16:31:02.747050",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

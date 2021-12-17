@@ -2829,6 +2829,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			calculate_total_advance();
 		}*/
 		//calculate_total_advance();
+		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
+		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
 		cur_frm.set_query("nama_promo", function() {
 			return {
 				filters: {
