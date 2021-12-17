@@ -3,6 +3,7 @@
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-22 10:00:58.661177",
+ "description": "-",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -30,6 +31,7 @@
   "set_posting_time",
   "due_date",
   "territory_real",
+  "territory_biaya",
   "return_against",
   "accounting_dimensions_section",
   "project",
@@ -675,6 +677,7 @@
    "reqd": 1
   },
   {
+   "fetch_from": "selling_price_list.currency",
    "fieldname": "price_list_currency",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -1177,7 +1180,6 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:!doc.grand_total",
    "fieldname": "base_grand_total",
    "fieldtype": "Currency",
    "hide_days": 1,
@@ -1769,11 +1771,13 @@
   },
   {
    "fetch_from": "company.default_receivable_account",
+   "fetch_if_empty": 1,
    "fieldname": "debit_to",
    "fieldtype": "Link",
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Debit To",
+   "length": 140,
    "oldfieldname": "debit_to",
    "oldfieldtype": "Link",
    "options": "Account",
@@ -2080,6 +2084,7 @@
    "fieldtype": "Table",
    "label": "Table Discount",
    "options": "Table Discount",
+   "permlevel": 2,
    "read_only": 1
   },
   {
@@ -2191,6 +2196,12 @@
    "fieldtype": "Link",
    "label": "Territory Real",
    "options": "Territory"
+  },
+  {
+   "fieldname": "territory_biaya",
+   "fieldtype": "Link",
+   "label": "Territory Biaya",
+   "options": "Territory"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2202,7 +2213,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-15 11:46:12.486527",
+ "modified": "2021-12-17 10:47:16.370515",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

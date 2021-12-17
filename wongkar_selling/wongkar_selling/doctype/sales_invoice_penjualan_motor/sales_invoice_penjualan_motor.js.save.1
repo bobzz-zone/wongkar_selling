@@ -260,7 +260,6 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		erpnext.queries.setup_warehouse_query(cur_frm);
 		erpnext.accounts.dimensions.setup_dimension_filters(cur_frm, cur_frm.doctype);
 		cur_frm.redemption_conversion_factor = null;
-		
 	},
 	refresh: function(doc, dt, dn) {
 		const me = this;
@@ -459,7 +458,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 	},
 	debit_to: function(frm) {
 		var me = this;
-		/*if(cur_frm.doc.debit_to) {
+		if(cur_frm.doc.debit_to) {
 			frappe.call({
 				method: "frappe.client.get_value",
 				args: {
@@ -474,8 +473,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 					}
 				}
 			});
-		}*/
-		frm.set_value("party_account_currency", "IDR");
+		}
 	},
 	allocated_amount: function() {
 		calculate_total_advance();
@@ -578,6 +576,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		}
 		let oa =0
 		oa = (cur_frm.doc.harga - td - tdl) + cur_frm.doc.adj_discount
+		// frappe.msgprint("masuk siniiii")
 		frm.set_value("total_discoun_leasing",tdl)
 		/*frm.set_value("base_rounded_total", oa);
 		frm.set_value("rounded_total", oa);
@@ -2907,13 +2906,12 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		}else{
 			cur_frm.set_value("set_warehouse",cur_frm.doc.territory+" - "+cur_frm.doc.company)
 		}*/
-		//bobby
-		if (!frm.doc.cost_center){
-			frappe.db.get_value("Company", {"name": cur_frm.doc.company}, "round_off_cost_center")
-			.then(data => { 
-				frm.set_value("cost_center", data.message.round_off_cost_center);
-			});
-		}
+		
+		frappe.db.get_value("Company", {"name": cur_frm.doc.company}, "round_off_cost_center")
+		.then(data => { 
+			frm.set_value("cost_center", data.message.round_off_cost_center);
+		});
+
 		if (cur_frm.doc.project) {
 			cur_frm.add_custom_button(__('Fetch Timesheet'), function() {
 				let d = new frappe.ui.Dialog({
