@@ -12,7 +12,7 @@ import datetime
 
 class Rule(Document):
 	def validate(self):
-		frappe.msgprint("validate")
+		# frappe.msgprint("validate")
 		today = date.today()
 		if self.discount:
 			if self.discount == "Amount":
@@ -49,7 +49,7 @@ class Rule(Document):
 
 
 	def before_insert(self):
-		frappe.msgprint("before_insert")
+		# frappe.msgprint("before_insert")
 
 		cek = frappe.db.get_value("Rule",{"item_code": self.item_code,"type": self.type,"territory": self.territory}, "item_code")
 		if cek:

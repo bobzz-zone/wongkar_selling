@@ -8,14 +8,15 @@ from frappe.model.document import Document
 
 class RuleDiscountLeasing(Document):
 	def before_insert(self):
-		frappe.msgprint("before_insert")
+		# frappe.msgprint("before_insert")
 
 		cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory}, "item_code")
 		if cek:
 			frappe.throw("Disconut Item "+cek+" sudah ada !")
 
 	def validate(self):
-		frappe.msgprint("validate")
+		pass
+		# frappe.msgprint("validate")
 		# if self.discount:
 		# 	if self.discount == "Amount":
 		# 		if not self.amount:

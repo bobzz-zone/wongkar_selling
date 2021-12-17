@@ -1346,7 +1346,7 @@ class SalesInvoicePenjualanMotor(Document):
 		auto_accounting_for_stock = erpnext.is_perpetual_inventory_enabled(self.company)
 		if not gl_entries:
 			gl_entries = self.get_gl_entries()
-
+			#frappe.throw(str(gl_entries))
 		if gl_entries:
 			# if POS and amount is written off, updating outstanding amt after posting all gl entries
 			update_outstanding = "No" if (cint(self.is_pos) or self.write_off_account or
@@ -1676,7 +1676,7 @@ class SalesInvoicePenjualanMotor(Document):
 		if cint(self.update_stock) and \
 			erpnext.is_perpetual_inventory_enabled(self.company):
 			# gl_entries += super(SalesInvoice, self).get_gl_entries()
-			self.get_gl_entries_stock()
+			gl_entries += self.get_gl_entries_stock()
 
 	# jurnal stock
 	def get_gl_entries_stock(self, warehouse_account=None, default_expense_account=None,
@@ -1713,7 +1713,7 @@ class SalesInvoicePenjualanMotor(Document):
 							and not item_row.get("allow_zero_valuation_rate"):
 
 							sle = self.update_stock_ledger_entries(sle)
-							frappe.throw(str(sle))
+							# frappe.throw(str(sle))
 						# expense account/ target_warehouse / source_warehouse
 						if item_row.get('target_warehouse'):
 							warehouse = item_row.get('target_warehouse')
@@ -1741,7 +1741,7 @@ class SalesInvoicePenjualanMotor(Document):
 							"project": item_row.get("project") or self.get("project"),
 							"is_opening": item_row.get("is_opening") or self.get("is_opening") or "No"
 						}, item=item_row))
-						frappe.msgprint(str(gl_list))
+						# frappe.msgprint(str(gl_list))
 					elif sle.warehouse not in warehouse_with_no_account:
 						warehouse_with_no_account.append(sle.warehouse)
 
@@ -3076,3 +3076,13 @@ def create_dunning(source_name, target_doc=None):
 		}
 	}, target_doc, set_missing_values)
 	return doclist
+
+@frappe.whitelist()
+def debug_submit():
+	doc = frappe.get_doc('Sales Invoice Penjualan Motor','ACC-SINVM-2021-00112')
+	doc.submit()
+
+@frappe.whitelist()
+def debug_repost():
+	from erpnext.stock.stock_balance import repost
+	repost()
