@@ -30,6 +30,7 @@
   "set_posting_time",
   "due_date",
   "territory_real",
+  "territory_biaya",
   "return_against",
   "accounting_dimensions_section",
   "project",
@@ -2192,6 +2193,12 @@
    "fieldtype": "Link",
    "label": "Territory Real",
    "options": "Territory"
+  },
+  {
+   "fieldname": "territory_biaya",
+   "fieldtype": "Link",
+   "label": "Territory Biaya",
+   "options": "Territory"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2203,7 +2210,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-16 13:42:53.556017",
+ "modified": "2021-12-17 13:16:42.803879",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

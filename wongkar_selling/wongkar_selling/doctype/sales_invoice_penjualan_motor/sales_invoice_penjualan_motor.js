@@ -2221,7 +2221,7 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 		});
     
 		// table biaya
-	    frappe.db.get_list('Rule Biaya',{ filters: { 'item_code':  cur_frm.doc.item_code,'territory': cur_frm.doc.territory_real,'disable': 0}, fields: ['*']})
+	    frappe.db.get_list('Rule Biaya',{ filters: { 'item_code':  cur_frm.doc.item_code,'territory': cur_frm.doc.territory_biaya,'disable': 0}, fields: ['*']})
 		.then(data => {
 	        console.log(data,"data")
 	        cur_frm.clear_table("tabel_biaya_motor");
