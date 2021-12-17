@@ -2187,6 +2187,7 @@
    "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
   },
   {
+   "fetch_if_empty": 1,
    "fieldname": "territory_real",
    "fieldtype": "Link",
    "label": "Territory Real",
@@ -2202,7 +2203,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-15 11:46:12.486527",
+ "modified": "2021-12-16 13:42:53.556017",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
