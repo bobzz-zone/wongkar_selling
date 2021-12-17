@@ -26,8 +26,8 @@ def get_invd(customer):
 	return data
 
 @frappe.whitelist()
-def get_invd_l(leasing,customer):
-	data = frappe.db.get_list('Sales Invoice Penjualan Motor',filters={'nama_promo':  leasing,'cara_bayar': 'Credit',"docstatus": ["=",1],"tertagih": 0,'nama_leasing': customer},fields=['*'])
+def get_invd_l(customer):
+	data = frappe.db.get_list('Sales Invoice Penjualan Motor',filters={'cara_bayar': 'Credit',"docstatus": ["=",1],"tertagih": 0,'nama_leasing': customer},fields=['*'])
 
 	return data
 

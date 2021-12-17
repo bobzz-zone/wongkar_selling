@@ -51,16 +51,17 @@ var get_method_for_payment= function(){
 }
 
 // asli
-frappe.ui.form.on("Tagihan Discount Leasing", "leasing", function(frm) {
+frappe.ui.form.on("Tagihan Discount Leasing", "customer", function(frm) {
     // coba = cur_frm.doc.nama_leasing
-    if(cur_frm.doc.leasing){
+    if(cur_frm.doc.customer){
     	frappe.call({
              method: "wongkar_selling.wongkar_selling.get_invoice.get_invd_l",
              args: {
-                leasing: cur_frm.doc.leasing,
+                //leasing: cur_frm.doc.leasing,
                 customer: cur_frm.doc.customer
              },
              callback: function(data) {
+             		//console.log(data)
 					cur_frm.clear_table("daftar_tagihan_leasing");
 		        	cur_frm.refresh_fields();
 					for (let i = 0; i < data.message.length; i++) {
@@ -76,12 +77,12 @@ frappe.ui.form.on("Tagihan Discount Leasing", "leasing", function(frm) {
 	         }
         });
     }
-    if(!cur_frm.doc.leasing){
+    if(!cur_frm.doc.customer){
 		cur_frm.clear_table("daftar_tagihan_leasing");
-		frm.set_value("name_leasing",""); 
-		frm.set_value("customer",""); 
-    	frm.set_value("nama_promo","");
-    	frm.set_value("territory","");
+		//frm.set_value("name_leasing",""); 
+		//frm.set_value("customer",""); 
+    	//frm.set_value("nama_promo","");
+    	//frm.set_value("territory","");
         cur_frm.refresh_fields("daftar_tagihan_leasing");
     }
 });
