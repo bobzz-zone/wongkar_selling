@@ -1,0 +1,60 @@
+{
+ "cards_label": "Rule",
+ "category": "Modules",
+ "charts": [],
+ "creation": "2021-12-11 16:33:16.333448",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "extends_another_page": 0,
+ "hide_custom": 0,
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "label": "Penjualan Motor",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Discount Rule",
+   "link_to": "Rule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Biaya Rule",
+   "link_to": "Rule Biaya",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Leasing Rule",
+   "link_to": "Rule Discount Leasing",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2021-12-14 14:20:53.938412",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Penjualan Motor",
+ "owner": "bobzz.zone@gmail.com",
+ "pin_to_bottom": 0,
+ "pin_to_top": 1,
+ "shortcuts": [
+  {
+   "doc_view": "List",
+   "label": "Sales Invoice Penjualan Motor",
+   "link_to": "Sales Invoice Penjualan Motor",
+   "type": "DocType"
+  }
+ ]
+}

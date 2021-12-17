@@ -458,7 +458,7 @@ class SalesInvoicePenjualanMotor(Document):
 		res = journal_entries + payment_entries
 
 		return res
-
+	@frappe.whitelist()
 	def set_advances(self):
 		"""Returns list of advances against Account, Party, Reference"""
 
@@ -623,13 +623,13 @@ class SalesInvoicePenjualanMotor(Document):
 		# super(SalesInvoicePenjualanMotor, self).validate()
 		# self.validate_auto_set_posting_time()
 
-		if not self.is_pos:
-			self.so_dn_required()
+		#if not self.is_pos:
+		#	self.so_dn_required()
 		
 		# self.set_tax_withholding()
 
-		self.validate_proj_cust()
-		self.validate_pos_return()
+		#self.validate_proj_cust()
+		#self.validate_pos_return()
 		# self.validate_with_previous_doc()
 		# self.validate_uom_is_integer("stock_uom", "stock_qty")
 		# self.validate_uom_is_integer("uom", "qty")
@@ -639,8 +639,8 @@ class SalesInvoicePenjualanMotor(Document):
 		self.add_remarks()
 		self.validate_write_off_account()
 		self.validate_account_for_change_amount()
-		self.validate_fixed_asset()
-		self.set_income_account_for_fixed_assets()
+		#self.validate_fixed_asset()
+		#self.set_income_account_for_fixed_assets()
 		self.validate_item_cost_centers()
 		validate_inter_company_party(self.doctype, self.customer, self.company, self.inter_company_invoice_reference)
 
@@ -670,13 +670,13 @@ class SalesInvoicePenjualanMotor(Document):
 
 		self.set_against_income_account()
 		self.validate_c_form()
-		self.validate_time_sheets_are_submitted()
+		#self.validate_time_sheets_are_submitted()
 		# self.validate_multiple_billing("Delivery Note", "dn_detail", "amount", "items")
 		if not self.is_return:
 			self.validate_serial_numbers()
-		self.update_packing_list()
-		self.set_billing_hours_and_amount()
-		self.update_timesheet_billing_for_project()
+		#self.update_packing_list()
+		#self.set_billing_hours_and_amount()
+		#self.update_timesheet_billing_for_project()
 		self.set_status()
 		if self.is_pos and not self.is_return:
 			self.verify_payment_amount_is_positive()
@@ -685,9 +685,8 @@ class SalesInvoicePenjualanMotor(Document):
 		if self.is_pos and self.is_return:
 			self.verify_payment_amount_is_negative()
 
-		if self.redeem_loyalty_points and self.loyalty_program and self.loyalty_points and not self.is_consolidated:
-			validate_loyalty_points(self, self.loyalty_points)
-
+		#if self.redeem_loyalty_points and self.loyalty_program and self.loyalty_points and not self.is_consolidated:
+		#	validate_loyalty_points(self, self.loyalty_points)
 	def validate_fixed_asset(self):
 		for d in self.get("items"):
 			if d.is_fixed_asset and d.meta.get_field("asset") and d.asset:
