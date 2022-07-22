@@ -6,7 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "coa",
-  "nominal"
+  "nama_leasing",
+  "nominal",
+  "tertagih"
  ],
  "fields": [
   {
@@ -21,12 +23,25 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Nominal"
+  },
+  {
+   "fieldname": "nama_leasing",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Nama Leasing",
+   "options": "Customer"
+  },
+  {
+   "default": "0",
+   "fieldname": "tertagih",
+   "fieldtype": "Check",
+   "label": "Tertagih"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-09-18 09:36:14.776607",
+ "modified": "2022-02-02 09:50:52.486521",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Table Disc Leasing",

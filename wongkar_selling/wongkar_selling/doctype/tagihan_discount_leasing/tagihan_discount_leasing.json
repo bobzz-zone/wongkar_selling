@@ -16,6 +16,7 @@
   "territory",
   "coa_tagihan_discount_leasing",
   "grand_total",
+  "outstanding_amount",
   "daftar_tagihan_leasing",
   "amended_from",
   "company",
@@ -124,12 +125,18 @@
    "hidden": 1,
    "label": "Status",
    "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "outstanding_amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-12-17 15:23:22.150965",
+ "modified": "2021-12-23 16:22:24.410284",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount Leasing",

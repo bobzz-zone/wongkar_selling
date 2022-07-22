@@ -10,12 +10,20 @@ class RuleDiscountLeasing(Document):
 	def before_insert(self):
 		# frappe.msgprint("before_insert")
 
-		cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory}, "item_code")
+		cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,
+			"leasing": self.leasing,"valid_from":self.valid_from,"valid_to":self.valid_to}, "name")
 		if cek:
 			frappe.throw("Disconut Item "+cek+" sudah ada !")
 
 	def validate(self):
-		pass
+		cek = frappe.db.sql("""select name from `tabRule Discount Leasing` where disable=0 and valid_from>"{}" and valid_to>"{}" and item_code="{}" and nama_promo="{}" and territory="{}" and leasing="{}"
+                        """.format(self.valid_from,self.valid_from,self.item_code,self.nama_promo,self.territory,self.leasing),as_list=1)
+		if cek and len(cek)>0:
+			frappe.msgprint("Error Sudah ada Rule yang lebih baru")
+			self.disable=1
+		else:
+			frappe.db.sql("""update `tabRule Discount Leasing` set disable=1 where disable=0 and valid_from<"{}" and valid_to>"{}" and item_code="{}" and nama_promo="{}" and territory="{}" and leasing="{}"
+                                """.format(self.valid_from,self.valid_from,self.item_code,self.nama_promo,self.territory,self.leasing),as_list=1)
 		# frappe.msgprint("validate")
 		# if self.discount:
 		# 	if self.discount == "Amount":

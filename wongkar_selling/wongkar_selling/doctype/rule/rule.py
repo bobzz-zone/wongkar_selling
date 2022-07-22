@@ -29,7 +29,15 @@ class Rule(Document):
 
 		if not self.coa_receivable:
 			frappe.throw("Pilih Akun terlebih dahulu")
-
+		#check kalo ada yang lbh future start date nya
+		cek = frappe.db.sql("""select name from `tabRule` where disable=0 and valid_from>"{}" and valid_to>"{}" and item_code="{}" and category_discount="{}" and territory="{}" and customer="{}"
+                        """.format(self.valid_from,self.valid_from,self.item_code,self.category_discount,self.territory,self.customer),as_list=1)
+		if cek and len(cek)>0:
+			frappe.msgprint("Error Sudah ada Rule yang lebih baru")
+			self.disable=1
+		else:
+			frappe.db.sql("""update `tabRule` set disable=1 where disable=0 and valid_from<"{}" and valid_to>"{}" and item_code="{}" and category_discount="{}" and territory="{}" and customer="{}"
+                                """.format(self.valid_from,self.valid_from,self.item_code,self.category_discount,self.territory,self.customer),as_list=1)
 		# if self.valid_from >= self.valid_to:
 		# 	frappe.throw("Tanggal valid from harus lebih dari Valid to")
 
@@ -51,10 +59,16 @@ class Rule(Document):
 	def before_insert(self):
 		# frappe.msgprint("before_insert")
 
-		cek = frappe.db.get_value("Rule",{"item_code": self.item_code,"type": self.type,"territory": self.territory}, "item_code")
+		cek = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,
+			"customer":self.customer,"valid_to":self.valid_to}, "name")
 		if cek:
 			frappe.throw("Disconut Item "+cek+" sudah ada !")
-		
+
+#		cek2 = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,
+#			"customer":self.customer,"valid_to":self.valid_to}, "name")
+#		if cek2:
+#			frappe.throw("Disconut Item "+cek+" sudah ada !")
+
 		# if self.type == "Leasing" and self.besar_dp == "":
 		# 	frappe.throw("Masukkan besar DP !")
 		# if self.type == "Leasing" and self.tenor == "":

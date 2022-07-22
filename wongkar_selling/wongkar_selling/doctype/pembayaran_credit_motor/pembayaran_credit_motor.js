@@ -12,10 +12,11 @@ frappe.ui.form.on('Pembayaran Credit Motor', {
 		//frm.set_value('total',total)
 		frm.set_value('grand_total',total)
 		frm.set_value('base_grand_total',total)
+		frm.set_value('outstanding_amount',total)
 	},
 	refresh: function(frm){
 		show_general_ledger();
-		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.grand_total!=0) {
+		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
 			cur_frm.add_custom_button(__('Payment'),
 				make_payment_entry, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
@@ -40,7 +41,8 @@ var make_payment_entry= function() {
 }
 
 var get_method_for_payment= function(){
-	var method = "erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
+	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom"; 
+	// "erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
 	if(cur_frm.doc.__onload && cur_frm.doc.__onload.make_payment_via_journal_entry){
 		if(in_list(['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor','Pembayaran Credit Motor'],  cur_frm.doc.doctype)){
 			method = "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_invoice";
@@ -53,14 +55,14 @@ var get_method_for_payment= function(){
 }
 
 //asli
-frappe.ui.form.on("Pembayaran Credit Motor", "leasing", function(frm) {
+frappe.ui.form.on("Pembayaran Credit Motor", "customer", function(frm) {
     // coba = cur_frm.doc.nama_leasing
-    if(cur_frm.doc.leasing){
+    if(cur_frm.doc.customer){
     	frappe.call({
              method: "wongkar_selling.wongkar_selling.get_invoice.get_invc",
              args: {
-                leasing: cur_frm.doc.name_leasing,
-                nama_promo: cur_frm.doc.nama_promo
+                leasing: cur_frm.doc.customer
+                //nama_promo: cur_frm.doc.nama_promo
              },
              callback: function(data) {
 					cur_frm.clear_table("daftar_credit_motor");
@@ -71,14 +73,17 @@ frappe.ui.form.on("Pembayaran Credit Motor", "leasing", function(frm) {
 				        frappe.model.set_value(child.doctype, child.name, "no_invoice", data.message[i].name);
 				        frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
 				        frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
-				        frappe.model.set_value(child.doctype, child.name, "nama_promo", data.message[i].nama_promo);
-						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].outstanding_amount);         
+				        //frappe.model.set_value(child.doctype, child.name, "nama_promo", data.message[i].nama_promo);
+						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].grand_total);
+						frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].grand_total);
+						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
+						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);        
 					}
 					cur_frm.refresh_field("daftar_credit_motor");
 	         }
         });
     }
-    if(!cur_frm.doc.leasing){
+    if(!cur_frm.doc.customer){
 		cur_frm.clear_table("daftar_credit_motor");
 		frm.set_value("name_leasing",""); 
     	frm.set_value("nama_promo","");

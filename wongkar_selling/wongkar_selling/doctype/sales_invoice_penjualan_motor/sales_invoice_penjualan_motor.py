@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 # import frappe
-from __future__ import unicode_literals
 import frappe, erpnext
 import frappe.defaults
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
@@ -30,7 +29,9 @@ from frappe.contacts.doctype.address.address import get_address_display
 from erpnext.accounts.doctype.tax_withholding_category.tax_withholding_category import get_party_tax_withholding_details
 
 from erpnext.healthcare.utils import manage_invoice_submit_cancel
-
+from erpnext.setup.doctype.brand.brand import get_brand_defaults
+from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
+from erpnext.stock.doctype.item.item import get_item_defaults
 from six import iteritems
 from frappe.model.document import Document
 #tambahan
@@ -43,11 +44,13 @@ from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_ent
 from erpnext.stock.stock_ledger import get_valuation_rate
 
 
+
+
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
 }
 
-class SalesInvoicePenjualanMotor(Document):
+class SalesInvoicePenjualanMotor(SellingController):
 	# tambhan
 	def update_against_document_in_jv(self):
 		# frappe.msgprint("masuk update_against_document_in_jv")
@@ -116,7 +119,7 @@ class SalesInvoicePenjualanMotor(Document):
 			doc.save()
 			# doc.db_update()
 			# frappe.db.commit()
-			
+
 	def repost_future_sle_and_gle(self):
 		args = frappe._dict({
 			"posting_date": self.posting_date,
@@ -130,6 +133,8 @@ class SalesInvoicePenjualanMotor(Document):
 		elif not is_reposting_pending():
 			check_if_stock_and_account_balance_synced(self.posting_date,
 				self.company, self.doctype, self.name)
+
+
 
 	def make_sl_entries(self, sl_entries, allow_negative_stock=False,
 			via_landed_cost_voucher=False):
@@ -201,15 +206,19 @@ class SalesInvoicePenjualanMotor(Document):
 		sl_entries = []
 		# Loop over items and packed items table
 		for d in self.get_item_list():
+			print(d.qty)
 			if frappe.get_cached_value("Item", d.item_code, "is_stock_item") == 1 and flt(d.qty):
+				print("masuk if")
 				if flt(d.conversion_factor)==0.0:
 					d.conversion_factor = get_conversion_factor(d.item_code, d.uom).get("conversion_factor") or 1.0
 
 				# On cancellation or return entry submission, make stock ledger entry for
 				# target warehouse first, to update serial no values properly
 
+				print("before masuk if get sle for source wh")
 				if d.warehouse and ((not cint(self.is_return) and self.docstatus==1)
 					or (cint(self.is_return) and self.docstatus==2)):
+						print("masuk if get sle for source wh")
 						sl_entries.append(self.get_sle_for_source_warehouse(d))
 
 				if d.target_warehouse:
@@ -218,7 +227,7 @@ class SalesInvoicePenjualanMotor(Document):
 				if d.warehouse and ((not cint(self.is_return) and self.docstatus==2)
 					or (cint(self.is_return) and self.docstatus==1)):
 						sl_entries.append(self.get_sle_for_source_warehouse(d))
-
+			
 		self.make_sl_entries(sl_entries)
 
 	def get_item_list(self):
@@ -432,6 +441,10 @@ class SalesInvoicePenjualanMotor(Document):
 
 	def get_advance_entries(self, include_unallocated=True):
 		if self.doctype == "Sales Invoice Penjualan Motor":
+			# frappe.msgprint("masuk Sales Invoice Penjualan Motor")
+			# tambahan
+			# name = self.name
+			pemilik = self.pemilik
 			party_account = self.debit_to
 			party_type = "Customer"
 			party = self.customer
@@ -449,21 +462,30 @@ class SalesInvoicePenjualanMotor(Document):
 		order_list = list(set([d.get(order_field)
 			for d in self.get("items") if d.get(order_field)]))
 
+		# frappe.msgprint(str(order_list)+"order_list")
 		journal_entries = get_advance_journal_entries(party_type, party, party_account,
 			amount_field, order_doctype, order_list, include_unallocated)
 
-		payment_entries = get_advance_payment_entries(party_type, party, party_account,
+		# payment_entries = get_advance_payment_entries(party_type, party, party_account,
+		# 	order_doctype, order_list, include_unallocated)
+
+		#edit
+		payment_entries = get_advance_payment_entries(pemilik,party_type, party, party_account,
 			order_doctype, order_list, include_unallocated)
 
 		res = journal_entries + payment_entries
 
+		# frappe.msgprint(str(journal_entries)+"journal_entries")
+		# frappe.msgprint(str(payment_entries)+"payment_entries")
+		# frappe.msgprint(str(res)+"res2222")
 		return res
+
 	@frappe.whitelist()
 	def set_advances(self):
 		"""Returns list of advances against Account, Party, Reference"""
-
+		# frappe.msgprint("set_advances")
 		res = self.get_advance_entries()
-
+		# frappe.msgprint(str(res)+"res")
 		self.set("advances", [])
 		advance_allocated = 0
 		for d in res:
@@ -619,6 +641,218 @@ class SalesInvoicePenjualanMotor(Document):
 			self.indicator_color = "green"
 			self.indicator_title = _("Paid")
 
+	def before_insert(self):
+		# pass
+		if len(self.items) == 0:
+			# frappe.msgprint('tes')
+			self.custom_missing_values()
+		# self.in_pajak()
+
+		# if self.items:
+		# 	if len(self.items) > 0:
+		# 		self.custom_missing_values()	
+
+	def in_pajak(self):
+		if self.no_rangka:
+			# frappe.msgprint('test')
+			tax_template = frappe.db.get_list("Sales Taxes and Charges Template",{"is_default":1},"name")[0]
+			# frappe.msgprint(str(tax_template))
+			self.taxes = []
+			self.taxes_and_charges = tax_template["name"]
+
+			tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
+			# self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+
+			for row in tax.taxes:
+				self.append("taxes",{
+						"charge_type":row.charge_type,
+						"account_head": row.account_head,
+						"description": row.description,
+						"currency": row.currency,
+						"included_in_print_rate": row.included_in_print_rate,
+						"rate":row.rate,
+						"tax_amount": (self.grand_total - total_biaya) / ((100+row.rate)/100),
+						"base_tax_amount": (self.grand_total - total_biaya) / ((100+row.rate)/100),
+						"total": (self.grand_total - total_biaya),
+						"tax_amount_after_discount_amount": (self.grand_total - total_biaya)
+					})
+
+
+
+	def custom_missing_values(self):
+		# validasi field
+		if not self.cara_bayar:
+			frappe.throw("Silahkan mengisi Cara Bayar")
+		
+		if not self.item_code:
+			frappe.throw("Silahkan mengisi Kode Item")
+
+		if not self.nama_diskon:
+			frappe.throw("Silahkan mengisi Nama Diskon")
+		
+		if self.cara_bayar == "Credit":
+			if not self.nama_promo:
+				frappe.throw("Silahkan mengisi Nama Promo")
+
+		if not self.no_rangka:
+			frappe.throw("Silahkan mengisi No Rangka")
+
+		if not self.selling_price_list:
+			frappe.throw("Silahkan mengisi Price List")
+		
+		if self.diskon == 1:
+			if self.nominal_diskon == 0:
+				frappe.throw("Silahkan mengisi Nominal Diskon")
+		else:
+			self.nominal_diskon = 0
+
+		if not self.territory_real:
+			frappe.throw("Silahkan mengisi Territory Real")
+		
+		if not self.territory_biaya:
+			frappe.throw("Silahkan mengisi Territory Biaya")
+
+
+		# cari nilai
+		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing
+		if not self.harga:
+			self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
+
+		# reset semua table
+		self.tabel_biaya_motor = []
+		self.table_discount_leasing= []
+		self.table_discount = []
+
+		# generate tabel biaya
+		list_tabel_biaya = frappe.db.get_list('Rule Biaya',filters={ 'item_code':  self.item_code,'territory': self.territory_biaya,'disable': 0}, fields=['*'])
+		
+		total_biaya = 0
+		total_discount = 0
+		total_discount_leasing = 0
+
+		if list_tabel_biaya:
+			for row in list_tabel_biaya:
+				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+					self.append("tabel_biaya_motor",{
+							"rule":row.name,
+							"vendor":row.vendor,
+							"type": row.type,
+							"amount" : row.amount,
+							"coa" : row.coa
+						})
+					total_biaya += row.amount
+
+		# generate tabel discount
+		list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
+		if list_table_discount:
+			for row in list_table_discount:
+				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+
+					if row.discount == "Percent":
+						row.amount = row.percent * self.harga / 100
+
+					self.append("table_discount",{
+						"rule": row.name,
+						"customer":row.customer,
+						"category_discount": row.category_discount,
+						"coa_receivable": row.coa_receivable,
+						"nominal": row.amount
+						})
+
+					total_discount += row.amount
+
+		# generate table discount leasing
+		list_table_discount_leasing = get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
+
+		if list_table_discount_leasing:
+			for row in list_table_discount_leasing:
+				self.append("table_discount_leasing",{
+						"coa":row.coa,
+						"nominal":row.amount,
+						"nama_leasing":row.leasing
+					})
+				total_discount_leasing += row.amount
+
+		self.total_biaya = total_biaya
+
+		self.total_discoun_leasing = total_discount_leasing
+
+		ppn_rate = self.taxes[0].rate
+		ppn_div = (100+ppn_rate)/100
+		print(ppn_div)
+		# cara mencari grand total
+		total2 = ( self.harga - self.total_biaya ) / ppn_div
+		prin(total2)
+		hasil2 = self.harga - total2
+		akhir2 = self.harga - hasil2
+
+		income_account = frappe.db.get_list("Item Default",filters={"parent":self.item_code},fields=["income_account"])[0]["income_account"]
+		expense_account = frappe.db.get_list("Item Default",filters={"parent":self.item_code},fields=["expense_account"])[0]["expense_account"]
+
+		company = frappe.db.get_single_value("Global Defaults","default_company")
+		if not income_account:
+			income_account = frappe.db.get_value("Company",company,"default_income_account")
+			
+		if not expense_account:
+			expense_account = frappe.db.get_value("Company",company,"default_expense_account")
+
+		# menambah tabel item
+		self.append("items",{
+				"item_code":self.item_code,
+				"item_name": frappe.get_value("Item", self.item_code,"item_name"),
+				"description": frappe.get_value("Item", self.item_code,"description"),
+				"stock_uom": frappe.get_value("Item", self.item_code,"stock_uom"),
+				"uom": frappe.get_value("Item", self.item_code,"stock_uom"),
+				"conversion_factor": 1,
+				"rate": total2,
+				"base_rate": total2,
+				"amount": total2,
+				"base_amount": total2,
+				"qty": 1,
+				"stock_qty": 1,
+				"income_account": income_account,
+				"income_account": income_account,
+				"discount_amount": hasil2 + self.nominal_diskon,
+				"warehouse": self.set_warehouse,
+				"serial_no": self.no_rangka,
+				"cost_center": self.cost_center
+			})
+		
+		self.adj_discount = 0 if not self.adj_discount else self.adj_discount
+
+		tax_template = frappe.db.get_list("Sales Taxes and Charges Template",{"is_default":1},"name")[0]
+
+		if not self.taxes:
+			self.taxes = []
+			self.taxes_and_charges = tax_template["name"]
+
+			tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
+			self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+
+			for row in tax.taxes:
+				self.append("taxes",{
+						"charge_type":row.charge_type,
+						"account_head": row.account_head,
+						"description": row.description,
+						"currency": row.currency,
+						"included_in_print_rate": row.included_in_print_rate,
+						"rate":row.rate,
+						"tax_amount": (self.grand_total - total_biaya) / ((100+row.rate)/100),
+						"base_tax_amount": (self.grand_total - total_biaya) / ((100+row.rate)/100),
+						"total": (self.grand_total - total_biaya),
+						"tax_amount_after_discount_amount": (self.grand_total - total_biaya)
+					})
+
+
+			self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			
+
+
 	def validate(self):
 		# super(SalesInvoicePenjualanMotor, self).validate()
 		# self.validate_auto_set_posting_time()
@@ -634,6 +868,12 @@ class SalesInvoicePenjualanMotor(Document):
 		# self.validate_uom_is_integer("stock_uom", "stock_qty")
 		# self.validate_uom_is_integer("uom", "qty")
 		# self.check_sales_order_on_hold_or_close("sales_order")
+
+		# if len(self.items) > 0:
+		# 	self.custom_missing_values()
+		# if len(self.items) == 0:
+		# 	self.custom_missing_values()
+
 		self.validate_debit_to_acc()
 		self.clear_unallocated_advances("Sales Invoice Advance", "advances")
 		self.add_remarks()
@@ -766,8 +1006,8 @@ class SalesInvoicePenjualanMotor(Document):
 		if self.update_stock == 1:
 			self.repost_future_sle_and_gle()
 
-		if self.update_stock == 1:
-			self.repost_future_sle_and_gle()
+		# if self.update_stock == 1:
+		# 	self.repost_future_sle_and_gle()
 
 		if not self.is_return:
 			self.update_billing_status_for_zero_amount_refdoc("Delivery Note")
@@ -843,6 +1083,11 @@ class SalesInvoicePenjualanMotor(Document):
 		# super(SalesInvoicePenjualanMotor, self).on_cancel()
 
 		# self.check_sales_order_on_hold_or_close("sales_order")
+		from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
+		if self.doctype in ["Sales Invoice","Sales Invoice Penjualan Motor", "Purchase Invoice"]:
+			#self.update_allocated_advance_taxes_on_cancel()
+			if frappe.db.get_single_value('Accounts Settings', 'unlink_payment_on_cancellation_of_invoice'):
+				unlink_ref_doc_from_payment_entries(self)
 
 		if self.is_return and not self.update_billed_amount_in_sales_order:
 			# NOTE status updating bypassed for is_return
@@ -1346,7 +1591,7 @@ class SalesInvoicePenjualanMotor(Document):
 		auto_accounting_for_stock = erpnext.is_perpetual_inventory_enabled(self.company)
 		if not gl_entries:
 			gl_entries = self.get_gl_entries()
-			#frappe.throw(str(gl_entries))
+		#frappe.throw(str(gl_entries))
 		if gl_entries:
 			# if POS and amount is written off, updating outstanding amt after posting all gl entries
 			update_outstanding = "No" if (cint(self.is_pos) or self.write_off_account or
@@ -1475,8 +1720,8 @@ class SalesInvoicePenjualanMotor(Document):
 				"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 				"against_voucher_type": self.doctype,
 				"cost_center": self.cost_center,
-				"project": self.project,
-				"remarks": "coba Lutfi xxxxx!"
+				"project": self.project
+				# "remarks": "coba Lutfi xxxxx!"
 			}, self.party_account_currency, item=self)
 		)
 
@@ -1495,8 +1740,8 @@ class SalesInvoicePenjualanMotor(Document):
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
-					"project": self.project,
-					"remarks": "coba Lutfi yyyyy!"
+					"project": self.project
+					# "remarks": "coba Lutfi yyyyy!"
 				}, self.party_account_currency, item=self)
 			)
 
@@ -1507,7 +1752,7 @@ class SalesInvoicePenjualanMotor(Document):
 				self.get_gl_dict({
 					"account": d.coa,
 					"party_type": "Customer",
-					"party": self.nama_leasing,
+					"party": d.nama_leasing,
 					"due_date": self.due_date,
 					"against": self.against_income_account,
 					"debit": d.nominal,
@@ -1515,8 +1760,8 @@ class SalesInvoicePenjualanMotor(Document):
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
-					"project": self.project,
-					"remarks": "coba Lutfi zzzzz!"
+					"project": self.project
+					# "remarks": "coba Lutfi zzzzz!"
 				}, self.party_account_currency, item=self)
 			)
 
@@ -1535,8 +1780,8 @@ class SalesInvoicePenjualanMotor(Document):
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
-					"project": self.project,
-					"remarks": "coba Lutfi cccccc!"
+					"project": self.project
+					# "remarks": "coba Lutfi cccccc!"
 				}, self.party_account_currency, item=self)
 			)
 
@@ -1557,8 +1802,8 @@ class SalesInvoicePenjualanMotor(Document):
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
-					"project": self.project,
-					"remarks": "coba Lutfi ffff!"
+					"project": self.project
+					# "remarks": "coba Lutfi ffff!"
 				}, self.party_account_currency, item=self)
 			)
 			else:
@@ -1574,8 +1819,8 @@ class SalesInvoicePenjualanMotor(Document):
 						"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 						"against_voucher_type": self.doctype,
 						"cost_center": self.cost_center,
-						"project": self.project,
-						"remarks": "coba Lutfi ffff!"
+						"project": self.project
+						# "remarks": "coba Lutfi ffff!"
 					}, self.party_account_currency, item=self)
 				)
 	def make_disc_gl_entry_lawan_custom(self, gl_entries):
@@ -1615,7 +1860,7 @@ class SalesInvoicePenjualanMotor(Document):
 							tax.precision("base_tax_amount_after_discount_amount")) if account_currency==self.company_currency else
 							flt(tax.tax_amount_after_discount_amount, tax.precision("tax_amount_after_discount_amount"))),
 						"cost_center": tax.cost_center,
-						"remarks": "coba Lutfi pajak!"
+						# "remarks": "coba Lutfi pajak!"
 					}, account_currency, item=tax)
 				)
 
@@ -1802,9 +2047,22 @@ class SalesInvoicePenjualanMotor(Document):
 
 	def check_expense_account(self, item):
 		if not item.get("expense_account"):
-			msg = _("Please set an Expense Account in the Items table")
-			frappe.throw(_("Row #{0}: Expense Account not set for the Item {1}. {2}")
-				.format(item.idx, frappe.bold(item.item_code), msg), title=_("Expense Account Missing"))
+			#get default expense account
+			item_defaults = get_item_defaults(item.item_code, self.company)
+			if item_defaults.get("expense_account"):
+				item.expense_account=item_defaults.get("expense_account")
+			else:
+				item_group_defaults = get_item_group_defaults(item.item_code, self.company)
+				if item_group_defaults.get("expense_account"):
+					item.expense_account=item_group_defaults.get("expense_account")
+				else:
+					brand_defaults = get_brand_defaults(item.item_code, self.company)
+					if brand_defaults.get("expense_account"):
+						item.expense_account=brand_defaults.get("expense_account")
+					else:
+						msg = _("Please set an Expense Account in the Items table")
+						frappe.throw(_("Row #{0}: Expense Account not set for the Item {1}. {2}")
+								.format(item.idx, frappe.bold(item.item_code), msg), title=_("Expense Account Missing"))
 
 		else:
 			is_expense_account = frappe.get_cached_value("Account",
@@ -2463,7 +2721,7 @@ def get_advance_journal_entries(party_type, party, party_account, amount_field,
 
 	return list(journal_entries)
 
-def get_advance_payment_entries(party_type, party, party_account, order_doctype,
+def get_advance_payment_entries(pemilik,party_type, party, party_account, order_doctype,
 		order_list=None, include_unallocated=True, against_all_orders=False, limit=None):
 	party_account_field = "paid_from" if party_type == "Customer" else "paid_to"
 	currency_field = "paid_from_account_currency" if party_type == "Customer" else "paid_to_account_currency"
@@ -2488,11 +2746,11 @@ def get_advance_payment_entries(party_type, party, party_account, order_doctype,
 			from `tabPayment Entry` t1, `tabPayment Entry Reference` t2
 			where
 				t1.name = t2.parent and t1.{1} = %s and t1.payment_type = %s
-				and t1.party_type = %s and t1.party = %s and t1.docstatus = 1
+				and t1.party_type = %s and t1.party = %s and t1.docstatus = 1 and t1.pemilik = %s
 				and t2.reference_doctype = %s {2}
 			order by t1.posting_date {3}
 		""".format(currency_field, party_account_field, reference_condition, limit_cond),
-													  [party_account, payment_type, party_type, party,
+													  [party_account, payment_type, party_type, party,pemilik,
 													   order_doctype] + order_list, as_dict=1)
 
 	if include_unallocated:
@@ -2501,10 +2759,10 @@ def get_advance_payment_entries(party_type, party, party_account, order_doctype,
 				remarks, unallocated_amount as amount
 				from `tabPayment Entry`
 				where
-					{0} = %s and party_type = %s and party = %s and payment_type = %s
+					{0} = %s and party_type = %s and party = %s and payment_type = %s and pemilik = %s
 					and docstatus = 1 and unallocated_amount > 0
 				order by posting_date {1}
-			""".format(party_account_field, limit_cond), (party_account, party_type, party, payment_type), as_dict=1)
+			""".format(party_account_field, limit_cond), (party_account, party_type, party, payment_type,pemilik), as_dict=1)
 
 	return list(payment_entries_against_order) + list(unallocated_payment_entries)
 
@@ -3086,3 +3344,59 @@ def debug_submit():
 def debug_repost():
 	from erpnext.stock.stock_balance import repost
 	repost()
+
+def create_repost_item_valuation_entry(args):
+	args = frappe._dict(args)
+	repost_entry = frappe.new_doc("Repost Item Valuation")
+	repost_entry.based_on = args.based_on
+	if not args.based_on:
+		repost_entry.based_on = 'Transaction' if args.voucher_no else "Item and Warehouse"
+	repost_entry.voucher_type = args.voucher_type
+	repost_entry.voucher_no = args.voucher_no
+	repost_entry.item_code = args.item_code
+	repost_entry.warehouse = args.warehouse
+	repost_entry.posting_date = args.posting_date
+	repost_entry.posting_time = args.posting_time
+	repost_entry.company = args.company
+	repost_entry.allow_zero_rate = args.allow_zero_rate
+	repost_entry.flags.ignore_links = True
+	repost_entry.save()
+	repost_entry.submit()
+
+def get_item_price(item_code,price_list):
+	"""
+		Get name, price_list_rate from Item Price based on conditions
+			Check if the desired qty is within the increment of the packing list.
+		:param args: dict (or frappe._dict) with mandatory fields price_list, uom
+			optional fields transaction_date, customer, supplier
+		:param item_code: str, Item Doctype field item_code
+	"""
+
+	# args['item_code'] = item_code
+
+	# conditions = """where item_code=%(item_code)s
+	# 	and price_list=%(price_list)s
+	# 	and ifnull(uom, '') in ('', %(uom)s)"""
+
+	# conditions += "and ifnull(batch_no, '') in ('', %(batch_no)s)"
+
+	# if not ignore_party:
+	# 	if args.get("customer"):
+	# 		conditions += " and customer=%(customer)s"
+	# 	elif args.get("supplier"):
+	# 		conditions += " and supplier=%(supplier)s"
+	# 	else:
+	# 		conditions += "and (customer is null or customer = '') and (supplier is null or supplier = '')"
+
+	# if args.get('transaction_date'):
+	# 	conditions += """ and %(transaction_date)s between
+	# 		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')"""
+
+	# if args.get('posting_date'):
+	# 	conditions += """ and %(posting_date)s between
+	# 		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')"""
+
+	return frappe.db.sql(""" select name, price_list_rate, uom
+		from `tabItem Price` where item_code='{}' and price_list='{}'' and posting_date between
+		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')
+		order by valid_from desc, batch_no desc, uom desc """.format(item_code,price_list,posting_date),as_dict=1)

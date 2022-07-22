@@ -35,7 +35,7 @@ class PembayaranCreditMotor(Document):
 		"""this method populates the common properties of a gl entry record"""
 
 		posting_date = args.get('date') or self.get('date')
-		fiscal_years = get_fiscal_years(posting_date, company="DAS")
+		fiscal_years = get_fiscal_years(posting_date, company=self.company)
 		if len(fiscal_years) > 1:
 			frappe.throw(_("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(
 				formatdate(posting_date)))
@@ -43,7 +43,7 @@ class PembayaranCreditMotor(Document):
 			fiscal_year = fiscal_years[0][0]
 
 		gl_dict = frappe._dict({
-			'company': 'DAS',
+			'company': self.company,
 			'posting_date': self.date,
 			'fiscal_year': fiscal_year,
 			'voucher_type': self.doctype,
@@ -96,10 +96,11 @@ class PembayaranCreditMotor(Document):
 
 	def make_gl_credit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_credit")
-		account = frappe.get_value("Company",{"name" : 'DAS'}, "default_receivable_account")
-		cash = frappe.get_value("Company",{"name" : "DAS"}, "default_cash_account")
-		cost_center = frappe.get_value("Company",{"name" : "DAS"}, "round_off_cost_center")
+		account = frappe.get_value("Company",{"name" : self.company}, "default_receivable_account")
+		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
+		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		for d in self.get('daftar_credit_motor'):
+			cost_center = frappe.get_value("Company",{"name" : d.no_invoice}, "round_off_cost_center")
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": account,
@@ -120,10 +121,10 @@ class PembayaranCreditMotor(Document):
 
 	def make_gl_debit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
-		account = frappe.get_value("Company",{"name" : 'DAS'}, "default_receivable_account")
-		cash = frappe.get_value("Company",{"name" : "DAS"}, "default_cash_account")
+		account = frappe.get_value("Company",{"name" : self.company}, "default_receivable_account")
+		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		cost_center = frappe.get_value("Company",{"name" : "DAS"}, "round_off_cost_center")
+		cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		# for d in self.get('daftar_tagihan'):
 		gl_entries.append(
 			self.get_gl_dict({
@@ -178,8 +179,8 @@ class PembayaranCreditMotor(Document):
 
 
 def add_party_gl_entries_custom(self):
-	account = frappe.get_value("Company",{"name" : 'DAS'}, "default_receivable_account")
-	cost_center = frappe.get_value("Company",{"name" : 'DAS'}, "cost_center")
+	account = frappe.get_value("Company",{"name" : self.company}, "default_receivable_account")
+	cost_center = frappe.get_value("Company",{"name" : self.company}, "cost_center")
 	# for d in self.get('daftar_credit_motor'):
 	# 	nama_customer = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "customer")
 	# 	account = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "debit_to")
@@ -235,7 +236,7 @@ def add_party_gl_entries_custom(self):
 
 def add_party_gl_entries_custom_tambah(self):
 	# account = frappe.get_value("Rule",{"name" : self.customer}, "coa_receivable")
-	cost_center = frappe.get_value("Company",{"name" : 'DAS'}, "round_off_cost_center")
+	cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 	
 	mydate= datetime.date.today()
 	docgl = frappe.new_doc('GL Entry')

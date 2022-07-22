@@ -35,7 +35,7 @@ class TagihanDiscountLeasing(Document):
 		"""this method populates the common properties of a gl entry record"""
 
 		posting_date = args.get('date') or self.get('date')
-		fiscal_years = get_fiscal_years(posting_date, company="DAS")
+		fiscal_years = get_fiscal_years(posting_date, company=self.company)
 		if len(fiscal_years) > 1:
 			frappe.throw(_("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(
 				formatdate(posting_date)))
@@ -43,7 +43,7 @@ class TagihanDiscountLeasing(Document):
 			fiscal_year = fiscal_years[0][0]
 
 		gl_dict = frappe._dict({
-			'company': 'DAS',
+			'company': self.company,
 			'posting_date': self.date,
 			'fiscal_year': fiscal_year,
 			'voucher_type': self.doctype,
@@ -96,12 +96,15 @@ class TagihanDiscountLeasing(Document):
 
 	def make_gl_credit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_credit")
-		cash = frappe.get_value("Company",{"name" : "DAS"}, "default_cash_account")
-		cost_center = frappe.get_value("Company",{"name" : "DAS"}, "round_off_cost_center")
+		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
+		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		
 		for d in self.get('daftar_tagihan_leasing'):
-			account = frappe.db.get_list('Table Disc Leasing',filters={'parent' : d.no_invoice},fields=['*'])
+			account = frappe.db.get_list('Table Disc Leasing',filters={'parent' : d.no_invoice,'nama_leasing': self.customer},fields=['*'])
+			cost_center = frappe.get_value("Company",{"name" : d.no_invoice}, "cost_center")
+			total = 0
 			for d2 in account:
+				total = total + d2.nominal
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": d2.coa,
@@ -109,8 +112,8 @@ class TagihanDiscountLeasing(Document):
 						"party": self.customer,
 						# "due_date": self.due_date,
 						"against": self.coa_tagihan_discount_leasing,
-						"credit": d2.nominal,
-						"credit_in_account_currency": d2.nominal,
+						"credit": total,
+						"credit_in_account_currency": total,
 						"against_voucher": d.no_invoice,
 						"against_voucher_type": "Sales Invoice Penjualan Motor",
 						"cost_center": cost_center
@@ -122,10 +125,10 @@ class TagihanDiscountLeasing(Document):
 
 	def make_gl_debit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
-		account = frappe.get_list("Table Disc Leasing",{"parent" : self.leasing},"coa")
-		cash = frappe.get_value("Company",{"name" : "DAS"}, "default_cash_account")
+		account = frappe.get_list("Table Disc Leasing",{"parent" : self.leasing,'nama_leasing': self.customer},"*")
+		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		cost_center = frappe.get_value("Company",{"name" : "DAS"}, "round_off_cost_center")
+		cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		# for d in self.get('daftar_tagihan'):
 		gl_entries.append(
 			self.get_gl_dict({
@@ -149,9 +152,12 @@ class TagihanDiscountLeasing(Document):
 		# add_party_gl_entries_custom_tambah(self)
 		# add_party_gl_entries_custom(self)
 		self.make_gl_entries()
-		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': self.name,'nama_promo': self.nama_promo},fields=['*'])
+		# frappe.throw("jhasdbhjasbgd")
+		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': self.name},fields=['*'])
 		for i in data:
-			doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			doc = frappe.get_doc('Table Disc Leasing',{'parent': i['no_invoice'],'nama_leasing': self.customer}) 
+			
 			doc.tertagih = 1
 			doc.db_update()
 			frappe.db.commit()
@@ -161,9 +167,10 @@ class TagihanDiscountLeasing(Document):
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ('GL Entry')
 		self.make_gl_entries(cancel=1)
-		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': self.name,'nama_promo': self.nama_promo},fields=['*'])
+		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': self.name},fields=['*'])
 		for i in data:
-			doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			doc = frappe.get_doc('Table Disc Leasing',{'parent': i['no_invoice'],'nama_leasing': self.customer}) 
 			doc.tertagih = 0
 			doc.db_update()
 			frappe.db.commit()
@@ -176,7 +183,7 @@ class TagihanDiscountLeasing(Document):
 
 def add_party_gl_entries_custom(self):
 	account = frappe.get_list("Table Discount Leasing",{"parent" : self.leasing},"coa")
-	cost_center = frappe.get_value("Company",{"name" : 'DAS'}, "round_off_cost_center")
+	cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 	for d in account:
 		mydate= datetime.date.today()
 		docgl = frappe.new_doc('GL Entry')
@@ -203,7 +210,7 @@ def add_party_gl_entries_custom(self):
 
 def add_party_gl_entries_custom_tambah(self):
 	account = frappe.get_list("Table Discount Leasing",{"parent" : self.leasing},"coa")
-	cost_center = frappe.get_value("Company",{"name" : 'DAS'}, "round_off_cost_center")
+	cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 	for d in account:
 		mydate= datetime.date.today()
 		docgl = frappe.new_doc('GL Entry')

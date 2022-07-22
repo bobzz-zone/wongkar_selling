@@ -160,7 +160,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor Item', {
 		var me = this;
 		var item = frappe.get_doc(cdt, cdn);
 		if(item.item_code && item.uom) {
-			return frappe.call({
+			return cur_frm.call({
 				method: "erpnext.stock.get_item_details.get_conversion_factor",
 				args: {
 					item_code: item.item_code,
@@ -195,58 +195,147 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 	company: function(frm) {
 		erpnext.accounts.dimensions.update_dimension(cur_frm, cur_frm.doctype);
 	},
+	diskon(frm){
+		//cur_frm.set_value("no_rangka","")
+		if(cur_frm.doc.diskon==0){
+			cur_frm.set_value("nominal_diskon",0)
+		}
+	},
+	nominal_diskon(frm){
+		cur_frm.set_value("no_rangka","")
+		// var hitung_disc = 0;
+		// hitung_disc = cur_frm.doc.harga - cur_frm.doc.nominal_diskon
+		// console.log(hitung_disc,"hitung_disc")
+		// cur_frm.set_value("harga",hitung_disc)
+	},
+	territory_real:function(frm){
+		cur_frm.set_value("no_rangka","")
+		cur_frm.set_value("nama_diskon","")
+	},
+	territory_biaya:function(frm){
+		cur_frm.set_value("no_rangka","")
+	},
+	cost_center:function(frm){
+		cur_frm.set_value("no_rangka","")
+	},
+	selling_price_list:function(frm){
+		cur_frm.set_value("no_rangka","")
+	},
+	set_warehouse:function(frm){
+		cur_frm.set_value("no_rangka","")
+	},
+	item_code:function(frm){
+		cur_frm.set_value("nama_diskon","")
+		//cur_frm.refresh_fields("nama_diskon")
+		cur_frm.set_value("no_rangka","")
+		//cur_frm.refresh_fields("no_rangka")
+	},
+	nama_leasing:function(frm){
+		/*if(cur_frm.doc.nama_leasing){
+			frappe.msgprint("leasing")
+		}*/
+
+		// if(cur_frm.doc.cara_bayar == "Credit" && cur_frm.doc.nama_leasing){
+	 //    	//frappe.msgprint("test 123wetwet")
+	 //    	// let today = frappe.datetime.get_today();
+	 //    	let today = cur_frm.doc.posting_date;
+		//     frappe.db.get_list('Rule Discount Leasing',{ filters: {'nama_promo':cur_frm.doc.nama_promo,'leasing':cur_frm.doc.nama_leasing,'item_code':cur_frm.doc.item_code,'territory':cur_frm.doc.territory_real,'disable':0}, fields: ['*']})
+		// 	.then(data_p => {
+		// 		//console.log(data_p,"data_p")
+		// 		cur_frm.clear_table("table_discount_leasing");
+		// 		cur_frm.refresh_field("table_discount_leasing");
+		// 		for (let p = 0; p < data_p.length; p++) {
+		// 			if (data_p[p].valid_from <= today && data_p[p].valid_to >= today){
+		// 				frappe.db.get_list('Table Discount Leasing',{ filters: { 'parent':  data_p[p].name}, fields: ['*']})
+		// 				.then(data => {
+		// 					// console.log("wkwkwk");
+		// 					cur_frm.clear_table("table_discount_leasing");
+		// 					cur_frm.refresh_field("table_discount_leasing");
+		// 					for (let i = 0; i < data.length; i++) {
+		// 						// if (data[i].valid_from <= today && data[i].valid_to >= today){
+		// 							if(data[i].discount == 'Amount'){
+		// 								var child_l = cur_frm.add_child("table_discount_leasing");
+		// 						        frappe.model.set_value(child_l.doctype, child_l.name, "coa", data[i].coa);
+		// 						        frappe.model.set_value(child_l.doctype, child_l.name, "nominal", data[i].amount);
+		// 							}
+		// 							if(data[i].discount == 'Percent'){
+		// 								var amount_b = data[i].percent * cur_frm.doc.harga / 100;
+		// 								var child_l2 = cur_frm.add_child("table_discount_leasing");
+		// 						        frappe.model.set_value(child_l2.doctype, child_l2.name, "coa", data[i].coa);
+		// 						        frappe.model.set_value(child_l2.doctype, child_l2.name, "nominal", amount_b);
+		// 							}
+									
+		// 						/*}else{
+		// 							frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
+		// 						}*/
+		// 					}
+		// 					cur_frm.refresh_field("table_discount_leasing");
+		// 				});
+		// 			}else{
+		// 				cur_frm.clear_table("table_discount_leasing");
+		// 				cur_frm.refresh_field("table_discount_leasing");
+		// 				// frappe.msgprint("cek vadlidasi tanggal di rule "+data_p[p].name);
+		// 			}
+		// 		}
+		// 	});
+	    // }
+	},
 	nama_diskon: function(frm){
-	    let today = frappe.datetime.get_today();
-	    frappe.db.get_list('Rule',{ 
-	        filters: { 'item_code': cur_frm.doc.item_code, 'territory' : cur_frm.doc.territory_real, 'type': cur_frm.doc.nama_diskon , 'disable': 0 }, 
-	        fields: ['*']})
-    	    .then(data=>{
-    	        cur_frm.clear_table("table_discount");
-			    cur_frm.refresh_field("table_discount");
-    	        
-    	        if(data.length > 0){
-					for (let i = 0; i < data.length; i++) {
-						if(data[i].disable === 0){
-							if (data[i].valid_from <= today && data[i].valid_to >= today){
-								if(data[i].discount == 'Amount'){
-									var child = cur_frm.add_child("table_discount");
-							        frappe.model.set_value(child.doctype, child.name, "rule", data[i].name);
-							        frappe.model.set_value(child.doctype, child.name, "customer", data[i].customer);
-							        frappe.model.set_value(child.doctype, child.name, "type", data[i].type);
-							        frappe.model.set_value(child.doctype, child.name, "coa_receivable", data[i].coa_receivable);
-							        frappe.model.set_value(child.doctype, child.name, "nominal", data[i].amount);
+		cur_frm.set_value('no_rangka','')
+	    //frappe.msgprint("nama_diskon")
+	    if(!cur_frm.doc.nama_diskon){
+	    	//frappe.msgprint("kosong")
+	    	cur_frm.clear_table("table_discount");
+			cur_frm.refresh_field("table_discount");
+	    }
+
+	    if(cur_frm.doc.nama_diskon){
+	    	//frappe.msgprint("isis")
+	    	// table_discount
+	    	// let today = frappe.datetime.get_today();
+	    	let today = cur_frm.doc.posting_date;
+	    	// frappe.msgprint(str(today)+"today")
+		    frappe.db.get_list('Rule',{ 
+		        filters: { 'item_code': cur_frm.doc.item_code, 'territory' : cur_frm.doc.territory_real, 'category_discount': cur_frm.doc.nama_diskon , 'disable': 0 }, fields: ['*']})
+	    	    .then(data=>{
+	    	    	console.log(data,"data")
+	    	        cur_frm.clear_table("table_discount");
+					cur_frm.refresh_field("table_discount");
+	    	        if(data.length > 0){
+						for (let i = 0; i < data.length; i++) {
+							if(data[i].disable === 0){
+								if (data[i].valid_from <= today && data[i].valid_to >= today){
+									if(data[i].discount == 'Amount'){
+										var child = cur_frm.add_child("table_discount");
+								        frappe.model.set_value(child.doctype, child.name, "rule", data[i].name);
+								        frappe.model.set_value(child.doctype, child.name, "customer", data[i].customer);
+								        frappe.model.set_value(child.doctype, child.name, "category_discount", data[i].category_discount);
+								        frappe.model.set_value(child.doctype, child.name, "coa_receivable", data[i].coa_receivable);
+								        frappe.model.set_value(child.doctype, child.name, "nominal", data[i].amount);
+									}
+									if(data[i].discount == 'Percent'){
+										var amount = data[i].percent * cur_frm.doc.harga / 100;
+										var child2 = cur_frm.add_child("table_discount");
+								        	frappe.model.set_value(child2.doctype, child2.name, "rule", data[i].name);
+								        	frappe.model.set_value(child2.doctype, child2.name, "customer", data[i].customer);
+								        	frappe.model.set_value(child2.doctype, child2.name, "category_discount", data[i].category_discount);
+								        	frappe.model.set_value(child2.doctype, child2.name, "coa_receivable", data[i].coa_receivable);
+								        	frappe.model.set_value(child2.doctype, child2.name, "nominal", amount);
+									}
+								}else{
+									// frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
 								}
-								if(data[i].discount == 'Percent'){
-									var amount = data[i].percent * cur_frm.doc.harga / 100;
-									var child2 = cur_frm.add_child("table_discount");
-							        frappe.model.set_value(child2.doctype, child2.name, "rule", data[i].name);
-							        frappe.model.set_value(child2.doctype, child2.name, "customer", data[i].customer);
-							        frappe.model.set_value(child2.doctype, child2.name, "type", data[i].type);
-							        frappe.model.set_value(child2.doctype, child2.name, "coa_receivable", data[i].coa_receivable);
-							        frappe.model.set_value(child2.doctype, child2.name, "nominal", amount);
-								}						
-							}else{
-								frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
 							}
 						}
+						calculate_taxes_and_totals()
+						cur_frm.refresh_field("table_discount");
 					}
-					calculate_taxes_and_totals()
-					cur_frm.refresh_field("table_discount");
-				}
 
-    	        /*for(let i = 0; i < data.length; i++){
-    	            var addnew=frappe.model.add_child(cur_frm.doc, "Table Discount", "table_discount");
-    	            addnew.rule=data[i].name;
-    	            addnew.customer=data[i].customer;
-    	            addnew.type=data[i].type;
-    	            addnew.coa_receivable=data[i].coa_receivable;
-    	            addnew.nominal=data[i].amount;
-    	        }
-    	        calculate_taxes_and_totals()
-    	        cur_frm.refresh_fields()*/
-    	    })
+	    	})
+	    }
+	    
 	},
-	load_discount: function(frm){
+	/*load_discount: function(frm){
 	    
 	    frappe.db.get_list('Rule',{ filters: { 'item_code': cur_frm.doc.item_code, 'territory' : cur_frm.doc.territory_real,'disable': 0 }, fields: ['*']})
     	    .then(data=>{
@@ -262,15 +351,15 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
     	    .catch(error=>{
     	        console.log(error);
     	    })
-	},
+	},*/
 	onload: function(frm) {
-		if(cur_frm.doc.nama_promo){
+		/*if(cur_frm.doc.nama_promo){
     	    if(cur_frm.doc.nama_diskon === ""){
     	        cur_frm.set_value("nama_diskon",cur_frm.doc.nama_diskon);
     	    }else{
     	        cur_frm.trigger("load_discount");
     	    }
-    	}
+    	}*/
 
 		var me = this;
 		//this._super();
@@ -421,14 +510,14 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 	},
 	taxes_and_charges: function() {
 		// frappe.msgprint('taxes_and_charges')
-		cur_frm.set_value("taxes_and_charges","PPN 10% - Masukan");
-		if(cur_frm.doc.item_code){
-			// frappe.msgprint('coba pajak')
-			cur_frm.set_value("taxes_and_charges","PPN 10 % - Masukan");
-		}
+		// cur_frm.set_value("taxes_and_charges","PPN 10% - Masukan");
+		
 		var me = this;
 		if(cur_frm.doc.taxes_and_charges) {
-			return frappe.call({
+			// frappe.msgprint("masuk get_taxes_and_charges")
+			cur_frm.clear_table("taxes")
+			cur_frm.refresh_field("taxes")
+			return cur_frm.call({
 				method: "erpnext.controllers.accounts_controller.get_taxes_and_charges",
 				args: {
 					"master_doctype": frappe.meta.get_docfield(cur_frm.doc.doctype, "taxes_and_charges",
@@ -444,6 +533,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 
 							refresh_field("taxes");
 						} else {
+							// frappe.msgprint("masuk else")
+							// console.log(r.message,"message")
 							cur_frm.set_value("taxes", r.message);
 							calculate_taxes_and_totals();
 						}
@@ -459,7 +550,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		var me = this;
 		if(cur_frm.updating_party_details) return;
 		erpnext.utils.get_party_details(cur_frm,
-			"erpnext.accounts.party.get_party_details", {
+			"wongkar_selling.custom_standard.custom_party.get_party_details", {
+			// "erpnext.accounts.party.get_party_details", {
 				posting_date: cur_frm.doc.posting_date,
 				party: cur_frm.doc.customer,
 				party_type: "Customer",
@@ -609,7 +701,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		}
 		let oa =0
 		oa = (cur_frm.doc.harga - td - tdl) + cur_frm.doc.adj_discount
-		frm.set_value("total_discoun_leasing",tdl)
+		cur_frm.set_value("total_discoun_leasing",tdl)
+		calculate_taxes_and_totals()
 	},
 });
 
@@ -858,7 +951,7 @@ var set_pos_data= function(frm) {
 			frappe.msgprint(__("Please specify Company to proceed"));
 		} else {
 			var me = this;
-			return frappe.call({
+			return cur_frm.call({
 				doc: cur_frm.doc,
 				method: "set_missing_values",
 				callback: function(r) {
@@ -917,6 +1010,7 @@ var calculate_taxes_and_totals= function(update_paid_amount) {
 
 var _calculate_taxes_and_totals= function() {
 	validate_conversion_rate();
+	//calculate_totals();
 	calculate_item_values();
 	initialize_taxes();
 	determine_exclusive_rate();
@@ -951,26 +1045,53 @@ var get_company_currency= function() {
 var calculate_item_values= function() {
 	// frappe.msgprint("masuk calculate_item_values")
 	var me = this;
-	var discount_amount_applied = false;
-	if (!discount_amount_applied) {
-		// frappe.msgprint("hhjhjhjhjhjhhj")
-		$.each(cur_frm.doc["items"] || [], function(i, item) {
-			frappe.model.round_floats_in(item);
-			item.net_rate = item.rate;
+	//var discount_amount_applied = false;
+	//if (!discount_amount_applied) {
+		//frappe.msgprint("hhjhjhjhjhjhhj")
+	//edited bobby buang if yang selaliu true
 
-			if ((!item.qty) && cur_frm.doc.is_return) {
-				item.amount = flt(item.rate * -1, precision("amount", item));
-			} else {
-				item.amount = flt(item.rate * item.qty, precision("amount", item));
-			}
-
-			item.net_amount = item.amount;
-			item.item_tax_amount = 0.0;
-			item.total_weight = flt(item.weight_per_unit * item.stock_qty);
-
-			set_in_company_currency(item, ["price_list_rate", "rate", "amount", "net_rate", "net_amount"]);
-		});
-	}
+	//edit row 1 dari item agar nilai sama dengan total harga - discount dan ppn
+/*	var td = 0
+	var tdl = 0
+	var biaya = 0
+        if(cur_frm.doc.table_discount){
+                for (let i = 0; i < cur_frm.doc.table_discount.length; i++) {
+                        td += cur_frm.doc.table_discount[i].nominal;
+                }
+        }
+        if(cur_frm.doc.table_discount_leasing){
+                for (let i = 0; i < cur_frm.doc.table_discount_leasing.length; i++) {
+                        tdl += cur_frm.doc.table_discount_leasing[i].nominal;
+                }
+        }
+        if(cur_frm.doc.tabel_biaya_motor){
+                for (let i = 0; i < cur_frm.doc.tabel_biaya_motor.length; i++) {
+                        biaya += cur_frm.doc.tabel_biaya_motor[i].amount;
+                }
+        }
+	var adj=0;
+        if(!cur_frm.doc.adj_discount){
+                adj=0;
+        }else{
+                adj = cur_frm.doc.adj_discount
+        }
+	cur_frm.doc.items[0].rate=
+**/
+	$.each(cur_frm.doc["items"] || [], function(i, item) {
+		frappe.model.round_floats_in(item);
+		item.net_rate = item.rate;
+		if ((!item.qty) && cur_frm.doc.is_return) {
+			item.amount = flt(item.rate * -1, precision("amount", item));
+		} else {
+			item.amount = flt(item.rate * item.qty, precision("amount", item));
+		}
+		item.net_amount = item.amount;
+		//frappe.msgprint("here "+item.amount);
+		item.item_tax_amount = 0.0;
+		item.total_weight = flt(item.weight_per_unit * item.stock_qty);
+		set_in_company_currency(item, ["price_list_rate", "rate", "amount", "net_rate", "net_amount"]);
+	});
+	//}
 }
 
 var validate_inclusive_tax = function(tax) {
@@ -1040,7 +1161,22 @@ var determine_exclusive_rate= function() {
 	});
 	if(has_inclusive_tax==false) return;
 
-	$.each(cur_frm.doc["items"] || [], function(n, item) {
+//item always cm 1 bobby
+	var total_tax=0;
+	$.each(cur_frm.doc["taxes"] || [], function(i, tax) {
+		if(cint(tax.included_in_print_rate)){
+			total_tax+=tax.tax_amount;
+		}
+	});
+	if(cur_frm.doc["items"][0]){
+		var item=cur_frm.doc["items"][0];
+		var amount = flt(item.amount) - total_tax;
+		item.net_amount = amount;
+		item.net_rate = amount;
+		set_in_company_currency(item, ["net_rate", "net_amount"]);
+	}
+
+/**	$.each(cur_frm.doc["items"] || [], function(n, item) {
 		var item_tax_map = _load_item_tax_rate(item.item_tax_rate);
 		var cumulated_tax_fraction = 0.0;
 		var total_inclusive_tax_amount_per_qty = 0;
@@ -1069,6 +1205,7 @@ var determine_exclusive_rate= function() {
 			set_in_company_currency(item, ["net_rate", "net_amount"]);
 		}
 	});
+*/
 }
 
 var _load_item_tax_rate= function(item_tax_rate) {
@@ -1208,7 +1345,7 @@ var calculate_taxes= function() {
 var get_current_tax_amount= function(item, tax, item_tax_map) {
 	var tax_rate = _get_tax_rate(tax, item_tax_map);
 	var current_tax_amount = 0.0;
-
+	// console.log(tax_rate,"tax_rate")
 	// To set row_id by default as previous row.
 	if(["On Previous Row Amount", "On Previous Row Total"].includes(tax.charge_type)) {
 		if (tax.idx === 1) {
@@ -1226,6 +1363,7 @@ var get_current_tax_amount= function(item, tax, item_tax_map) {
 			((item.net_amount / this.frm.doc.net_total) * actual) : 0.0;
 
 	} else if(tax.charge_type == "On Net Total") {
+		// frappe.msgprint("masyk pajak")
 		current_tax_amount = (tax_rate / 100.0) * item.net_amount;
 	} else if(tax.charge_type == "On Previous Row Amount") {
 		current_tax_amount = (tax_rate / 100.0) *
@@ -1240,7 +1378,7 @@ var get_current_tax_amount= function(item, tax, item_tax_map) {
 
 	current_tax_amount = get_final_tax_amount(tax, current_tax_amount);
 	set_item_wise_tax(item, tax, tax_rate, current_tax_amount);
-
+	// console.log(current_tax_amount,"current_tax_amount")
 	return current_tax_amount;
 }
 
@@ -1279,10 +1417,14 @@ var set_cumulative_total= function(row_idx, tax) {
 	if (tax.add_deduct_tax == "Deduct") { tax_amount = -1*tax_amount; }
 
 	if(row_idx==0) {
+		//frappe.msgprint("tax bener")
 		tax.total = flt(cur_frm.doc.net_total + tax_amount, precision("total", tax));
 	} else {
+		// frappe.msgprint("tax salah")
 		tax.total = flt(cur_frm.doc["taxes"][row_idx-1].total + tax_amount, precision("total", tax));
 	}
+	console.log(tax.total,"tax.total")
+	console.log(tax_amount,"tax_amount")
 }
 
 var manipulate_grand_total_for_inclusive_tax= function() {
@@ -1346,8 +1488,9 @@ var calculate_totals= function() {
 	}
 	var oa =0
 	oa = (cur_frm.doc.harga - td - tdl) + adj
-	// console.log(oa)
-	// console.log(biaya)
+	//console.log(oa)
+	//console.log(biaya)
+	//cur_frm.doc.items[0].rate=oa;
 	var me = this;
 	var tax_count = cur_frm.doc["taxes"] ? cur_frm.doc["taxes"].length : 0;
 	cur_frm.doc.grand_total = oa
@@ -1387,12 +1530,13 @@ var calculate_totals= function() {
 			["taxes_and_charges_added", "taxes_and_charges_deducted"]);
 	}
 	// frappe.msgprint("masuk sini untuk total salah3")
-	cur_frm.doc.total_taxes_and_charges = cur_frm.doc.harga - biaya
+	cur_frm.doc.total_taxes_and_charges = cur_frm.doc.harga - biaya;
 	/*cur_frm.doc.total_taxes_and_charges = flt(cur_frm.doc.grand_total - cur_frm.doc.net_total
 		- flt(cur_frm.doc.rounding_adjustment), precision("total_taxes_and_charges"));*/
-
 	set_in_company_currency(cur_frm.doc, ["total_taxes_and_charges", "rounding_adjustment"]);
-
+	//bobby coba ubah di sini ratenya
+	//cur_frm.doc.items[0].rate=oa-cur_frm.doc.total_taxes_and_charges;
+	//failed
 	// Round grand total as per precision
 	frappe.model.round_floats_in(cur_frm.doc, ["grand_total", "base_grand_total"]);
 
@@ -1608,7 +1752,7 @@ var apply_pricing_rule= function(item, calculate_taxes_and_totals) {
 		return;
 	}
 
-	return frappe.call({
+	return cur_frm.call({
 		method: "erpnext.accounts.doctype.pricing_rule.pricing_rule.apply_pricing_rule",
 		args: {	args: args, doc: cur_frm.doc },
 		callback: function(r) {
@@ -1749,7 +1893,7 @@ var _get_item_list= function(item) {
 var apply_price_list= function(item, reset_plc_conversion) {
 	// We need to reset plc_conversion_rate sometimes because the call to
 	// `erpnext.stock.get_item_details.apply_price_list` is sensitive to its value
-	// frappe.msgprint("Masuk apply_price_list")
+	frappe.msgprint("Masuk apply_price_list")
 	if (!reset_plc_conversion) {
 		frm.set_value("plc_conversion_rate", "");
 	}
@@ -1921,7 +2065,7 @@ var add_taxes_from_item_tax_template= function(item_tax_map) {
 }
 
 var get_incoming_rate= function(item, posting_date, posting_time, voucher_type, company) {
-	frappe.msgprint("masuk get_incoming_rate")
+	// frappe.msgprint("masuk get_incoming_rate")
 	let item_args = {
 		'item_code': item.item_code,
 		'warehouse': in_list('Purchase Receipt', 'Purchase Invoice') ? item.from_warehouse : item.warehouse,
@@ -2006,7 +2150,7 @@ var calculate_net_weight= function(){
 var shipping_rule= function() {
 	var me = this;
 	if(cur_frm.doc.shipping_rule) {
-		return frappe.call({
+		return cur_frm.call({
 			doc: cur_frm.doc,
 			method: "apply_shipping_rule",
 			callback: function(r) {
@@ -2112,7 +2256,7 @@ var show_stock_ledger= function() {
 }
 
 var make_payment_entry= function() {
-	return frappe.call({
+	return cur_frm.call({
 		method: get_method_for_payment(),
 		args: {
 			"dt": cur_frm.doc.doctype,
@@ -2175,59 +2319,74 @@ var apply_pricing_rule_on_item= function(item) {
 
 // asli
 frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
-	let today = frappe.datetime.get_today();
-	
 	if(cur_frm.doc.no_rangka){
-    	// harga
-    	frappe.db.get_value('Item Price', {'item_code':  cur_frm.doc.item_code,'price_list': cur_frm.doc.selling_price_list}, 'price_list_rate')
-	    .then(r => {
-	    	//console.log(r)
-		    let values = r.message;
-	        cur_frm.set_value("harga", values.price_list_rate);
-	        cur_frm.refresh_field("harga")
-	    });
+		let today = frappe.datetime.get_today();
+		// frappe.msgprint('coba pajak1');
+		cur_frm.clear_table("taxes");
+		cur_frm.refresh_field("taxes");
+		cur_frm.set_value("taxes_and_charges","");
+		cur_frm.set_value("taxes_and_charges","PPN 11% - Keluaran - IFMI");
 
-	    // table discount
-	    frappe.db.get_list('Rule',{ filters: { 'item_code':  cur_frm.doc.item_code,'territory': cur_frm.doc.territory_real,'disable': 0}, fields: ['*']})
-		.then(data => {
-			//console.log(data)
-			cur_frm.clear_table("table_discount");
-			cur_frm.refresh_field("table_discount");
-		        
-			if(data.length > 0){
-				for (let i = 0; i < data.length; i++) {
-					if(data[i].disable === 0){
-						if (data[i].valid_from <= today && data[i].valid_to >= today){
-							if(data[i].discount == 'Amount'){
-								var child = cur_frm.add_child("table_discount");
-						        frappe.model.set_value(child.doctype, child.name, "rule", data[i].name);
-						        frappe.model.set_value(child.doctype, child.name, "customer", data[i].customer);
-						        frappe.model.set_value(child.doctype, child.name, "type", data[i].type);
-						        frappe.model.set_value(child.doctype, child.name, "coa_receivable", data[i].coa_receivable);
-						        frappe.model.set_value(child.doctype, child.name, "nominal", data[i].amount);
-							}
-							if(data[i].discount == 'Percent'){
-								var amount = data[i].percent * cur_frm.doc.harga / 100;
-								var child2 = cur_frm.add_child("table_discount");
-						        frappe.model.set_value(child2.doctype, child2.name, "rule", data[i].name);
-						        frappe.model.set_value(child2.doctype, child2.name, "customer", data[i].customer);
-						        frappe.model.set_value(child2.doctype, child2.name, "type", data[i].type);
-						        frappe.model.set_value(child2.doctype, child2.name, "coa_receivable", data[i].coa_receivable);
-						        frappe.model.set_value(child2.doctype, child2.name, "nominal", amount);
-							}						
-						}else{
-							frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
-						}
-					}
-				}
-				cur_frm.refresh_field("table_discount");
+		// harga baru
+		frappe.call({
+			method: "wongkar_selling.wongkar_selling.get_invoice.get_item_price",
+			args: {
+				item_code: cur_frm.doc.item_code,
+				price_list: cur_frm.doc.selling_price_list,
+				posting_date: cur_frm.doc.posting_date
+			},
+			callback: function(r) {
+				console.log(r,"safasf")
+				if(r.message[0].price_list_rate){
+		    		let values = r.message;
+		    		if(cur_frm.doc.diskon==1){
+		    			var hitung_disc = 0;
+						hitung_disc = r.message[0].price_list_rate - cur_frm.doc.nominal_diskon
+						console.log(hitung_disc,"hitung_disc")
+						cur_frm.set_value("harga",hitung_disc)
+		    		}
+		    		if(cur_frm.doc.diskon==0){
+		    			cur_frm.set_value("harga", r.message[0].price_list_rate);
+			        	//cur_frm.refresh_fields("harga")
+		    		}
+		    	}else{
+		    		cur_frm.set_value("harga", 0);
+			        //cur_frm.refresh_fields("harga")
+		    	}
 			}
 		});
-    
+
+
+    	var coba12 = cur_frm.doc.harga
+    	console.log(coba12,"ccccc")
+	}
+
+	if(!cur_frm.doc.no_rangka){
+		// frappe.msgprint('coba pajak2')
+		cur_frm.set_value("taxes_and_charges","");
+		cur_frm.clear_table("taxes");
+		cur_frm.refresh_field("taxes");
+		cur_frm.set_value("harga", 0);
+		cur_frm.refresh_field("harga");
+		cur_frm.clear_table("items");
+		cur_frm.refresh_field("items");
+	}
+	
+});
+
+frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
+	console.log("hargaaaa")
+	cur_frm.clear_table("tabel_biaya_motor");
+	cur_frm.refresh_field("tabel_biaya_motor");  
+	// let today = frappe.datetime.get_today();
+	let today = cur_frm.doc.posting_date;
+	if(cur_frm.doc.harga){
+    	// harga
+    	
 		// table biaya
 	    frappe.db.get_list('Rule Biaya',{ filters: { 'item_code':  cur_frm.doc.item_code,'territory': cur_frm.doc.territory_biaya,'disable': 0}, fields: ['*']})
 		.then(data => {
-	        console.log(data,"data")
+	        // console.log(data,"data")
 	        cur_frm.clear_table("tabel_biaya_motor");
 	        cur_frm.refresh_field("tabel_biaya_motor");    
 
@@ -2241,12 +2400,12 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 				        frappe.model.set_value(child_b.doctype, child_b.name, "type", data[i].type);
 				        frappe.model.set_value(child_b.doctype, child_b.name, "amount", data[i].amount);
 			            frappe.model.set_value(child_b.doctype, child_b.name, "coa", data[i].coa);
-			            cur_frm.refresh_field("tabel_biaya_motor");	     
+			            // cur_frm.refresh_field("tabel_biaya_motor");	     
 					}else{
-						frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
+						// frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
 					}
 				}
-				
+				cur_frm.refresh_field("tabel_biaya_motor");	 
 				//frappe.msgprint("tabel_biaya_motor2 !!")
 				let sum = 0;
 				let sum2=0
@@ -2256,18 +2415,33 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 				}
 				cur_frm.set_value("total_biaya",sum)
 				
-			    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / 1.1;
+				console.log(sum,"sum")
+				
+				var ppn_rate = cur_frm.doc.taxes[0]['rate']
+				var ppn_div = (100+ppn_rate)/100
+			    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / ppn_div;
 				var hasil = cur_frm.doc.harga - total;
-				var akhir = cur_frm.doc.harga - hasil
-			    
+				var akhir = cur_frm.doc.harga - hasil;
+				console.log(total,"total")
+				console.log(hasil,"hasil")
+				console.log(akhir,"akhir")
+
+			    var cb_disc = 0
+			    if(cur_frm.doc.diskon==1){
+			    	cb_disc = hasil + cur_frm.doc.nominal_diskon
+			    }else{
+			    	cb_disc = hasil + 0
+			    }
 				// table item
+
 				
 				cur_frm.clear_table("items");
 				cur_frm.refresh_field("items");
 				var child_i = cur_frm.add_child("items");
 				frappe.model.set_value(child_i.doctype, child_i.name, "item_code", cur_frm.doc.item_code);
-				console.log("sebelum get details")
-				frappe.model.set_value(child_i.doctype, child_i.name, "discount_amount", hasil);
+				// console.log("sebelum get details")
+				frappe.model.set_value(child_i.doctype, child_i.name, "discount_amount", cb_disc);
+				frappe.model.set_value(child_i.doctype, child_i.name,"cost_center",cur_frm.doc.cost_center)
 				frappe.model.set_value(child_i.doctype, child_i.name, "rate", total)
 				frappe.model.set_value(child_i.doctype, child_i.name, "warehouse", cur_frm.doc.set_warehouse)
 				frappe.model.set_value(child_i.doctype, child_i.name, "serial_no", cur_frm.doc.no_rangka)
@@ -2276,83 +2450,85 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 
 		    if(data.length == 0){
 		    	cur_frm.set_value("total_biaya",0)
-				
-			    var total2 = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / 1.1;
+				console.log(cur_frm.doc.harga,"harga")
+			    var ppn_rate = cur_frm.doc.taxes[0]['rate']
+				var ppn_div = (100+ppn_rate)/100
+			    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / ppn_div;
 				var hasil2 = cur_frm.doc.harga - total2;
 				var akhir2 = cur_frm.doc.harga - hasil2;
+				console.log(total2,"total2")
+				console.log(hasil2,"hasil2")
+				console.log(akhir2,"akhir2")
 			    
+			    var cb_disc = 0
+			    if(cur_frm.doc.diskon==1){
+			    	cb_disc = hasil2 + cur_frm.doc.nominal_diskon
+			    }else{
+			    	cb_disc = hasil2+0
+			    }
+
 				// table item
 				cur_frm.clear_table("items");
 				cur_frm.refresh_field("items");
 				var child_i2 = cur_frm.add_child("items");
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "item_code", cur_frm.doc.item_code);
-				console.log("sebelum get details 2")
-				frappe.model.set_value(child_i2.doctype, child_i2.name, "discount_amount", hasil2);
+				// console.log("sebelum get details 2")
+				frappe.model.set_value(child_i2.doctype, child_i2.name, "discount_amount", cb_disc);
+				// frappe.model.set_value(child_i2.doctype, child_i2.name, "price_list_rate", cur_frm.doc.harga);
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "rate", total2)
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "warehouse", cur_frm.doc.set_warehouse)
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "serial_no", cur_frm.doc.no_rangka)
+				frappe.model.set_value(child_i2.doctype, child_i2.name,"cost_center",cur_frm.doc.cost_center)
 				//cur_frm.refresh_field("items");
 		    }
 		});
 
     }
-	
 });
 
 
+
 frappe.ui.form.on("Sales Invoice Penjualan Motor", "nama_promo", function(frm) {
-	cur_frm.trigger("load_discount");
+	//cur_frm.trigger("load_discount");
 	// table discount leasing
+    frm.set_value("nama_leasing", "");
+    cur_frm.set_value("no_rangka","")
     if(!cur_frm.doc.nama_promo){
     	frm.set_value("nama_leasing", "");
     	cur_frm.clear_table("table_discount_leasing");
     	cur_frm.refresh_field("table_discount_leasing");
     	//cur_frm.refresh_field();
-    }	
-
-    if(cur_frm.doc.cara_bayar == "Credit" && cur_frm.doc.nama_promo){
-    	let today = frappe.datetime.get_today();
-	    frappe.db.get_list('Rule Discount Leasing',{ filters: { 'name':  cur_frm.doc.nama_promo,'territory': cur_frm.doc.territory_real,'disable':0}, fields: ['*']})
-		.then(data_p => {
-			//console.log(data_p,"data_p")
-			cur_frm.clear_table("table_discount_leasing");
-			cur_frm.refresh_field("table_discount_leasing");
-			for (let p = 0; p < data_p.length; p++) {
-				if (data_p[p].valid_from <= today && data_p[p].valid_to >= today){
-					frappe.db.get_list('Table Discount Leasing',{ filters: { 'parent':  cur_frm.doc.nama_promo}, fields: ['*']})
-					.then(data => {
-						// console.log("wkwkwk");
-						cur_frm.clear_table("table_discount_leasing");
-						cur_frm.refresh_field("table_discount_leasing");
-						for (let i = 0; i < data.length; i++) {
-							// if (data[i].valid_from <= today && data[i].valid_to >= today){
-								if(data[i].discount == 'Amount'){
-									var child_l = cur_frm.add_child("table_discount_leasing");
-							        frappe.model.set_value(child_l.doctype, child_l.name, "coa", data[i].coa);
-							        frappe.model.set_value(child_l.doctype, child_l.name, "nominal", data[i].amount);
-								}
-								if(data[i].discount == 'Percent'){
-									var amount_b = data[i].percent * cur_frm.doc.harga / 100;
-									var child_l2 = cur_frm.add_child("table_discount_leasing");
-							        frappe.model.set_value(child_l2.doctype, child_l2.name, "coa", data[i].coa);
-							        frappe.model.set_value(child_l2.doctype, child_l2.name, "nominal", amount_b);
-								}
-								
-							/*}else{
-								frappe.msgprint("cek vadlidasi tanggal di rule "+data[i].name);
-							}*/
-						}
-						cur_frm.refresh_field("table_discount_leasing");
-					});
-				}else{
+    }
+    if(cur_frm.doc.nama_promo){
+    	if(cur_frm.doc.cara_bayar == "Credit"){
+	    	//frappe.msgprint("test 123wetwet")
+	    	// let today = frappe.datetime.get_today();
+	    	let today = cur_frm.doc.posting_date;
+	    	frappe.call({
+				method: "wongkar_selling.wongkar_selling.get_invoice.get_leasing",
+				args: {
+					item_code: cur_frm.doc.item_code,
+					nama_promo: cur_frm.doc.nama_promo,
+					territory_real: cur_frm.doc.territory_real,
+					posting_date: cur_frm.doc.posting_date
+				},
+				callback: function(r) {
+					console.log(r,"leasing")
 					cur_frm.clear_table("table_discount_leasing");
 					cur_frm.refresh_field("table_discount_leasing");
-					frappe.msgprint("cek vadlidasi tanggal di rule "+data_p[p].name);
+					if(r.message.length>0){
+						for (let i = 0; i < r.message.length; i++) {
+							var child_l = cur_frm.add_child("table_discount_leasing");
+					        frappe.model.set_value(child_l.doctype, child_l.name, "coa", r.message[i].coa);
+					        frappe.model.set_value(child_l.doctype, child_l.name, "nominal", r.message[i].amount);
+					        frappe.model.set_value(child_l.doctype, child_l.name, "nama_leasing", r.message[i].leasing);
+						}
+						cur_frm.refresh_field("table_discount_leasing");
+					}
 				}
-			}
-		});
-    }
-    
+			});
+		}
+	}
 });
 
 frappe.ui.form.on("Sales Invoice Penjualan Motor", "cara_bayar", function(frm) {
@@ -2518,7 +2694,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			'Sales Invoice': 'Return / Credit Note',
 			'Payment Request': 'Payment Request',
 			'Payment Entry': 'Payment'
-		},
+		}
+
 		frm.fields_dict["timesheets"].grid.get_field("time_sheet").get_query = function(doc, cdt, cdn){
 			return{
 				query: "erpnext.projects.doctype.timesheet.timesheet.get_timesheet",
@@ -2831,7 +3008,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		//calculate_total_advance();
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
-		cur_frm.set_query("nama_promo", function() {
+		/*cur_frm.set_query("nama_diskon", function() {
 			return {
 				filters: {
 					"item_code": cur_frm.doc.item_code,
@@ -2840,7 +3017,17 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 					"disable": 0
 				}
 			};
-		});
+		});*/
+		/*cur_frm.set_query("nama_promo", function() {
+			return {
+				filters: {
+					"item_code": cur_frm.doc.item_code,
+					'territory': cur_frm.doc.territory_real,
+					//'customer_group': cur_frm.doc.customer_group,
+					"disable": 0
+				}
+			};
+		});*/
 		cur_frm.set_query("no_rangka", function() {
 			var wh = ''
 			/*if(cur_frm.doc.territory == 'All Territories'){
@@ -2863,12 +3050,12 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			cur_frm.set_value("set_warehouse",cur_frm.doc.territory+" - "+cur_frm.doc.company)
 		}*/
 		//bobby
-		if (!frm.doc.cost_center){
-			frappe.db.get_value("Company", {"name": cur_frm.doc.company}, "round_off_cost_center")
-			.then(data => { 
-				frm.set_value("cost_center", data.message.round_off_cost_center);
-			});
-		}
+		// if (!frm.doc.cost_center){
+		// 	frappe.db.get_value("Company", {"name": cur_frm.doc.company}, "round_off_cost_center")
+		// 	.then(data => { 
+		// 		frm.set_value("cost_center", data.message.round_off_cost_center);
+		// 	});
+		// }
 		if (cur_frm.doc.project) {
 			cur_frm.add_custom_button(__('Fetch Timesheet'), function() {
 				let d = new frappe.ui.Dialog({
@@ -3016,7 +3203,7 @@ var select_loyalty_program = function(frm, loyalty_programs) {
 
 	dialog.set_primary_action(__("Set"), function() {
 		dialog.hide();
-		return frappe.call({
+		return cur_frm.call({
 			method: "frappe.client.set_value",
 			args: {
 				doctype: "Customer",
@@ -3307,4 +3494,5 @@ var add_to_item_line = function(frm, checked_values, invoice_healthcare_services
 	}
 };
 //});
+
 

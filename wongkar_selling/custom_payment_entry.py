@@ -15,10 +15,36 @@ from erpnext.accounts.utils import get_outstanding_invoices, get_account_currenc
 import frappe, erpnext, json
 from six import string_types, iteritems
 from frappe.utils import flt, comma_or, nowdate, getdate
+from frappe.frappeclient import FrappeClient
+from erpnext.setup.utils import get_exchange_rate
 
 
 class InvalidPaymentEntry(ValidationError):
 	pass
+
+@frappe.whitelist()
+def cancel_doc():
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2022-00881")
+	doc.cancel()
+
+
+@frappe.whitelist()
+def test_connection():
+
+	print("https://wongkarpjk.digitalasiasolusindo.com/")
+	producer_site = FrappeClient(
+		url="https://wongkarpjk.digitalasiasolusindo.com",
+		api_key="73379ff8b42a48f",
+		api_secret="c1f8382a677fcaf"
+		)
+	# data = {"event_consumer": "http://hondatax.digitalasiasolusindo.com", "consumer_doctypes": "[{\"doctype\": \"Item\", \"condition\": null}]", "user": "sync@das.com", "api_key": "087612f0ae2a33b", "api_secret": "30a9e7a6deecf18"}
+	# try:
+	# 	response = producer_site.post_api(
+	# 		'frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer',
+	# 		params={'data': data}
+	# 	)
+	# except:
+	# 	print(str(producer_site.session['user']))
 
 @frappe.whitelist()
 def get_outstanding_reference_documents_custom(args):

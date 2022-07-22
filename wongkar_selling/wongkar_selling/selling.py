@@ -15,7 +15,7 @@ from erpnext.accounts.utils import get_outstanding_invoices, get_account_currenc
 import frappe, erpnext, json
 from six import string_types, iteritems
 from erpnext.setup.utils import get_exchange_rate
-
+from erpnext.controllers.accounts_controller import get_supplier_block_status
 # ACC-SINV-2021-00017-8
 def custom_get_gl_entries(self, warehouse_account=None):
 	from erpnext.accounts.general_ledger import merge_similar_entries
@@ -916,9 +916,151 @@ def get_outstanding_reference_documents_custom(args):
 			args.get("party"), args.get("company"), party_account_currency, company_currency, filters=args)
 
 	data = negative_outstanding_invoices + outstanding_invoices + orders_to_be_billed
-
+	
 	if not data:
 		frappe.msgprint(_("No outstanding invoices found for the {0} {1} which qualify the filters you have specified.")
 			.format(args.get("party_type").lower(), frappe.bold(args.get("party"))))
 
 	return data
+
+def get_orders_to_be_billed(posting_date, party_type, party,
+	company, party_account_currency, company_currency, cost_center=None, filters=None):
+	if party_type == "Customer":
+		voucher_type = 'Sales Order'
+	elif party_type == "Supplier":
+		voucher_type = 'Purchase Order'
+	elif party_type == "Employee":
+		voucher_type = None
+
+	# Add cost center condition
+	if voucher_type:
+		doc = frappe.get_doc({"doctype": voucher_type})
+		condition = ""
+		if doc and hasattr(doc, 'cost_center'):
+			condition = " and cost_center='%s'" % cost_center
+
+	orders = []
+	if voucher_type:
+		if party_account_currency == company_currency:
+			grand_total_field = "base_grand_total"
+			rounded_total_field = "base_rounded_total"
+		else:
+			grand_total_field = "grand_total"
+			rounded_total_field = "rounded_total"
+
+		orders = frappe.db.sql("""
+			select
+				name as voucher_no,
+				if({rounded_total_field}, {rounded_total_field}, {grand_total_field}) as invoice_amount,
+				(if({rounded_total_field}, {rounded_total_field}, {grand_total_field}) - advance_paid) as outstanding_amount,
+				transaction_date as posting_date
+			from
+				`tab{voucher_type}`
+			where
+				{party_type} = %s
+				and docstatus = 1
+				and company = %s
+				and ifnull(status, "") != "Closed"
+				and if({rounded_total_field}, {rounded_total_field}, {grand_total_field}) > advance_paid
+				and abs(100 - per_billed) > 0.01
+				{condition}
+			order by
+				transaction_date, name
+		""".format(**{
+			"rounded_total_field": rounded_total_field,
+			"grand_total_field": grand_total_field,
+			"voucher_type": voucher_type,
+			"party_type": scrub(party_type),
+			"condition": condition
+		}), (party, company), as_dict=True)
+
+	order_list = []
+	for d in orders:
+		if not (flt(d.outstanding_amount) >= flt(filters.get("outstanding_amt_greater_than"))
+			and flt(d.outstanding_amount) <= flt(filters.get("outstanding_amt_less_than"))):
+			continue
+
+		d["voucher_type"] = voucher_type
+		# This assumes that the exchange rate required is the one in the SO
+		d["exchange_rate"] = get_exchange_rate(party_account_currency, company_currency, posting_date)
+		order_list.append(d)
+
+	return order_list
+
+def split_invoices_based_on_payment_terms(outstanding_invoices):
+	invoice_ref_based_on_payment_terms = {}
+	for idx, d in enumerate(outstanding_invoices):
+		if d.voucher_type in ['Sales Invoice', 'Purchase Invoice']:
+			payment_term_template = frappe.db.get_value(d.voucher_type, d.voucher_no, 'payment_terms_template')
+			if payment_term_template:
+				allocate_payment_based_on_payment_terms = frappe.db.get_value(
+					'Payment Terms Template', payment_term_template, 'allocate_payment_based_on_payment_terms')
+				if allocate_payment_based_on_payment_terms:
+					payment_schedule = frappe.get_all('Payment Schedule', filters={'parent': d.voucher_no}, fields=["*"])
+
+					for payment_term in payment_schedule:
+						if payment_term.outstanding > 0.1:
+							invoice_ref_based_on_payment_terms.setdefault(idx, [])
+							invoice_ref_based_on_payment_terms[idx].append(frappe._dict({
+								'due_date': d.due_date,
+								'currency': d.currency,
+								'voucher_no': d.voucher_no,
+								'voucher_type': d.voucher_type,
+								'posting_date': d.posting_date,
+								'invoice_amount': flt(d.invoice_amount),
+								'outstanding_amount': flt(d.outstanding_amount),
+								'payment_amount': payment_term.payment_amount,
+								'payment_term': payment_term.payment_term,
+								'allocated_amount': payment_term.outstanding
+							}))
+
+	if invoice_ref_based_on_payment_terms:
+		for idx, ref in invoice_ref_based_on_payment_terms.items():
+			voucher_no = outstanding_invoices[idx]['voucher_no']
+			voucher_type = outstanding_invoices[idx]['voucher_type']
+
+			frappe.msgprint(_("Spliting {} {} into {} rows as per payment terms").format(
+				voucher_type, voucher_no, len(ref)), alert=True)
+
+			outstanding_invoices.pop(idx - 1)
+			outstanding_invoices += invoice_ref_based_on_payment_terms[idx]
+
+	return outstanding_invoices
+
+def get_negative_outstanding_invoices(party_type, party, party_account,
+	company, party_account_currency, company_currency, cost_center=None):
+	voucher_type = "Sales Invoice" if party_type == "Customer" else "Purchase Invoice"
+	# voucher_type = "Sales Invoice Penjualan Motor" if party_type == "Customer" else "Purchase Invoice"
+	supplier_condition = ""
+	if voucher_type == "Purchase Invoice":
+		supplier_condition = "and (release_date is null or release_date <= CURDATE())"
+	if party_account_currency == company_currency:
+		grand_total_field = "base_grand_total"
+		rounded_total_field = "base_rounded_total"
+	else:
+		grand_total_field = "grand_total"
+		rounded_total_field = "rounded_total"
+
+	return frappe.db.sql("""
+		select
+			"{voucher_type}" as voucher_type, name as voucher_no,
+			if({rounded_total_field}, {rounded_total_field}, {grand_total_field}) as invoice_amount,
+			outstanding_amount, posting_date,
+			due_date, conversion_rate as exchange_rate
+		from
+			`tab{voucher_type}`
+		where
+			{party_type} = %s and {party_account} = %s and docstatus = 1 and
+			company = %s and outstanding_amount < 0
+			{supplier_condition}
+		order by
+			posting_date, name
+		""".format(**{
+			"supplier_condition": supplier_condition,
+			"rounded_total_field": rounded_total_field,
+			"grand_total_field": grand_total_field,
+			"voucher_type": voucher_type,
+			"party_type": scrub(party_type),
+			"party_account": "debit_to" if party_type == "Customer" else "credit_to",
+			"cost_center": cost_center
+		}), (party, party_account, company), as_dict=True)

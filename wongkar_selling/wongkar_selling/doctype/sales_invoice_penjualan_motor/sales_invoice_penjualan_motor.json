@@ -67,15 +67,17 @@
   "penjualan_motor_section",
   "cara_bayar",
   "item_code",
+  "nama_diskon",
   "nama_promo",
   "nama_leasing",
   "no_rangka",
   "no_mesin",
+  "diskon",
+  "nominal_diskon",
   "harga",
   "cb_sinvm0",
   "no_po_leasing",
   "po_attch",
-  "nama_diskon",
   "tertagih",
   "sb_tb_disc_section",
   "table_discount",
@@ -677,6 +679,8 @@
    "reqd": 1
   },
   {
+   "default": "IDR",
+   "fetch_from": "selling_price_list.currency",
    "fieldname": "price_list_currency",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -725,7 +729,8 @@
    "hide_seconds": 1,
    "label": "Source Warehouse",
    "options": "Warehouse",
-   "print_hide": 1
+   "print_hide": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_55",
@@ -1735,6 +1740,7 @@
    "width": "50%"
   },
   {
+   "allow_on_submit": 1,
    "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -1770,7 +1776,6 @@
    "print_hide": 1
   },
   {
-   "fetch_from": "company.default_receivable_account",
    "fieldname": "debit_to",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -2028,6 +2033,7 @@
    "options": "Item"
   },
   {
+   "depends_on": "eval:doc.set_warehouse",
    "fieldname": "no_rangka",
    "fieldtype": "Link",
    "label": "No Rangka",
@@ -2055,14 +2061,15 @@
    "fieldname": "nama_promo",
    "fieldtype": "Link",
    "label": "Nama Promo",
-   "options": "Rule Discount Leasing"
+   "options": "Category Discount Leasing"
   },
   {
    "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fetch_from": "nama_promo.leasing",
    "fieldname": "nama_leasing",
-   "fieldtype": "Data",
-   "label": "Nama Leasing"
+   "fieldtype": "Link",
+   "label": "Nama Leasing",
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -2202,10 +2209,22 @@
    "options": "Territory"
   },
   {
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
    "fieldname": "nama_diskon",
-   "fieldtype": "Select",
-   "label": "Nama Diskon"
+   "fieldtype": "Link",
+   "label": "Category Discount",
+   "options": "Category Discount"
+  },
+  {
+   "default": "0",
+   "fieldname": "diskon",
+   "fieldtype": "Check",
+   "label": "Diskon"
+  },
+  {
+   "depends_on": "eval:doc.diskon",
+   "fieldname": "nominal_diskon",
+   "fieldtype": "Currency",
+   "label": "Nominal Diskon"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2217,7 +2236,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2021-12-17 16:31:02.747050",
+ "modified": "2022-06-14 10:20:07.815374",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
@@ -2260,6 +2279,18 @@
    "permlevel": 1,
    "read": 1,
    "role": "All"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Staff Admin Sales Entry",
+   "share": 1,
+   "write": 1
   }
  ],
  "quick_entry": 1,

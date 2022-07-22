@@ -16,6 +16,7 @@
   "territory",
   "coa_credit_motor",
   "grand_total",
+  "outstanding_amount",
   "daftar_credit_motor",
   "amended_from",
   "company",
@@ -42,6 +43,7 @@
   {
    "fieldname": "leasing",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Leasing Promo",
    "options": "Rule Discount Leasing"
   },
@@ -54,7 +56,6 @@
    "read_only": 1
   },
   {
-   "fetch_from": "leasing.nama_promo",
    "fieldname": "nama_promo",
    "fieldtype": "Data",
    "label": "Nama Promo",
@@ -64,6 +65,7 @@
    "fetch_from": "leasing.territory",
    "fieldname": "territory",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Territory",
    "read_only": 1
   },
@@ -91,12 +93,10 @@
    "read_only": 1
   },
   {
-   "fetch_from": "leasing.leasing",
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer",
-   "read_only": 1
+   "options": "Customer"
   },
   {
    "fieldname": "grand_total",
@@ -123,12 +123,18 @@
    "hidden": 1,
    "label": "Status",
    "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "outstanding_amount",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-11-06 09:38:50.473664",
+ "modified": "2021-12-24 13:38:19.162428",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Credit Motor",

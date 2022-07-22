@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "autoname": "FORM-.MM.-.YYYY.-.#####",
+ "creation": "2022-02-07 11:02:04.136228",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "from_date",
+  "to_date",
+  "coa_income",
+  "generate",
+  "list_invoice",
+  "total_income",
+  "default_posting_date",
+  "expanse_table",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "fieldname": "coa_income",
+   "fieldtype": "Link",
+   "label": "COA Income",
+   "options": "Account"
+  },
+  {
+   "fieldname": "generate",
+   "fieldtype": "Button",
+   "label": "Generate"
+  },
+  {
+   "fieldname": "total_income",
+   "fieldtype": "Currency",
+   "label": "Total Income",
+   "read_only": 1
+  },
+  {
+   "fieldname": "default_posting_date",
+   "fieldtype": "Date",
+   "label": "Default Posting Date"
+  },
+  {
+   "fieldname": "expanse_table",
+   "fieldtype": "Table",
+   "label": "Expanse Table",
+   "options": "Expanse Table"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Form Expanse Generator",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "list_invoice",
+   "fieldtype": "Table",
+   "label": "List Invoice",
+   "options": "List Invoice"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2022-02-08 09:43:57.419637",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Form Expanse Generator",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

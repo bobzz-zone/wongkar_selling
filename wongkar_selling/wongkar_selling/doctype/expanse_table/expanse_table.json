@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "creation": "2022-02-07 11:05:56.700443",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "coa_expanse",
+  "coa_cb",
+  "biaya",
+  "tanggal_posting",
+  "nilai",
+  "no_je"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "coa_expanse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "COA Expanse",
+   "options": "Account"
+  },
+  {
+   "columns": 1,
+   "fieldname": "coa_cb",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "COA Cash/Bank",
+   "options": "Account"
+  },
+  {
+   "fieldname": "biaya",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "% Biaya"
+  },
+  {
+   "fieldname": "tanggal_posting",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tanggal Posting"
+  },
+  {
+   "fieldname": "no_je",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "No JE",
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nilai",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Nilai",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-02-07 14:47:38.013324",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Expanse Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

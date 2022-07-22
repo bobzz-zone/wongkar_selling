@@ -7,16 +7,20 @@
  "field_order": [
   "no_invoice",
   "tanggal_inv",
+  "nilai",
+  "terbayarkan",
+  "item",
   "no_rangka",
   "nama_promo",
-  "nilai"
+  "pemilik"
  ],
  "fields": [
   {
    "fieldname": "no_invoice",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "No Invoice"
+   "label": "No Invoice",
+   "options": "Sales Invoice Penjualan Motor"
   },
   {
    "fieldname": "tanggal_inv",
@@ -26,14 +30,14 @@
   },
   {
    "fieldname": "no_rangka",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "No Rangka"
+   "fieldtype": "Link",
+   "label": "No Rangka",
+   "options": "Serial No"
   },
   {
    "fieldname": "nama_promo",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Nama Promo"
   },
   {
@@ -41,12 +45,30 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Nilai"
+  },
+  {
+   "fieldname": "terbayarkan",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Terbayarkan"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "pemilik",
+   "fieldtype": "Link",
+   "label": "Pemilik",
+   "options": "Customer"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-10-05 08:58:36.162351",
+ "modified": "2021-12-24 13:50:18.838053",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Daftar Credit Motor",
