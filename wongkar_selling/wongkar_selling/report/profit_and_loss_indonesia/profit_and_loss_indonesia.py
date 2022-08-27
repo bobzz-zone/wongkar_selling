@@ -18,20 +18,20 @@ def execute(filters=None):
 		if gl[0].startswith("40"):
 			source[0]['debit']=flt(source[0]['debit'])+flt(gl[1])
 			source[0]['credit']=flt(source[0]['credit'])+flt(gl[2])
-		if gl[1].startswith("50"):
+		if gl[0].startswith("50"):
 			source[1]['debit']=flt(source[1]['debit'])+flt(gl[1])
 			source[1]['credit']=flt(source[1]['credit'])+flt(gl[2])
-		if gl[2].startswith("60"):
+		if gl[0].startswith("60"):
 			source[2]['debit']=flt(source[2]['debit'])+flt(gl[1])
 			source[2]['credit']=flt(source[2]['credit'])+flt(gl[2])
-		if gl[3].startswith("70"):
+		if gl[0].startswith("70"):
 			source[3]['debit']=flt(source[3]['debit'])+flt(gl[1])
 			source[3]['credit']=flt(source[3]['credit'])+flt(gl[2])
-		if gl[6].startswith("90"):
+		if gl[0].startswith("90"):
 			source[6]['debit']=flt(source[6]['debit'])+flt(gl[1])
 			source[6]['credit']=flt(source[6]['credit'])+flt(gl[2])
 		if gl[0].startswith("80"):
-			if gl[5].startswith("80.0400"):
+			if gl[0].startswith("80.0400"):
 				source[5]['debit']=flt(source[5]['debit'])+flt(gl[1])
 				source[5]['credit']=flt(source[5]['credit'])+flt(gl[2])
 			else:
