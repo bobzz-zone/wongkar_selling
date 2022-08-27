@@ -37,7 +37,7 @@ def execute(filters=None):
 			else:
 				source[4]['debit']=flt(source[4]['debit'])+flt(gl[1])
 				source[4]['credit']=flt(source[4]['credit'])+flt(gl[2])
-	data=[{},{},{},{},{},{},{},{},{},{},{},{},{}]
+	data=[{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
 	data[0]=source[0]
 	data[1]=source[1]
 	laba_kotor=source[0]['credit']-source[0]['debit']+source[1]['credit']-source[1]['debit']
