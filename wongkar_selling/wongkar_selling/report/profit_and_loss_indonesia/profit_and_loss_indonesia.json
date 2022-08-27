@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "json": "{}",
- "modified": "2022-08-27 10:25:56.821435",
+ "modified": "2022-08-27 10:32:25.295946",
  "modified_by": "Administrator",
  "module": "Wongkar Selling",
  "name": "Profit and Loss Indonesia",
@@ -18,7 +18,7 @@
  "prepared_report": 0,
  "ref_doctype": "Account",
  "report_name": "Profit and Loss Indonesia",
- "report_type": "Report Builder",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "Auditor"
