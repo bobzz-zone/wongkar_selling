@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import flt
 def execute(filters=None):
-	columns, source = [], []
+	columns, source = [], [{},{},{},{},{},{},{}]
 	source_gl = frappe.db.sql("""select account,debit,credit from `tabGL Entry` where is_cancelled=0 and 
 		company="{}" and posting_date >= "{}" and posting_date <="{}" """.format(filters.get("company"),filters.get("from_date"),filters.get("to_date")),as_list=1)
 	source[0]={"title":"40.0000.00.00.00.000 - Sales & Revenue Element","debit":0,"credit":0}
@@ -37,6 +37,7 @@ def execute(filters=None):
 			else:
 				source[4]['debit']=flt(source[4]['debit'])+flt(gl[1])
 				source[4]['credit']=flt(source[4]['credit'])+flt(gl[2])
+	data=[{},{},{},{},{},{},{},{},{},{},{},{},{}]
 	data[0]=source[0]
 	data[1]=source[1]
 	laba_kotor=source[0]['credit']-source[0]['debit']+source[1]['credit']-source[1]['debit']
