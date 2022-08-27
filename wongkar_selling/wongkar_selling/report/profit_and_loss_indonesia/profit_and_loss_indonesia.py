@@ -6,7 +6,7 @@ from frappe.utils import flt
 def execute(filters=None):
 	columns, source = [], []
 	source_gl = frappe.db.sql("""select account,debit,credit from `tabGL Entry` where is_cancelled=0 and 
-		company="{}" and gl.posting_date >= "{}" and gl.posting_date <="{}" """.format(filters.get("company"),filters.get("from_date"),filters.get("to_date")),as_list=1)
+		company="{}" and posting_date >= "{}" and posting_date <="{}" """.format(filters.get("company"),filters.get("from_date"),filters.get("to_date")),as_list=1)
 	source[0]={"title":"40.0000.00.00.00.000 - Sales & Revenue Element","debit":0,"credit":0}
 	source[1]={"title":"50.0000.00.00.00.000 - Cost of Goods Sold / Manufactured","debit":0,"credit":0}
 	source[2]={"title":"60.0000.00.00.00.000 - Operational Expenses","debit":0,"credit":0}
@@ -68,5 +68,5 @@ def execute(filters=None):
 		data[12]={"title":"Laba Bersih","debit":0,"credit":laba_kotor}
 	data[13]={"title":"","debit":"","credit":""}
 	data[14]=source[6]
-	
+
 	return columns, source
