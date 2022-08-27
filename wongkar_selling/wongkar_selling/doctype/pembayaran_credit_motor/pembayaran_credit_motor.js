@@ -14,6 +14,14 @@ frappe.ui.form.on('Pembayaran Credit Motor', {
 		frm.set_value('base_grand_total',total)
 		frm.set_value('outstanding_amount',total)
 	},
+	date_from(frm){
+		cur_frm.set_value("customer","")
+		cur_frm.refresh_fields("customer")
+	},
+	date_to(frm){
+		cur_frm.set_value("customer","")
+		cur_frm.refresh_fields("customer")
+	},
 	refresh: function(frm){
 		show_general_ledger();
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
@@ -61,7 +69,9 @@ frappe.ui.form.on("Pembayaran Credit Motor", "customer", function(frm) {
     	frappe.call({
              method: "wongkar_selling.wongkar_selling.get_invoice.get_invc",
              args: {
-                leasing: cur_frm.doc.customer
+                leasing: cur_frm.doc.customer,
+                date_from: cur_frm.doc.date_from,
+                date_to: cur_frm.doc.date_to
                 //nama_promo: cur_frm.doc.nama_promo
              },
              callback: function(data) {

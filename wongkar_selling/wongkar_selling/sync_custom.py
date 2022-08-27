@@ -373,7 +373,48 @@ def cencel_sumber_asli(self,method):
 		#decide credential
 		username = "Administrator"
 		if consumer[0].name=="https://hondapjk.digitalasiasolusindo.com":
-			return
+			# return
+			#skip sementara kegiatan di honda
+			server_pajak = [frappe._dict({
+				'password':"admin",
+				'username':username,
+				'web_tujuan':consumer[0].name
+			})]
+		elif consumer[0].name=="https://wongkarpjk.digitalasiasolusindo.com":
+			server_pajak =[frappe._dict({
+				'password':"Rahasiakit@",
+				'username':username,
+				'web_tujuan':consumer[0].name
+			})]
+		elif consumer[0].name=="https://wongkar2pjk.digitalasiasolusindo.com":
+			server_pajak = [frappe._dict({
+				'password':"Rahasiakit@",
+				'username':username,
+				'web_tujuan':consumer[0].name
+			})]
+		elif consumer[0].name=="https://hondatax.digitalasiasolusindo.com":
+			server_pajak = [frappe._dict({
+				'password':"admin",
+				'username':username,
+				'web_tujuan':consumer[0].name
+			})]
+		clientroot = FrappeClient(server_pajak[0].web_tujuan,server_pajak[0].username,server_pajak[0].password)
+		clientdoc = clientroot.get_doc(self.doctype, self.name)
+		if not clientdoc:
+			pass
+		elif clientdoc['docstatus'] == 1:
+			clientroot.cancel(self.doctype,clientdoc['name'])
+
+def delete_sumber_asli(self,method):
+	# pass
+	# honda pjk
+	consumer = frappe.db.sql("""SELECT * FROM `tabEvent Consumer` """,as_dict=1)
+	if len(consumer)>0:
+		#custom bobby , kalo ada consumer lakukan sync
+		#decide credential
+		username = "Administrator"
+		if consumer[0].name=="https://hondapjk.digitalasiasolusindo.com":
+			# return
 			#skip sementara kegiatan di honda
 			server_pajak = [frappe._dict({
 				'password':"admin",
@@ -396,8 +437,8 @@ def cencel_sumber_asli(self,method):
 		clientdoc = clientroot.get_doc(self.doctype, self.name)
 		if not clientdoc:
 			pass
-		elif clientdoc['docstatus'] == 1:
-			clientroot.cancel(self.doctype,clientdoc['name'])
+		elif clientdoc['docstatus'] != 1:
+			clientroot.delete(self.doctype,clientdoc['name'])
 	
 # def cencel_sumber_asli(self,method):
 # 	# pass
@@ -508,34 +549,7 @@ def cencel_sumber_asli(self,method):
 # 		clientdoc_wongkar2_pjk = clientroot_wongkar2_pjk.get_doc(self.doctype, self.name)
 # 		# frappe.throw(str(clientdoc['name']))
 # 		clientroot_wongkar2_pjk.delete(self.doctype,self.name)
-def delete_sumber_asli(self,method):
-	# pass
-	# honda pjk
-	consumer = frappe.db.sql("""SELECT * FROM `tabEvent Consumer` """,as_dict=1)
-	if len(consumer)>0:
-		#custom bobby , kalo ada consumer lakukan sync
-		#decide credential
-		username = "Administrator"
-		if consumer[0].name=="https://hondapjk.digitalasiasolusindo.com":
-			return
-			#skip sementara kegiatan di honda
-			server_pajak = [frappe._dict({
-				'password':"admin",
-				'username':username,
-				'web_tujuan':consumer[0].name
-			})]
-		else:
-# consumer[0].name=="https://wongkarpjk.digitalasiasolusindo.com":
-			server_pajak =[frappe._dict({
-				'password':"Rahasiakit@",
-				'username':username,
-				'web_tujuan':consumer[0].name
-			})]
-			
-		clientroot = FrappeClient(server_pajak[0].web_tujuan,server_pajak[0].username,server_pajak[0].password)
-		clientdoc = clientroot.get_doc(self.doctype, self.name)
-		if clientdoc['docstatus'] != 1:
-			clientroot.delete(self.doctype,clientdoc['name'])
+
 
 def test_update(self,method):
 	# frappe.msgprint("test")

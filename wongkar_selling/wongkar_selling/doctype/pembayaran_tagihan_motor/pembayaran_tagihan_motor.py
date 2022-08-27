@@ -149,7 +149,9 @@ class PembayaranTagihanMotor(Document):
 		# add_party_gl_entries_custom_tambah(self)
 		# add_party_gl_entries_custom(self)
 		self.make_gl_entries()
-		data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+		
+		# data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
 		for i in data:
 			doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
 			doc.tertagih = 1
@@ -161,7 +163,8 @@ class PembayaranTagihanMotor(Document):
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ('GL Entry')
 		self.make_gl_entries(cancel=1)
-		data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+		# data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
 		for i in data:
 			doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
 			doc.tertagih = 0

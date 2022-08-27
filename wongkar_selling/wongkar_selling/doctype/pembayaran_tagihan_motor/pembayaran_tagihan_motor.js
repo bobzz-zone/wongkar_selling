@@ -13,6 +13,14 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 		frm.set_value('base_grand_total',total)
 		frm.set_value('outstanding_amount',total)
 	},
+	date_from(frm){
+		cur_frm.set_value("supplier","")
+		cur_frm.refresh_fields("supplier")
+	},
+	date_to(frm){
+		cur_frm.set_value("supplier","")
+		cur_frm.refresh_fields("supplier")
+	},
 	refresh: function(frm){
 		show_general_ledger();
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
@@ -63,45 +71,27 @@ frappe.ui.form.on("Pembayaran Tagihan Motor", "supplier", function(frm) {
              method: "wongkar_selling.wongkar_selling.get_invoice.get_inv",
              args: {
                 supplier: cur_frm.doc.supplier,
-                types: cur_frm.doc.type
+                types: cur_frm.doc.type,
+                date_from: cur_frm.doc.date_from,
+                date_to: cur_frm.doc.date_to
              },
              callback: function(data) {
+				console.log(data,'data')
 				cur_frm.clear_table("tagihan_biaya_motor");
 	        	cur_frm.refresh_fields();
 				for (let i = 0; i < data.message.length; i++) {
-					console.log(data.message[i].parent);
-					frappe.db.get_value("Sales Invoice Penjualan Motor", {"name":data.message[i].parent,"docstatus": ["=",1]}, "name")
-					.then(r => { 
-						/*console.log(r)*/
-						// var child = cur_frm.add_child("tagihan_biaya_motor");
-						if (r.message.name){
-							var child = cur_frm.add_child("tagihan_biaya_motor");
-					        frappe.model.set_value(child.doctype, child.name, "no_invoice", r.message.name);
-					        frappe.db.get_value("Sales Invoice Penjualan Motor", {"name": data.message[i].parent}, "no_rangka")
-							.then(data2 => { 
-								frappe.model.set_value(child.doctype, child.name, "no_rangka", data2.message.no_rangka);
-				            });
-					        frappe.db.get_value("Sales Invoice Penjualan Motor", {"name": data.message[i].parent}, "posting_date")
-				            .then(data3 => { 
-				            	frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data3.message.posting_date);
-				            });
-					        // frappe.model.set_value(child.doctype, child.name, "no_rangka", no_rangka);
-					        frappe.model.set_value(child.doctype, child.name, "type", data.message[i].type);
-				            frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].amount);	
-				            frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].amount);
-				            frappe.db.get_value("Sales Invoice Penjualan Motor", {"name": data.message[i].parent}, "item_code")
-				            .then(r => { 
-				            	frappe.model.set_value(child.doctype, child.name, "item", r.message.item_code);
-				            });	     
-				            frappe.db.get_value("Sales Invoice Penjualan Motor", {"name": data.message[i].parent}, "pemilik")
-				            .then(r => { 
-				            	frappe.model.set_value(child.doctype, child.name, "pemilik", r.message.pemilik);
-				            });	
-					        cur_frm.refresh_field("tagihan_biaya_motor");
-						}
-						// cur_frm.refresh_field("tagihan_biaya_motor");
-		            });
+					if (data.message[i].name){
+						var child = cur_frm.add_child("tagihan_biaya_motor");
+						frappe.model.set_value(child.doctype, child.name, "no_invoice", data.message[i].name);
+						frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
+						frappe.model.set_value(child.doctype, child.name, "type", data.message[i].type);
+						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].amount);
+						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
+						frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
+						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);
+					}
 				}
+				cur_frm.refresh_field("tagihan_biaya_motor");
             }
         });
     } 

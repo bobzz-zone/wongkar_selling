@@ -2322,10 +2322,10 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 	if(cur_frm.doc.no_rangka){
 		let today = frappe.datetime.get_today();
 		// frappe.msgprint('coba pajak1');
-		cur_frm.clear_table("taxes");
-		cur_frm.refresh_field("taxes");
-		cur_frm.set_value("taxes_and_charges","");
-		cur_frm.set_value("taxes_and_charges","PPN 11% - Keluaran - IFMI");
+		// cur_frm.clear_table("taxes");
+		// cur_frm.refresh_field("taxes");
+		// cur_frm.set_value("taxes_and_charges","");
+		// cur_frm.set_value("taxes_and_charges","PPN 11% - Keluaran - IFMI");
 
 		// harga baru
 		frappe.call({
@@ -2363,9 +2363,9 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 
 	if(!cur_frm.doc.no_rangka){
 		// frappe.msgprint('coba pajak2')
-		cur_frm.set_value("taxes_and_charges","");
-		cur_frm.clear_table("taxes");
-		cur_frm.refresh_field("taxes");
+		// cur_frm.set_value("taxes_and_charges","");
+		// cur_frm.clear_table("taxes");
+		// cur_frm.refresh_field("taxes");
 		cur_frm.set_value("harga", 0);
 		cur_frm.refresh_field("harga");
 		cur_frm.clear_table("items");
@@ -2454,9 +2454,9 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 			    var ppn_rate = cur_frm.doc.taxes[0]['rate']
 				var ppn_div = (100+ppn_rate)/100
 			    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / ppn_div;
-				var hasil2 = cur_frm.doc.harga - total2;
+				var hasil2 = cur_frm.doc.harga - total;
 				var akhir2 = cur_frm.doc.harga - hasil2;
-				console.log(total2,"total2")
+				console.log(total,"total2")
 				console.log(hasil2,"hasil2")
 				console.log(akhir2,"akhir2")
 			    
@@ -2475,7 +2475,7 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 				// console.log("sebelum get details 2")
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "discount_amount", cb_disc);
 				// frappe.model.set_value(child_i2.doctype, child_i2.name, "price_list_rate", cur_frm.doc.harga);
-				frappe.model.set_value(child_i2.doctype, child_i2.name, "rate", total2)
+				frappe.model.set_value(child_i2.doctype, child_i2.name, "rate", total)
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "warehouse", cur_frm.doc.set_warehouse)
 				frappe.model.set_value(child_i2.doctype, child_i2.name, "serial_no", cur_frm.doc.no_rangka)
 				frappe.model.set_value(child_i2.doctype, child_i2.name,"cost_center",cur_frm.doc.cost_center)

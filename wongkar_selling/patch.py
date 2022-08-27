@@ -250,3 +250,33 @@ def check_one_ledger():
 	# 	"MAT-STE-2022-01127",
 	# 	"MAT-PRE-2022-00290",
 	# 	"MAT-PRE-2022-00289"]
+
+@frappe.whitelist()
+def benerin_sim_cancel():
+	
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor",'ACC-SINVM-2022-05618')
+	print(doc.name)
+	doc.cancel()
+	
+
+@frappe.whitelist()
+def benerin_sim():
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor",'ACC-SINVM-2022-05618')
+	# # print(doc.name)
+	frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(doc.name))
+	frappe.db.commit()
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor",'ACC-SINVM-2022-05618')
+	print(doc.name)
+	print(doc.posting_date)
+	doc.custom_missing_values2()
+	doc.flags.ignore_permission = True
+	doc.save()
+	
+
+@frappe.whitelist()
+def benerin_sim_submit():
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor",'ACC-SINVM-2022-05619')
+	print(doc.name)
+	print(doc.posting_date)
+	doc.submit()
+	

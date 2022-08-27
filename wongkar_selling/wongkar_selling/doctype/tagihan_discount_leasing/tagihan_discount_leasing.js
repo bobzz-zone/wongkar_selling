@@ -14,6 +14,14 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 		frm.set_value('outstanding_amount',total)
 		
 	},
+	date_from(frm){
+		cur_frm.set_value("customer","")
+		cur_frm.refresh_fields("customer")
+	},
+	date_to(frm){
+		cur_frm.set_value("customer","")
+		cur_frm.refresh_fields("customer")
+	},
 	refresh: function(frm){
 		show_general_ledger();
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
@@ -61,7 +69,9 @@ frappe.ui.form.on("Tagihan Discount Leasing", "customer", function(frm) {
              method: "wongkar_selling.wongkar_selling.get_invoice.get_invd_l",
              args: {
                 //leasing: cur_frm.doc.leasing,
-                customer: cur_frm.doc.customer
+                customer: cur_frm.doc.customer,
+                date_from: cur_frm.doc.date_from,
+                date_to: cur_frm.doc.date_to
              },
              callback: function(data) {
              	console.log(data,"data")

@@ -6,7 +6,14 @@ from frappe.model.document import Document
 import json
 from wongkar_selling.wongkar_selling.frappeclient import FrappeClient
 import pandas as pd
+from wongkar_selling.custom_method import repair_gl_entry
 
+from datetime import date
+from frappe.utils import flt, rounded, add_months,add_days, nowdate, getdate
+import time
+import datetime
+
+#wongkar
 class DocSyncLog(Document):
 	pass
 	# def after_insert(self):
@@ -23,16 +30,22 @@ class DocSyncLog(Document):
 
 @frappe.whitelist()
 def after_insert_doc(self,method):
+	today = date.today()
 	cek_apakah_tujuan = frappe.db.sql(""" SELECT * FROM `tabEvent Producer` """)
 	if len(cek_apakah_tujuan) > 0:
 		sync_baru = json.loads(self.data)
 		sync_baru["no_sync_asal"] = self.reference_name
 		doc_sync_baru = frappe.get_doc(sync_baru)
+		if doc_sync_baru.doctype in ['Purchase Receipt','Purchase Invoice','Delivery Note','Sales Invoice','Sales Invoice Penjualan Motor','Stock Entry','Stock Reconciliation','POS Invoice']:
+			if doc_sync_baru.posting_date != today:
+				doc_sync_baru.set_posting_time = 1
 		doc_sync_baru.__islocal = 1
 		doc_sync_baru.flags.name_set = 1
 		print(doc_sync_baru,'dssads')
 		doc_sync_baru.flags.ignore_permissions=True
-		doc_sync_baru.save()
+		doc_sync_baru.submit()
+		repair_gl_entry(sync_baru['doctype'],sync_baru['name'])
+		
 
 			# docu_tujuan = frappe.db.sql("""SELECT * from `tab"""+self.reference_doctype+"""` where no_sync_asal='"""+self.reference_name+"""' """,as_dict=1)
 			# if docu_tujuan:
@@ -85,15 +98,34 @@ def after_submit_sync(self,method):
 
 @frappe.whitelist()
 def debug_sync_log(name):
+	today = date.today()
 	sync_log = frappe.get_doc("Doc Sync Log",name)
 	sync_baru = json.loads(sync_log.data)
 	sync_baru["no_sync_asal"] = sync_log.reference_name
 	doc_sync_baru = frappe.get_doc(sync_baru)
+	if doc_sync_baru.doctype in ['Purchase Receipt','Purchase Invoice','Delivery Note','Sales Invoice','Sales Invoice Penjualan Motor','Stock Entry','Stock Reconciliation','POS Invoice']:
+		if doc_sync_baru.posting_date != today:
+			doc_sync_baru.set_posting_time = 1
+		
 	doc_sync_baru.__islocal = 1
 	doc_sync_baru.flags.name_set = 1
 	print(doc_sync_baru,'dssads')
 	doc_sync_baru.flags.ignore_permissions=True
-	doc_sync_baru.save()
+	doc_sync_baru.submit()
+	repair_gl_entry(sync_baru['doctype'],sync_baru['name'])
+
+# @frappe.whitelist()
+# def debug_sync_log_2(name):
+# 	sync_log = frappe.get_doc("Doc Sync Log",name)
+# 	sync_baru = json.loads(sync_log.data)
+# 	sync_baru["no_sync_asal"] = sync_log.reference_name
+# 	sync_baru["amended_from"] = ""
+# 	doc_sync_baru = frappe.get_doc(sync_baru)
+# 	doc_sync_baru.__islocal = 1
+# 	doc_sync_baru.flags.name_set = 1
+# 	print(doc_sync_baru,'dssads')
+# 	doc_sync_baru.flags.ignore_permissions=True
+# 	doc_sync_baru.submit()
 
 
 @frappe.whitelist()

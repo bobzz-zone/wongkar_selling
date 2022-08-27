@@ -9,6 +9,8 @@
   "naming_series",
   "section_break_2",
   "date",
+  "date_from",
+  "date_to",
   "leasing",
   "customer",
   "name_leasing",
@@ -129,12 +131,24 @@
    "fieldtype": "Currency",
    "label": "outstanding_amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "date_from",
+   "fieldtype": "Date",
+   "label": "Date From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_to",
+   "fieldtype": "Date",
+   "label": "Date To",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-12-24 13:38:19.162428",
+ "modified": "2022-08-23 14:21:59.852480",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Credit Motor",
