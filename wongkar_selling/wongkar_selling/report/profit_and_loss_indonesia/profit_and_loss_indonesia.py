@@ -42,31 +42,31 @@ def execute(filters=None):
 	data[1]=source[1]
 	laba_kotor=source[0]['credit']-source[0]['debit']+source[1]['credit']-source[1]['debit']
 	if laba_kotor<0:
-		data[2]={"title":"Laba kotor","debit":laba_kotor*-1,"credit":0}
+		data[2]={"title":"<strong>Laba kotor</strong>","debit":laba_kotor*-1,"credit":0}
 	else:
-		data[2]={"title":"Laba kotor","debit":0,"credit":laba_kotor}
+		data[2]={"title":"<strong>Laba kotor</strong>","debit":0,"credit":laba_kotor}
 	data[3]={"title":"","debit":"","credit":""}
 	data[4]=source[2]
 	laba_kotor=laba_kotor+source[2]['credit']-source[2]['debit']
 	if laba_kotor<0:
-		data[5]={"title":"Laba Operational","debit":laba_kotor*-1,"credit":0}
+		data[5]={"title":"<strong>Laba Operational</strong>","debit":laba_kotor*-1,"credit":0}
 	else:
-		data[5]={"title":"Laba Operational","debit":0,"credit":laba_kotor}
+		data[5]={"title":"<strong>Laba Operational</strong>","debit":0,"credit":laba_kotor}
 	data[6]={"title":"","debit":"","credit":""}
 	data[7]=source[3]
 	data[8]=source[4]
 	laba_kotor=laba_kotor+source[3]['credit']-source[3]['debit']+source[4]['credit']-source[4]['debit']
 	if laba_kotor<0:
-		data[9]={"title":"Laba Sebelum Pajak","debit":laba_kotor*-1,"credit":0}
+		data[9]={"title":"<strong>Laba Sebelum Pajak</strong>","debit":laba_kotor*-1,"credit":0}
 	else:
-		data[9]={"title":"Laba Sebelum Pajak","debit":0,"credit":laba_kotor}
-	data[10]={"title":"","debit":"","credit":""}
+		data[9]={"title":"Laba Sebelum Pajak</strong>","debit":0,"credit":laba_kotor}
+	data[10]={"title":"","<strong>debit":"","credit":""}
 	data[11]=source[5]
 	laba_kotor=laba_kotor+source[5]['credit']-source[5]['debit']
 	if laba_kotor<0:
-		data[12]={"title":"Laba Bersih","debit":laba_kotor*-1,"credit":0}
+		data[12]={"title":"<strong>Laba Bersih</strong>","debit":laba_kotor*-1,"credit":0}
 	else:
-		data[12]={"title":"Laba Bersih","debit":0,"credit":laba_kotor}
+		data[12]={"title":"<strong>Laba Bersih</strong>","debit":0,"credit":laba_kotor}
 	data[13]={"title":"","debit":"","credit":""}
 	data[14]=source[6]
 
