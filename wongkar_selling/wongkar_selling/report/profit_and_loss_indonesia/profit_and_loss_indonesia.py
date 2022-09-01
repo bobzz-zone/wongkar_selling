@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import flt
 def execute(filters=None):
-	columns, source = ["Title:Data:200","Amount:Currency:200"], [{},{},{},{},{},{},{}]
+	columns, source = ["Title:Data:500","Amount:Currency:200"], [{},{},{},{},{},{},{}]
 	source_gl = frappe.db.sql("""select account,credit-debit from `tabGL Entry` where is_cancelled=0 and 
 		company="{}" and posting_date >= "{}" and posting_date <="{}" """.format(filters.get("company"),filters.get("from_date"),filters.get("to_date")),as_list=1)
 	source[0]={"title":"40.0000.00.00.00.000 - Sales & Revenue Element","amount":0}
