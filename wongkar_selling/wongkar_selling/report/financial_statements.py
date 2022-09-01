@@ -531,9 +531,9 @@ def get_additional_conditions(from_date, ignore_closing_entries, filters):
 			additional_conditions.append("(finance_book in (%(finance_book)s, '') OR finance_book IS NULL)")
 		if "account_like" in filters:
 			if "account_not" in filters:
-				additional_conditions.append("""account like "{}%" and account not like "{}%" """.format(filters.get("account_like"),filters.get("account_not")))
+				additional_conditions.append("""account like %(account_like)s and account not like %(account_not)s """)
 			else:
-				additional_conditions.append("""account like "{}%" """.format(filters.get("account_like")))
+				additional_conditions.append("""account like %(account_like)s """)
 	if accounting_dimensions:
 		for dimension in accounting_dimensions:
 			if filters.get(dimension.fieldname):

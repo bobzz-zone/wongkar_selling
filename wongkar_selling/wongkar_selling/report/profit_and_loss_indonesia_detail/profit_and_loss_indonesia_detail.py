@@ -21,7 +21,7 @@ def execute(filters=None):
 		company=filters.company,
 	)
 	filters40=filters
-	filters40["account_like"]="40."
+	filters40["account_like"]="40.%"
 	acc40 = get_data(
 		filters.company,
 		"Income",
@@ -33,7 +33,7 @@ def execute(filters=None):
 		ignore_accumulated_values_for_fy=True,
 	)
 	filters50=filters
-	filters50["account_like"]="50."
+	filters50["account_like"]="50.%"
 	acc50 = get_data(
 		filters.company,
 		"Expense",
@@ -46,7 +46,7 @@ def execute(filters=None):
 	)
 
 	filters60=filters
-	filters60["account_like"]="60."
+	filters60["account_like"]="60.%"
 	acc60 = get_data(
 		filters.company,
 		"Expense",
@@ -59,7 +59,7 @@ def execute(filters=None):
 	)
 
 	filters70=filters
-	filters70["account_like"]="70."
+	filters70["account_like"]="70.%"
 	acc70 = get_data(
 		filters.company,
 		"Expense",
@@ -72,8 +72,8 @@ def execute(filters=None):
 	)
 
 	filters80=filters
-	filters80["account_like"]="80."
-	filters80["account_not"]="80."
+	filters80["account_like"]="80.%"
+	filters80["account_not"]="80.04%"
 	acc80 = get_data(
 		filters.company,
 		"Expense",
@@ -85,7 +85,7 @@ def execute(filters=None):
 		ignore_accumulated_values_for_fy=True,
 	)
 	filters804=filters
-	filters804["account_like"]="80.04"
+	filters804["account_like"]="80.04%"
 	acc804 = get_data(
 		filters.company,
 		"Expense",
@@ -97,7 +97,7 @@ def execute(filters=None):
 		ignore_accumulated_values_for_fy=True,
 	)
 	filters90=filters
-	filters90["account_like"]="90."
+	filters90["account_like"]="90.%"
 	acc90 = get_data(
 		filters.company,
 		"Expense",
