@@ -20,13 +20,6 @@ def execute(filters=None):
 		filters.periodicity,
 		company=filters.company,
 	)
-source[0]={"title":"40.0000.00.00.00.000 - Sales & Revenue Element","amount":0}
-	source[1]={"title":"50.0000.00.00.00.000 - Cost of Goods Sold / Manufactured","amount":0}
-	source[2]={"title":"60.0000.00.00.00.000 - Operational Expenses","amount":0}
-	source[3]={"title":"70.0000.00.00.00.000 - Non-Operating Income","amount":0}
-	source[4]={"title":"80.0000.00.00.00.000 - Non-Operating Expense","amount":0}
-	source[5]={"title":"80.0400.00.00.00.000 - Tax Expenses","amount":0}
-	source[6]={"title":"90.0000.00.00.00.000 - Other Comperhensive Income","amount":0}
 	filters40=filters
 	filters40["account_like"]="40."
 	acc40 = get_data(
