@@ -73,25 +73,12 @@ def execute(filters=None):
 
 	filters80=filters
 	filters80["account_like"]="80.%"
-	filters80["account_not"]="80.04%"
 	acc80 = get_data(
 		filters.company,
 		"Expense",
 		"Debit",
 		period_list,
 		filters=filters80,
-		accumulated_values=filters.accumulated_values,
-		ignore_closing_entries=True,
-		ignore_accumulated_values_for_fy=True,
-	)
-	filters804=filters
-	filters804["account_like"]="80.04%"
-	acc804 = get_data(
-		filters.company,
-		"Expense",
-		"Debit",
-		period_list,
-		filters=filters804,
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
@@ -115,7 +102,6 @@ def execute(filters=None):
 	expense.extend(acc50 or [])
 	expense.extend(acc60 or [])
 	expense.extend(acc80 or [])
-	expense.extend(acc804 or [])
 	expense.extend(acc90 or [])
 	net_profit_loss = get_net_profit_loss(
 		income, expense, period_list, filters.company, filters.presentation_currency
@@ -127,7 +113,6 @@ def execute(filters=None):
 	data.extend(acc60 or [])
 	data.extend(acc70 or [])
 	data.extend(acc80 or [])
-	data.extend(acc804 or [])
 	data.extend(acc90 or [])
 	if net_profit_loss:
 		data.append(net_profit_loss)
