@@ -95,16 +95,8 @@ def execute(filters=None):
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
 	)
-	income=[]
-	income.extend(acc40 or [])
-	income.extend(acc70 or [])
-	expense=[]
-	expense.extend(acc50 or [])
-	expense.extend(acc60 or [])
-	expense.extend(acc80 or [])
-	expense.extend(acc90 or [])
 	net_profit_loss = get_net_profit_loss(
-		income, expense, period_list, filters.company, filters.presentation_currency
+		[acc40,acc70], [acc50,acc60,acc80,acc90], period_list, filters.company, filters.presentation_currency
 	)
 
 	data = []
@@ -176,7 +168,7 @@ def execute(filters=None):
 # 	]
 
 
-def get_net_profit_loss(income, expense, period_list, company, currency=None, consolidated=False):
+def get_net_profit_loss(income_list, expense_list, period_list, company, currency=None, consolidated=False):
 	total = 0
 	net_profit_loss = {
 		"account_name": "'" + _("Profit for the year") + "'",
@@ -189,8 +181,12 @@ def get_net_profit_loss(income, expense, period_list, company, currency=None, co
 
 	for period in period_list:
 		key = period if consolidated else period.key
-		total_income = flt(income[-2][key], 3) if income else 0
-		total_expense = flt(expense[-2][key], 3) if expense else 0
+		total_income=0
+		for income in income_list:
+			total_income = flt(income[-2][key], 3) if income else 0
+		total_expense=0
+		for expense in expense_list:
+			total_expense = flt(expense[-2][key], 3) if expense else 0
 
 		net_profit_loss[key] = total_income - total_expense
 
