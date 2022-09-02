@@ -183,10 +183,10 @@ def get_net_profit_loss(income_list, expense_list, period_list, company, currenc
 		key = period if consolidated else period.key
 		total_income=0
 		for income in income_list:
-			total_income = total_income + flt(income[-2][key], 3) if income else 0
+			total_income = total_income + (flt(income[-2][key], 3) if income else 0)
 		total_expense=0
 		for expense in expense_list:
-			total_expense =total_expense+ flt(expense[-2][key], 3) if expense else 0
+			total_expense =total_expense+ (flt(expense[-2][key], 3) if expense else 0)
 
 		net_profit_loss[key] = total_income - total_expense
 
