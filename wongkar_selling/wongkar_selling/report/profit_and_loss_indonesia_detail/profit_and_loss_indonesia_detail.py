@@ -62,8 +62,8 @@ def execute(filters=None):
 	filters70["account_like"]="70.%"
 	acc70 = get_data(
 		filters.company,
-		"Expense",
-		"Debit",
+		"Income",
+		"Credit",
 		period_list,
 		filters=filters70,
 		accumulated_values=filters.accumulated_values,
@@ -108,11 +108,12 @@ def execute(filters=None):
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
 	)
-	income=acc40
+	income=[]
+	income.extend(acc40 or [])
+	income.extend(acc70 or [])
 	expense=[]
 	expense.extend(acc50 or [])
 	expense.extend(acc60 or [])
-	expense.extend(acc70 or [])
 	expense.extend(acc80 or [])
 	expense.extend(acc804 or [])
 	expense.extend(acc90 or [])
