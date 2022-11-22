@@ -20,6 +20,7 @@
   "grand_total",
   "outstanding_amount",
   "tagihan_biaya_motor",
+  "payment",
   "amended_from",
   "company",
   "base_grand_total",
@@ -144,12 +145,19 @@
    "fieldtype": "Date",
    "label": "Date To",
    "reqd": 1
+  },
+  {
+   "fieldname": "payment",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Payment",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-08-23 13:45:56.627446",
+ "modified": "2022-09-28 10:10:14.516048",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Tagihan Motor",

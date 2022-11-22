@@ -2322,10 +2322,10 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 	if(cur_frm.doc.no_rangka){
 		let today = frappe.datetime.get_today();
 		// frappe.msgprint('coba pajak1');
-		// cur_frm.clear_table("taxes");
-		// cur_frm.refresh_field("taxes");
-		// cur_frm.set_value("taxes_and_charges","");
-		// cur_frm.set_value("taxes_and_charges","PPN 11% - Keluaran - IFMI");
+		cur_frm.clear_table("taxes");
+		cur_frm.refresh_field("taxes");
+		cur_frm.set_value("taxes_and_charges","");
+		cur_frm.set_value("taxes_and_charges","PPN 11% - Keluaran - IFMI");
 
 		// harga baru
 		frappe.call({

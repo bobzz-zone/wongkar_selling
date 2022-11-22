@@ -16,6 +16,7 @@
   "new_territory",
   "pemilik",
   "nama_pemilik",
+  "bypass_biaya",
   "tax_id",
   "pos_profile",
   "is_pos",
@@ -66,6 +67,7 @@
   "set_target_warehouse",
   "penjualan_motor_section",
   "cara_bayar",
+  "tagihan_leasing",
   "item_code",
   "nama_diskon",
   "nama_promo",
@@ -78,6 +80,10 @@
   "cb_sinvm0",
   "no_po_leasing",
   "po_attch",
+  "dp_gross",
+  "dp_gross_hitung",
+  "jangka_waktu",
+  "angsuran",
   "tertagih",
   "sb_tb_disc_section",
   "table_discount",
@@ -2225,6 +2231,50 @@
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
    "label": "Nominal Diskon"
+  },
+  {
+   "default": "0",
+   "fieldname": "bypass_biaya",
+   "fieldtype": "Check",
+   "label": "Bypass Rule Biaya"
+  },
+  {
+   "default": "0",
+   "fieldname": "tagihan_leasing",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Tagihan Leasing",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "dp_gross",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "DP Gross"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "dp_gross_hitung",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "DP Gross Hitung",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "jangka_waktu",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Jangka Waktu"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "angsuran",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Angsuran"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2236,7 +2286,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2022-06-14 10:20:07.815374",
+ "modified": "2022-11-21 13:29:59.332498",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

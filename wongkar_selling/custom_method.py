@@ -4,7 +4,7 @@ import frappe
 import frappe.utils
 from frappe.utils import cstr, flt, getdate, cint, nowdate, add_days, get_link_to_form, strip_html
 from datetime import datetime
-
+from erpnext.accounts.doctype.account.account import update_account_number 
 import json
 import hashlib
 import time
@@ -26,21 +26,67 @@ from erpnext.stock.get_item_details import get_item_details
 # from nextapp.nextsales import get_item
 
 LIMIT_PAGE = 20
-def submit_all():
-	document_list=["Sales Invoice Penjualan Motor"]
-	for document in document_list:
-		pe_list=frappe.db.sql("select name from `tab{}` where docstatus=0".format(document),as_list=1)
-		for row in pe_list:
-			doc=frappe.get_doc(document,row[0])
-			if doc.name in ["ACC-SINVM-2022-12173","ACC-SINVM-2022-12141","ACC-SINVM-2022-12105","ACC-SINVM-2022-12494"]:
-				continue
-			if doc.docstatus==0:
-				try:
-					doc.submit()
-					frappe.db.commit()
-				except:
-					print("Error {}".format(doc.name))
+def update_ste():
+	data =frappe.db.sql("""select name from `tabStock Entry` where title!="Material Transfer" and docstatus=1 """,as_list=1)
+	sec=0
+	min=0
+	for row in data:
+		time="15:0{}:{}".format(min,sec)
+		if sec<10:
+			time="15:0{}:0{}".format(min,sec)
+		frappe.db.sql("""update `tabStock Entry` set posting_time="{}" where name="{}" """.format(time,row[0]),as_list=1)
+		repair_gl_sle_entry("Stock Entry",row[0])
+		frappe.db.commit()
+		sec=sec+1
+		if sec==60:
+			sec=0
+			min=min+1
+def rename_coa():
+	data=frappe.db.sql("""select name,account_name,account_number,new_account_name from `tabAccount` where new_account_name is not NULL and new_account_name!="" """,as_list=1)
+	for row in data:
+		update_account_number(row[0], row[3],row[2])
 
+def delete_all():
+	document_list=["Stock Entry"]
+	for document in document_list:
+		doc_list=frappe.db.sql("select name from `tab{}` where title!='Material Transfer' and docstatus=0 ".format(document),as_list=1)
+		print(len(doc_list))
+		index=0
+		for row in doc_list:
+			doc=frappe.get_doc(document,row[0])
+#			if doc.docstatus==1:
+			try:
+				if doc.docstatus==1:
+					doc.cancel()
+				if doc.title!="Material Transfer":
+					doc.delete()
+				frappe.db.commit()
+			except:
+				print("Error {}".format(doc.name))
+			index=index+1
+			print(index)
+def submit_all():
+	document_list=["Stock Entry"]
+	for document in document_list:
+		doc_list=frappe.db.sql("select name from `tab{}` where docstatus=0 and title!='Material Transfer' ".format(document),as_list=1)
+		total=len(doc_list)
+		index=0
+		for row in doc_list:
+			doc=frappe.get_doc(document,row[0])
+			try:
+				if doc.docstatus==0:
+					doc.submit()
+				frappe.db.commit()
+			except:
+				print("Error {}".format(doc.name))
+			index=index+1
+			print("{} of {}".format(index,total))
+def regen_gl_sl():
+	document_list=["Stock Entry"]
+	for document in document_list:
+		doc_list=frappe.db.sql("select name from `tab{}` where docstatus=1 and name in ('MAT-STE-2022-04400') ".format(document),as_list=1)
+		for row in doc_list:
+			repair_gl_sle_entry(document,row[0])
 def regen_gl():
 	sinv=frappe.db.sql("""select name,cost_center,set_warehouse,modified from `tabSales Invoice Penjualan Motor` where docstatus=1
                  """,as_list=1)

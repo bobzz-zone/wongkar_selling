@@ -99,8 +99,11 @@ class PembayaranTagihanMotor(Document):
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		for d in self.get('tagihan_biaya_motor'):
-			account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice}, "coa")
-			cost_center = frappe.get_value("Company",{"name" : d.no_invoice}, "cost_center")
+			account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': self.type}, "coa")
+			# cost_center = frappe.get_value("Company",{"name" : d.no_invoice}, "cost_center")
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			# frappe.msgprint(account)
+			# frappe.msgprint(cost_center)
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": account,
@@ -123,25 +126,45 @@ class PembayaranTagihanMotor(Document):
 		# frappe.msgprint("MASuk make_gl_debit")
 		account = frappe.get_value("Rule Biaya",{"name" : self.vendor}, "coa")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
+		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabChild Tagihan Biaya Motor` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
 		
-		cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		# for d in self.get('daftar_tagihan'):
-		gl_entries.append(
-			self.get_gl_dict({
-				"account": self.coa_biaya_motor,
-				"party_type": "Supplier",
-				"party": self.supplier,
-				# "due_date": self.due_date,
-				"against": self.supplier,
-				"credit": self.grand_total,
-				"credit_in_account_currency": self.grand_total,
-				# "against_voucher": d.no_sinv,
-				# "against_voucher_type": "Sales Invoice Penjualan Motor",
-				"cost_center": cost_center
-				# "project": self.project,
-				# "remarks": "coba Lutfi yyyyy!"
-			}, item=None)
-		)
+		for d in data:
+			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.coa_biaya_motor,
+					"party_type": "Supplier",
+					"party": self.supplier,
+					# "due_date": self.due_date,
+					"against": self.supplier,
+					"credit": d.nilai,
+					"credit_in_account_currency": d.nilai,
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": d.cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
+
+			# 	gl_entries.append(
+			# 	self.get_gl_dict({
+			# 		"account": self.coa_biaya_motor,
+			# 		"party_type": "Supplier",
+			# 		"party": self.supplier,
+			# 		# "due_date": self.due_date,
+			# 		"against": self.supplier,
+			# 		"credit": self.grand_total,
+			# 		"credit_in_account_currency": self.grand_total,
+			# 		# "against_voucher": d.no_sinv,
+			# 		# "against_voucher_type": "Sales Invoice Penjualan Motor",
+			# 		"cost_center": d.cost_center
+			# 		# "project": self.project,
+			# 		# "remarks": "coba Lutfi yyyyy!"
+			# 	}, item=None)
+			# )
 
 		# frappe.msgprint(str(gl_entries))
 
@@ -172,9 +195,20 @@ class PembayaranTagihanMotor(Document):
 			frappe.db.commit()
 			# frappe.msgprint('Berhasil !')
 		self.set_status()
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(self.name,self.doctype))
+		frappe.db.commit()
 
 	def validate(self):
 		self.set_status()
+
+@frappe.whitelist()
+def repair_gl_entry_tagihan_motor(doctype,docname):
+	docu = frappe.get_doc(doctype, docname)
+	print(docu.name)
+	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(docname,doctype))
+	frappe.db.commit()
+	docu.make_gl_entries()
+	
 
 
 def add_party_gl_entries_custom(self):

@@ -87,6 +87,7 @@ frappe.ui.form.on("Tagihan Discount", "customer", function(frm) {
 						frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
 						frappe.model.set_value(child.doctype, child.name, "type", data.message[i].category_discount);
 						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
+						frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 						frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
 						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);

@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "creation": "2022-11-11 09:21:55.809028",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sipm",
+  "outstanding_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "sipm",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "SIPM",
+   "options": "Sales Invoice Penjualan Motor",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Outstanding Amount",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-11-11 10:34:01.578537",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "List  Outstanding  Tagihan Leasing",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

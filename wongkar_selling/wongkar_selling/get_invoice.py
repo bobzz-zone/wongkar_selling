@@ -102,3 +102,12 @@ def get_leasing(item_code,nama_promo,territory_real,posting_date):
 		join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
 		where rdl.item_code='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') AND rdl.disable = 0 """.format(item_code,nama_promo,territory_real,posting_date),as_dict=1)
 	return data
+
+def cek_tagihan(self,method):
+	if self.tagihan:
+		if self.tagihan_payment_table:
+			if len(self.tagihan_payment_table) > 0:
+				tot = 0
+				for i in self.tagihan_payment_table:
+					tot = tot + i.nilai
+		self.paid_amount = tot

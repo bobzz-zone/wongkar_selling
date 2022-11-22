@@ -10,7 +10,8 @@ class RuleBiaya(Document):
 	def before_insert(self):
 		# frappe.msgprint("before_insert")
 
-		cek = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_to":self.valid_to,"amount":self.amount}, "name")
+		# cek = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_to":self.valid_to,"amount":self.amount}, "name")
+		cek = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_to":self.valid_to}, "name")
 		if cek:
 			frappe.throw("Discount Item "+cek+" sudah ada !")
 	def validate(self):
@@ -31,7 +32,7 @@ class RuleBiaya(Document):
 		if not self.coa:
 			frappe.throw("Pilih Akun terlebih dahulu")
 		#check kalo ada yang lbh future start date nya
-		cek = frappe.db.sql("""select name from `tabRule Biaya` where disable=0 and valid_from>"{}" and valid_to>"{}" and item_code="{}" and type="{}" and territory="{}" 
+		cek = frappe.db.sql("""select name from `tabRule Biaya` where disable=0 and valid_from<"{}" and valid_to>"{}" and item_code="{}" and type="{}" and territory="{}" 
 			""".format(self.valid_from,self.valid_from,self.item_code,self.type,self.territory),as_list=1)
 		if cek and len(cek)>0:
 			frappe.msgprint("Error Sudah ada Rule yang lebih baru")

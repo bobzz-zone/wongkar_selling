@@ -732,55 +732,56 @@ def kalkulasi_tagihan(doc,method):
 			frappe.db.commit()
 
 def kalkulasi_tagihan_cancel(doc,method):
-	# frappe.msgprint("kalkulasi_oa")
-	# cek = frappe.db.get_list('Payment Entry Reference',filters={'parent': doc.name},fields=['*'])
-	# for c in cek:
-	# 	if c['reference_doctype'] == 'Sales Invoice Penjualan Motor'
-	total = frappe.db.get_list('Payment Entry Reference',filters={'parent': doc.name},fields=['*'])
-	name = ''
-	for i in total:
-		if i['reference_doctype'] == 'Tagihan Discount':
-			hasil = doc.paid_amount
-			docs = frappe.get_doc("Tagihan Discount",i['reference_name'])
-			docs.grand_total = hasil
-			# docs.flags.ignore_permission = True
-			# docs.save()
-			docs.status = 'Submitted'
-			docs.db_update()
-			frappe.db.commit()
+	pass
+	# # frappe.msgprint("kalkulasi_oa")
+	# # cek = frappe.db.get_list('Payment Entry Reference',filters={'parent': doc.name},fields=['*'])
+	# # for c in cek:
+	# # 	if c['reference_doctype'] == 'Sales Invoice Penjualan Motor'
+	# total = frappe.db.get_list('Payment Entry Reference',filters={'parent': doc.name},fields=['*'])
+	# name = ''
+	# for i in total:
+	# 	if i['reference_doctype'] == 'Tagihan Discount':
+	# 		hasil = doc.paid_amount
+	# 		docs = frappe.get_doc("Tagihan Discount",i['reference_name'])
+	# 		docs.grand_total = hasil
+	# 		# docs.flags.ignore_permission = True
+	# 		# docs.save()
+	# 		docs.status = 'Submitted'
+	# 		docs.db_update()
+	# 		frappe.db.commit()
 
-		# tagihan discoun leasing
-		if i['reference_doctype'] == 'Tagihan Discount Leasing':
-			hasil = doc.paid_amount
-			docs = frappe.get_doc("Tagihan Discount Leasing",i['reference_name'])
-			docs.grand_total = hasil
-			# docs.flags.ignore_permission = True
-			# docs.save()
-			docs.status = 'Submitted'
-			docs.db_update()
-			frappe.db.commit()
+	# 	# tagihan discoun leasing
+	# 	if i['reference_doctype'] == 'Tagihan Discount Leasing':
+	# 		hasil = doc.paid_amount
+	# 		docs = frappe.get_doc("Tagihan Discount Leasing",i['reference_name'])
+	# 		docs.grand_total = hasil
+	# 		# docs.flags.ignore_permission = True
+	# 		# docs.save()
+	# 		docs.status = 'Submitted'
+	# 		docs.db_update()
+	# 		frappe.db.commit()
 
-		# Pembayaran tagihan Motor
-		if i['reference_doctype'] == 'Pembayaran Tagihan Motor':
-			hasil = doc.paid_amount
-			docs = frappe.get_doc("Pembayaran Tagihan Motor",i['reference_name'])
-			docs.grand_total = hasil
-			# docs.flags.ignore_permission = True
-			# docs.save()
-			docs.status = 'Submitted'
-			docs.db_update()
-			frappe.db.commit()
+	# 	# Pembayaran tagihan Motor
+	# 	if i['reference_doctype'] == 'Pembayaran Tagihan Motor':
+	# 		hasil = doc.paid_amount
+	# 		docs = frappe.get_doc("Pembayaran Tagihan Motor",i['reference_name'])
+	# 		docs.grand_total = hasil
+	# 		# docs.flags.ignore_permission = True
+	# 		# docs.save()
+	# 		docs.status = 'Submitted'
+	# 		docs.db_update()
+	# 		frappe.db.commit()
 
-		# Pembayaran Credit Motor
-		if i['reference_doctype'] == 'Pembayaran Credit Motor':
-			hasil = doc.paid_amount
-			docs = frappe.get_doc("Pembayaran Credit Motor",i['reference_name'])
-			docs.grand_total = hasil
-			# docs.flags.ignore_permission = True
-			# docs.save()
-			docs.status = 'Submitted'
-			docs.db_update()
-			frappe.db.commit()
+	# 	# Pembayaran Credit Motor
+	# 	if i['reference_doctype'] == 'Pembayaran Credit Motor':
+	# 		hasil = doc.paid_amount
+	# 		docs = frappe.get_doc("Pembayaran Credit Motor",i['reference_name'])
+	# 		docs.grand_total = hasil
+	# 		# docs.flags.ignore_permission = True
+	# 		# docs.save()
+	# 		docs.status = 'Submitted'
+	# 		docs.db_update()
+	# 		frappe.db.commit()
 
 def override_on_submit_on_cancel(self,method):
 	PaymentEntry.validate = validate_lutfi

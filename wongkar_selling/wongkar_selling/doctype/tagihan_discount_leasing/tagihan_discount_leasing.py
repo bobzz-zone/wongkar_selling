@@ -128,24 +128,47 @@ class TagihanDiscountLeasing(Document):
 		account = frappe.get_list("Table Disc Leasing",{"parent" : self.leasing,'nama_leasing': self.customer},"*")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		# for d in self.get('daftar_tagihan'):
-		gl_entries.append(
-			self.get_gl_dict({
-				"account": self.coa_tagihan_discount_leasing,
-				"party_type": "Customer",
-				"party": self.customer,
-				# "due_date": self.due_date,
-				"against": self.customer,
-				"debit": self.grand_total,
-				"debit_in_account_currency": self.grand_total,
-				# "against_voucher": d.no_sinv,
-				# "against_voucher_type": "Sales Invoice Penjualan Motor",
-				"cost_center": cost_center
-				# "project": self.project,
-				# "remarks": "coba Lutfi yyyyy!"
-			}, item=None)
-		)
+		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabDaftar Tagihan Leasing` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+		
+		for d in data:
+			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.coa_tagihan_discount_leasing,
+					"party_type": "Customer",
+					"party": self.customer,
+					# "due_date": self.due_date,
+					"against": self.customer,
+					"debit": d.nilai,
+					"debit_in_account_currency": d.nilai,
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": d.cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
+
+		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+		# # for d in self.get('daftar_tagihan'):
+		# gl_entries.append(
+		# 	self.get_gl_dict({
+		# 		"account": self.coa_tagihan_discount_leasing,
+		# 		"party_type": "Customer",
+		# 		"party": self.customer,
+		# 		# "due_date": self.due_date,
+		# 		"against": self.customer,
+		# 		"debit": self.grand_total,
+		# 		"debit_in_account_currency": self.grand_total,
+		# 		# "against_voucher": d.no_sinv,
+		# 		# "against_voucher_type": "Sales Invoice Penjualan Motor",
+		# 		"cost_center": cost_center
+		# 		# "project": self.project,
+		# 		# "remarks": "coba Lutfi yyyyy!"
+		# 	}, item=None)
+		# )
 
 		# frappe.msgprint(str(gl_entries))
 	def on_submit(self):
@@ -176,6 +199,8 @@ class TagihanDiscountLeasing(Document):
 			frappe.db.commit()
 			# frappe.msgprint('Berhasil update !')
 		self.set_status()
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(self.name,self.doctype))
+		frappe.db.commit()
 
 	def validate(self):
 		self.set_status()

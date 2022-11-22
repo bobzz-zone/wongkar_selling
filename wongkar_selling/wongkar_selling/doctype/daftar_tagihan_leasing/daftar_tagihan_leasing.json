@@ -2,7 +2,6 @@
  "actions": [],
  "creation": "2021-09-14 12:14:48.794978",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "no_invoice",
@@ -31,6 +30,7 @@
   {
    "fieldname": "no_rangka",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "No Rangka",
    "options": "Serial No"
   },
@@ -56,12 +56,14 @@
   {
    "fieldname": "item",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Item",
    "options": "Item"
   },
   {
    "fieldname": "pemilik",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Pemilik",
    "options": "Customer"
   }
@@ -69,7 +71,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-12-23 16:28:29.113624",
+ "modified": "2022-11-18 16:18:45.797894",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Daftar Tagihan Leasing",

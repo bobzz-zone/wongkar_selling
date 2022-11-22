@@ -54,6 +54,23 @@ form_grid_templates = {
 }
 
 class SalesInvoicePenjualanMotor(SellingController):
+	def dp_gross_h(self):
+		rule = 0
+		rdl = 0
+		if self.table_discount:
+			if len(self.table_discount) > 0:
+				for r in self.table_discount:
+					rule = rule + r.nominal
+
+		if self.table_discount_leasing:
+			if len(self.table_discount_leasing) > 0:
+				for rd in self.table_discount_leasing:
+					rdl = rdl + rd.nominal
+
+		dp = self.total_advance + rule + rdl
+		print(dp)
+		self.dp_gross_hitung = dp
+
 	# tambhan
 	def update_against_document_in_jv(self):
 		# frappe.msgprint("masuk update_against_document_in_jv")
@@ -1093,9 +1110,12 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 	def validate(self):
 		#print('masuk save')
+		if self.no_rangka != self.items[0].serial_no:
+			frappe.throw("No rangka tidak sama dengan item !")
 		#validate rule biaya harus ada 3
-		if len(self.tabel_biaya_motor)<3:
-			frappe.throw("Error ada biaya yang belum di set")
+		if not self.bypass_biaya:
+			if len(self.tabel_biaya_motor)<3:
+				frappe.throw("Error ada biaya yang belum di set")
 		# super(SalesInvoicePenjualanMotor, self).validate()
 		# self.validate_auto_set_posting_time()
 
@@ -1215,11 +1235,15 @@ class SalesInvoicePenjualanMotor(SellingController):
 	def before_save(self):
 		set_account_for_mode_of_payment(self)
 
+	def before_submit(self):
+		self.dp_gross_h()
+
 	def on_submit(self):
 		# # tambahan
 		# self.set_status()
 		# self.tambah_ref()
-
+		
+		
 		self.validate_pos_paid_amount()
 
 		if not self.auto_repeat:
