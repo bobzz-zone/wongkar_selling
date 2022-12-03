@@ -173,6 +173,22 @@ class TagihanDiscount(Document):
 
 		# frappe.msgprint(str(gl_entries))
 
+	def get_serial_no(self):
+		for i in self.daftar_tagihan:
+			doc = frappe.get_doc("Serial No",i.no_rangka)
+			row = doc.append('list_status_serial_no', {})
+			row.list = "Tagihan Discount "+self.customer
+			row.date = self.date
+			row.ket = self.name
+			doc.flags.ignore_permissions = True
+			doc.save()
+
+	def get_serial_no_cancel(self):
+		for i in self.daftar_tagihan:
+			# doc = frappe.get_doc("Serial No",i.no_rangka)
+			frappe.db.sql(""" DELETE FROM `tabList Status Serial No` where parent='{}' and ket = '{}' """.format(i.no_rangka,self.name))
+			frappe.db.commit()
+
 	def on_submit(self):
 		# add_party_gl_entries_custom_tambah(self)
 		# add_party_gl_entries_custom(self)

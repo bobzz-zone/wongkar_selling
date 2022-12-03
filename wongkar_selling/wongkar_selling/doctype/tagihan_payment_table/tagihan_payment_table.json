@@ -6,7 +6,12 @@
  "engine": "InnoDB",
  "field_order": [
   "no_sinv",
-  "nilai"
+  "pemilik",
+  "item",
+  "no_rangka",
+  "nilai",
+  "doc_type",
+  "doc_name"
  ],
  "fields": [
   {
@@ -22,12 +27,45 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Nilai"
+  },
+  {
+   "fieldname": "pemilik",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Pemilik",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "no_rangka",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "No Rangka",
+   "options": "Serial No"
+  },
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Link",
+   "label": "Doc Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "doc_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Doc name",
+   "options": "doc_type"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-12-23 15:16:29.755091",
+ "modified": "2022-11-24 13:38:10.248030",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Payment Table",

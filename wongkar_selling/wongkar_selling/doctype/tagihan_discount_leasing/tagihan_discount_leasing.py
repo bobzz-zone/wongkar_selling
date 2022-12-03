@@ -121,7 +121,27 @@ class TagihanDiscountLeasing(Document):
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
 				)
-		# frappe.msgprint(str(gl_entries))
+
+		for ds in self.get('daftar_tagihan_leasing'):
+			cost_center = frappe.get_value("Company",{"name" : ds.no_invoice}, "round_off_cost_center")
+			account = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : ds.no_invoice}, "debit_to")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": account,
+					"party_type": "Customer",
+					"party": self.customer,
+					# "due_date": self.due_date,
+					"against": self.coa_tagihan_sipm,
+					"credit": ds.outstanding_sipm,
+					"credit_in_account_currency": ds.outstanding_sipm,
+					"against_voucher": ds.no_invoice,
+					"against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
+		# frappe.msgprint(str(gl_entries)+ " credit")
 
 	def make_gl_debit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
@@ -130,6 +150,11 @@ class TagihanDiscountLeasing(Document):
 		
 		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabDaftar Tagihan Leasing` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+
+		data_sipm = frappe.db.sql(""" SELECT SUM(outstanding_sipm) AS outstanding_sipm,cost_center FROM `tabDaftar Tagihan Leasing` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+
+		# frappe.msgprint(str(data_sipm)+"data_sipm")
 		
 		for d in data:
 			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
@@ -151,6 +176,27 @@ class TagihanDiscountLeasing(Document):
 				}, item=None)
 			)
 
+		for ds in data_sipm:
+			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.coa_tagihan_sipm,
+					"party_type": "Customer",
+					"party": self.customer,
+					# "due_date": self.due_date,
+					"against": self.customer,
+					"debit": ds.outstanding_sipm,
+					"debit_in_account_currency": ds.outstanding_sipm,
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": ds.cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
+		# frappe.msgprint(str(gl_entries)+ " debit")
+
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		# # for d in self.get('daftar_tagihan'):
 		# gl_entries.append(
@@ -171,6 +217,23 @@ class TagihanDiscountLeasing(Document):
 		# )
 
 		# frappe.msgprint(str(gl_entries))
+
+	def get_serial_no(self):
+		for i in self.daftar_tagihan_leasing:
+			doc = frappe.get_doc("Serial No",i.no_rangka)
+			row = doc.append('list_status_serial_no', {})
+			row.list = "Tagihan Discount Leasing dan SIPM "
+			row.date = self.date
+			row.ket = self.name
+			doc.flags.ignore_permissions = True
+			doc.save()
+
+	def get_serial_no_cancel(self):
+		for i in self.daftar_tagihan_leasing:
+			# doc = frappe.get_doc("Serial No",i.no_rangka)
+			frappe.db.sql(""" DELETE FROM `tabList Status Serial No` where parent='{}' and ket = '{}' """.format(i.no_rangka,self.name))
+			frappe.db.commit()
+
 	def on_submit(self):
 		# add_party_gl_entries_custom_tambah(self)
 		# add_party_gl_entries_custom(self)

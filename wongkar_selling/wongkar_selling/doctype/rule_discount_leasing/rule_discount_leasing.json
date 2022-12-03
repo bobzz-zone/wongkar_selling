@@ -13,13 +13,9 @@
   "valid_from",
   "valid_to",
   "item_code",
+  "item_group",
   "customer_group",
   "territory",
-  "discount",
-  "amount",
-  "percent",
-  "coa_expense",
-  "coa_receivable",
   "table_discount_leasing",
   "disable"
  ],
@@ -64,14 +60,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Item Code",
-   "options": "Item",
-   "reqd": 1
-  },
-  {
    "fetch_from": "leasing.customer_group",
    "fieldname": "customer_group",
    "fieldtype": "Data",
@@ -85,41 +73,6 @@
    "options": "Territory"
   },
   {
-   "fieldname": "discount",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Discount",
-   "options": "\nAmount\nPercent"
-  },
-  {
-   "depends_on": "eval:doc.discount == \"Amount\"",
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Amount",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.discount == \"Percent\"",
-   "fieldname": "percent",
-   "fieldtype": "Percent",
-   "label": "Percent"
-  },
-  {
-   "fieldname": "coa_expense",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "COA Expense",
-   "options": "Account"
-  },
-  {
-   "fieldname": "coa_receivable",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "COA Receivable",
-   "options": "Account"
-  },
-  {
    "default": "0",
    "fieldname": "disable",
    "fieldtype": "Check",
@@ -131,11 +84,28 @@
    "fieldtype": "Table",
    "label": "Table Discount Leasing",
    "options": "Table Discount Leasing"
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-20 08:07:06.909351",
+ "modified": "2022-11-28 10:17:48.257069",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",

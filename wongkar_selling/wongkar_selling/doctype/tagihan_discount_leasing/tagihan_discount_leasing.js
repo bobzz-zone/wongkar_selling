@@ -4,14 +4,18 @@
 frappe.ui.form.on('Tagihan Discount Leasing', {
 	validate: function(frm) {
 		let total = 0
+		let total_sipm = 0
 		if(cur_frm.doc.daftar_tagihan_leasing){
 			for (let i = 0; i < cur_frm.doc.daftar_tagihan_leasing.length; i++) {
 				total += cur_frm.doc.daftar_tagihan_leasing[i].nilai;
+				total_sipm += cur_frm.doc.daftar_tagihan_leasing[i].tagihan_sipm;
 			}
 		}
 		frm.set_value('grand_total',total)
 		frm.set_value('base_grand_total',total)
 		frm.set_value('outstanding_amount',total)
+		frm.set_value('total_tagihan_sipm',total_sipm)
+		frm.set_value('total_outstanding_tagihan_sipm',total_sipm)
 		
 	},
 	date_from(frm){
@@ -25,14 +29,83 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 	refresh: function(frm){
 		show_general_ledger();
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
-			cur_frm.add_custom_button(__('Payment'),
+			cur_frm.add_custom_button(__('Payment Tagihan Discount'),
+				// change_value2, __('Create'),
 				make_payment_entry, __('Create'));
+			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
+			cur_frm.add_custom_button(__('Payment Tagihan SIPM'),
+				// change_value, __('Create'),
+				make_payment_entry2, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
 	}
 });
 
-var make_payment_entry= function() {
+// var change_value = async function(){
+// 	frappe.call({
+// 			method: "wongkar_selling.custom_standard.custom_payment_entry.change_value",
+// 			args: {
+// 				"dt": cur_frm.doc.doctype,
+// 				"dn": cur_frm.doc.name
+// 			},
+// 			callback: function(r) {
+// 				// var doclist = frappe.model.sync(r.message);
+// 				// frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+// 				// cur_frm.refresh_fields()
+// 			}
+// 		});
+// }
+
+// var change_value2 = async function(){
+// 	frappe.call({
+// 			method: "wongkar_selling.custom_standard.custom_payment_entry.change_value_reverse",
+// 			args: {
+// 				"dt": cur_frm.doc.doctype,
+// 				"dn": cur_frm.doc.name
+// 			},
+// 			callback: function(r) {
+// 				// var doclist = frappe.model.sync(r.message);
+// 				// frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+// 				// cur_frm.refresh_fields()
+// 			}
+// 		});
+
+// }
+
+var make_payment_entry2= async function() {
+	// change_value()
+	
+	return frappe.call({
+		method: get_method_for_payment2(),
+		args: {
+			"dt": cur_frm.doc.doctype,
+			"dn": cur_frm.doc.name
+		},
+		callback: function(r) {
+			var doclist = frappe.model.sync(r.message);
+			frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+			// cur_frm.refresh_fields()
+		}
+	});
+}
+
+var get_method_for_payment2= function(){
+	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom_sipm";
+	//"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
+	if(cur_frm.doc.__onload && cur_frm.doc.__onload.make_payment_via_journal_entry){
+		if(in_list(['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor','Tagihan Discount Leasing'],  cur_frm.doc.doctype)){
+			method = "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_invoice";
+		}else {
+			method= "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_order";
+		}
+	}
+
+	return method
+}
+
+var make_payment_entry= async function() {
+	// change_value2()
+
 	return frappe.call({
 		method: get_method_for_payment(),
 		args: {
@@ -48,7 +121,7 @@ var make_payment_entry= function() {
 }
 
 var get_method_for_payment= function(){
-	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom";
+	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom_tl";
 	//"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
 	if(cur_frm.doc.__onload && cur_frm.doc.__onload.make_payment_via_journal_entry){
 		if(in_list(['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor','Tagihan Discount Leasing'],  cur_frm.doc.doctype)){
@@ -88,6 +161,8 @@ frappe.ui.form.on("Tagihan Discount Leasing", "customer", function(frm) {
 						// frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].total_discoun_leasing);
 						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].nominal);
+						frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
+						frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);       
 					}

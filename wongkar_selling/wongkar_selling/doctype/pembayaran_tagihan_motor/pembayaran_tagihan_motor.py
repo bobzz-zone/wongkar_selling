@@ -13,6 +13,14 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from erpnext.accounts.general_ledger import make_gl_entries
 
 class PembayaranTagihanMotor(Document):
+	def validasi_supplier(self):
+		if self.type == "STNK dan BPKB":
+			stnk = self.supplier_stnk.split("-")
+			bpkb = self.supplier_bpkb.split("-")
+			if stnk[1] not in bpkb[1]:
+				frappe.throw("Supplier STNK dan BPKB TIdak Sama !")
+
+
 	def set_status(self):
 		if self.docstatus == 2:
 			self.status = 'Cancelled'
@@ -95,111 +103,200 @@ class PembayaranTagihanMotor(Document):
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def make_gl_debit(self, gl_entries):
-		# frappe.msgprint("MASuk make_gl_credit")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
-		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		for d in self.get('tagihan_biaya_motor'):
-			account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': self.type}, "coa")
-			# cost_center = frappe.get_value("Company",{"name" : d.no_invoice}, "cost_center")
-			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
-			# frappe.msgprint(account)
-			# frappe.msgprint(cost_center)
-			gl_entries.append(
-				self.get_gl_dict({
-					"account": account,
-					"party_type": "Supplier",
-					"party": self.supplier,
-					# "due_date": self.due_date,
-					"against": self.coa_biaya_motor,
-					"debit": d.nilai,
-					"debit_in_account_currency": d.nilai,
-					"against_voucher": d.no_invoice,
-					"against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": cost_center
-					# "project": self.project,
-					# "remarks": "coba Lutfi yyyyy!"
-				}, item=None)
-			)
-		# frappe.msgprint(str(gl_entries))
+		if self.type == "Diskon Dealer":
+			for d in self.get('tagihan_biaya_motor'):
+				account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': self.type}, "coa")
+				cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": account,
+						"party_type": "Supplier",
+						"party": self.supplier,
+						# "due_date": self.due_date,
+						"against": self.coa_biaya_motor,
+						"debit": d.nilai,
+						"debit_in_account_currency": d.nilai,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
+		elif self.type == "STNK dan BPKB":
+			for d in self.get('tagihan_biaya_motor'):
+				account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': "STNK"}, "coa")
+				cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": account,
+						"party_type": "Supplier",
+						"party": self.supplier_stnk,
+						# "due_date": self.due_date,
+						"against": self.coa_biaya_motor_stnk,
+						"debit": d.nilai_stnk,
+						"debit_in_account_currency": d.nilai_stnk,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
+			for d in self.get('tagihan_biaya_motor'):
+				account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': "BPKB"}, "coa")
+				cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": account,
+						"party_type": "Supplier",
+						"party": self.supplier_bpkb,
+						# "due_date": self.due_date,
+						"against": self.coa_biaya_motor_bpkb,
+						"debit": d.nilai_bpkb,
+						"debit_in_account_currency": d.nilai_bpkb,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
+		
 	def make_gl_credit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
-		account = frappe.get_value("Rule Biaya",{"name" : self.vendor}, "coa")
-		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
-		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabChild Tagihan Biaya Motor` cd
-			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
-		
-		for d in data:
-			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
-			gl_entries.append(
-				self.get_gl_dict({
-					"account": self.coa_biaya_motor,
-					"party_type": "Supplier",
-					"party": self.supplier,
-					# "due_date": self.due_date,
-					"against": self.supplier,
-					"credit": d.nilai,
-					"credit_in_account_currency": d.nilai,
-					# "against_voucher": d.no_sinv,
-					# "against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": d.cost_center
-					# "project": self.project,
-					# "remarks": "coba Lutfi yyyyy!"
-				}, item=None)
-			)
+		if self.type == "Diskon Dealer":
+			account = frappe.get_value("Rule Biaya",{"name" : self.vendor}, "coa")
+			cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
+			data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabChild Tagihan Biaya Motor` cd
+				JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+			
+			for d in data:
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": self.coa_biaya_motor,
+						"party_type": "Supplier",
+						"party": self.supplier,
+						# "due_date": self.due_date,
+						"against": self.supplier,
+						"credit": d.nilai,
+						"credit_in_account_currency": d.nilai,
+						# "against_voucher": d.no_sinv,
+						# "against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": d.cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
+		elif self.type == "STNK dan BPKB":
+			account = frappe.get_value("Rule Biaya",{"name" : self.vendor}, "coa")
+			cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
+			data_stnk = frappe.db.sql(""" SELECT SUM(nilai_stnk) AS nilai,cost_center FROM `tabChild Tagihan Biaya Motor` cd
+				JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+			
+			for d in data_stnk:
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": self.coa_biaya_motor_stnk,
+						"party_type": "Supplier",
+						"party": self.supplier_stnk,
+						# "due_date": self.due_date,
+						"against": self.supplier_stnk,
+						"credit": d.nilai,
+						"credit_in_account_currency": d.nilai,
+						# "against_voucher": d.no_sinv,
+						# "against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": d.cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
-			# 	gl_entries.append(
-			# 	self.get_gl_dict({
-			# 		"account": self.coa_biaya_motor,
-			# 		"party_type": "Supplier",
-			# 		"party": self.supplier,
-			# 		# "due_date": self.due_date,
-			# 		"against": self.supplier,
-			# 		"credit": self.grand_total,
-			# 		"credit_in_account_currency": self.grand_total,
-			# 		# "against_voucher": d.no_sinv,
-			# 		# "against_voucher_type": "Sales Invoice Penjualan Motor",
-			# 		"cost_center": d.cost_center
-			# 		# "project": self.project,
-			# 		# "remarks": "coba Lutfi yyyyy!"
-			# 	}, item=None)
-			# )
+			data_bpkb = frappe.db.sql(""" SELECT SUM(nilai_bpkb) AS nilai,cost_center FROM `tabChild Tagihan Biaya Motor` cd
+				JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+			
+			for d in data_bpkb:
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": self.coa_biaya_motor_bpkb,
+						"party_type": "Supplier",
+						"party": self.supplier_bpkb,
+						# "due_date": self.due_date,
+						"against": self.supplier_bpkb,
+						"credit": d.nilai,
+						"credit_in_account_currency": d.nilai,
+						# "against_voucher": d.no_sinv,
+						# "against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": d.cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
-		# frappe.msgprint(str(gl_entries))
+	def get_serial_no(self):
+		for i in self.tagihan_biaya_motor:
+			doc = frappe.get_doc("Serial No",i.no_rangka)
+			row = doc.append('list_status_serial_no', {})
+			row.list = "Tagihan "+self.type
+			row.date = self.date
+			row.ket = self.name
+			doc.flags.ignore_permissions = True
+			doc.save()
+
+	def get_serial_no_cancel(self):
+		for i in self.tagihan_biaya_motor:
+			# doc = frappe.get_doc("Serial No",i.no_rangka)
+			frappe.db.sql(""" DELETE FROM `tabList Status Serial No` where parent='{}' and ket = '{}' """.format(i.no_rangka,self.name))
+			frappe.db.commit()
 
 	def on_submit(self):
-		# add_party_gl_entries_custom_tambah(self)
-		# add_party_gl_entries_custom(self)
+		self.get_serial_no()
 		self.make_gl_entries()
-		
-		# data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
-		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
-		for i in data:
-			doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
-			doc.tertagih = 1
-			doc.db_update()
-			frappe.db.commit()
-			# frappe.msgprint('Berhasil !')
+		if self.type == "Diskon Dealer":
+			data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+			for i in data:
+				doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
+				doc.tertagih = 1
+				doc.db_update()
+				frappe.db.commit()
+		elif self.type == "STNK dan BPKB":
+			# data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+			for i in self.tagihan_biaya_motor:
+				frappe.db.sql(""" UPDATE `tabTabel Biaya Motor` set tertagih = 1 
+					where parent = '{}' and (type = 'STNK' or type = "BPKB") 
+					and (vendor = '{}' or vendor = '{}') """.format(i.no_invoice,self.supplier_stnk,self.supplier_bpkb))
+				frappe.db.commit()
 		self.set_status()
 
 	def on_cancel(self):
+		self.get_serial_no_cancel()
 		self.ignore_linked_doctypes = ('GL Entry')
 		self.make_gl_entries(cancel=1)
-		# data = frappe.db.get_list('Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
-		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
-		for i in data:
-			doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
-			doc.tertagih = 0
-			doc.db_update()
-			frappe.db.commit()
-			# frappe.msgprint('Berhasil !')
+		if self.type == "Diskon Dealer":
+			data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+			for i in data:
+				doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
+				doc.tertagih = 0
+				doc.db_update()
+				frappe.db.commit()
+				# frappe.msgprint('Berhasil !')
+		elif self.type == "STNK dan BPKB":
+			# data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
+			for i in self.tagihan_biaya_motor:
+				frappe.db.sql(""" UPDATE `tabTabel Biaya Motor` set tertagih = 0 
+					where parent = '{}' and (type = 'STNK' or type = "BPKB") 
+					and (vendor = '{}' or vendor = '{}') """.format(i.no_invoice,self.supplier_stnk,self.supplier_bpkb))
+				frappe.db.commit()
+		
 		self.set_status()
 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(self.name,self.doctype))
 		frappe.db.commit()
 
 	def validate(self):
 		self.set_status()
+		self.validasi_supplier()
 
 @frappe.whitelist()
 def repair_gl_entry_tagihan_motor(doctype,docname):

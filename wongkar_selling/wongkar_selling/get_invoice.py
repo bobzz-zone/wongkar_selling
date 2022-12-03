@@ -11,6 +11,7 @@ from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_a
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
 from erpnext.accounts.general_ledger import make_gl_entries
+import json
 
 # pembayaran Motor
 @frappe.whitelist()
@@ -26,7 +27,8 @@ def get_inv(supplier,types,date_from,date_to):
 		si.pemilik
 		 FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
-		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{}' and type = '{}' and si.posting_date BETWEEN '{}' and '{}' """.format(supplier,types,date_from,date_to),as_dict=1)
+		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{}' and type = '{}' 
+		and si.posting_date BETWEEN '{}' and '{}' """.format(supplier,types,date_from,date_to),as_dict=1,debug=1)
 
 	return data
 
@@ -44,7 +46,7 @@ def get_invd_l(customer,date_from,date_to):
 	# data = frappe.db.get_list('Sales Invoice Penjualan Motor',filters={'cara_bayar': 'Credit',"docstatus": ["=",1],"tertagih": 0,'nama_leasing': customer},fields=['*'])
 
 	# return data
-	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,sinv.item_code,sinv.pemilik,tdl.nama_leasing,sinv.total_discoun_leasing as nominal from `tabSales Invoice Penjualan Motor` sinv
+	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,sinv.item_code,sinv.pemilik,tdl.nama_leasing,sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent where tdl.nama_leasing = '{0}' and tdl.tertagih = 0 and sinv.docstatus = 1
 		and sinv.posting_date BETWEEN '{1}' and '{2}' """.format(customer,date_from,date_to),as_dict=1)
 	return data
@@ -60,47 +62,60 @@ def get_invc(leasing,date_from,date_to):
 
 @frappe.whitelist()
 def get_item_price(item_code,price_list,posting_date):
-	"""
-		Get name, price_list_rate from Item Price based on conditions
-			Check if the desired qty is within the increment of the packing list.
-		:param args: dict (or frappe._dict) with mandatory fields price_list, uom
-			optional fields transaction_date, customer, supplier
-		:param item_code: str, Item Doctype field item_code
-	"""
-
-	# args['item_code'] = item_code
-
-	# conditions = """where item_code=%(item_code)s
-	# 	and price_list=%(price_list)s
-	# 	and ifnull(uom, '') in ('', %(uom)s)"""
-
-	# conditions += "and ifnull(batch_no, '') in ('', %(batch_no)s)"
-
-	# if not ignore_party:
-	# 	if args.get("customer"):
-	# 		conditions += " and customer=%(customer)s"
-	# 	elif args.get("supplier"):
-	# 		conditions += " and supplier=%(supplier)s"
-	# 	else:
-	# 		conditions += "and (customer is null or customer = '') and (supplier is null or supplier = '')"
-
-	# if args.get('transaction_date'):
-	# 	conditions += """ and %(transaction_date)s between
-	# 		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')"""
-
-	# if args.get('posting_date'):
-	# 	conditions += """ and %(posting_date)s between
-	# 		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')"""
+	
 	data = frappe.db.sql(""" select name, price_list_rate, uom from `tabItem Price` where item_code='{0}' and price_list='{1}' and selling=1 and (valid_from is NULL or valid_from <='{2}') and (valid_upto is NULL or valid_upto >='{2}') order by valid_from desc, batch_no desc, uom desc """.format(item_code,price_list,posting_date),as_dict=1)
 	
 	return data
-#(posting_date between ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31'))
+
+@frappe.whitelist()
+def get_biaya(item_code,territory,posting_date):
+# def get_biaya(item_group,territory,posting_date):
+	# data = frappe.db.sql(""" SELECT name, vendor,type,amount, coa,valid_from,valid_to from `tabRule Biaya` 
+	# 	where item_group='{0}' and  territory = '{1}' and disable = 0 and valid_from <='{2}' 
+	# 	and valid_to >= '{2}' order by valid_from desc """.format(item_group,territory,posting_date),as_dict=1)
+
+	# item_code
+	data = frappe.db.sql(""" SELECT name, vendor,type,amount, coa,valid_from,valid_to from `tabRule Biaya` 
+		where item_code='{0}' and  territory = '{1}' and disable = 0 and valid_from <='{2}' 
+		and valid_to >= '{2}' order by valid_from desc """.format(item_code,territory,posting_date),as_dict=1)
+
+	return data
+
+@frappe.whitelist()
+def get_rule(item_code,territory,posting_date,category_discount):
+# def get_rule(item_group,territory,posting_date,category_discount):
+	# data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 
+	# 	where item_group='{0}' and  territory = '{1}' and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
+	# 	and valid_to >= '{2}' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
+	
+	# item_code
+	data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 
+		where item_code='{0}' and  territory = '{1}' and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
+		and valid_to >= '{2}' order by valid_from desc """.format(item_code,territory,posting_date,category_discount),as_dict=1)
+
+	return data
+
 
 @frappe.whitelist()
 def get_leasing(item_code,nama_promo,territory_real,posting_date):
-	data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount  from `tabRule Discount Leasing` rdl 
+# def get_leasing(item_group,nama_promo,territory_real,posting_date):
+	# data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount  from `tabRule Discount Leasing` rdl 
+	# 	join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
+	# 	where rdl.item_code='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') AND rdl.disable = 0 """.format(item_code,nama_promo,territory_real,posting_date),as_dict=1)
+	# return data
+	
+	# data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount,rdl.valid_from,rdl.valid_to  from `tabRule Discount Leasing` rdl 
+	# 	join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
+	# 	where rdl.item_group='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' 
+	# 	and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') 
+	# 	AND rdl.disable = 0 order by rdl.valid_from desc  """.format(item_group,nama_promo,territory_real,posting_date),as_dict=1)
+
+	data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount,rdl.valid_from,rdl.valid_to  from `tabRule Discount Leasing` rdl 
 		join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
-		where rdl.item_code='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') AND rdl.disable = 0 """.format(item_code,nama_promo,territory_real,posting_date),as_dict=1)
+		where rdl.item_code='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' 
+		and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') 
+		AND rdl.disable = 0 order by rdl.valid_from desc  """.format(item_code,nama_promo,territory_real,posting_date),as_dict=1)
+
 	return data
 
 def cek_tagihan(self,method):
@@ -111,3 +126,110 @@ def cek_tagihan(self,method):
 				for i in self.tagihan_payment_table:
 					tot = tot + i.nilai
 		self.paid_amount = tot
+
+@frappe.whitelist()
+def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
+	data = frappe.db.sql(""" SELECT 
+		si.name, 
+		si.posting_date,
+		tb.type,
+		tb.amount,
+		si.item_code,
+		si.no_rangka,
+		si.pemilik,
+		(select tb2.amount from `tabTabel Biaya Motor` tb2 where tb2.parent = si.name and tb2.vendor = '{1}' and type = '{3}') as amount_bpkb
+		FROM `tabSales Invoice Penjualan Motor` si 
+		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
+		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{0}' and type = '{2}'
+		and si.posting_date BETWEEN '{4}' and '{5}' order by si.name asc """.format(supplier_stnk,supplier_bpkb,"STNK","BPKB",date_from,date_to),as_dict=1)
+
+	return data
+
+@frappe.whitelist()
+def get_tagihan(doc_type,tipe_pembayaran,data):
+	tes = json.loads(data)
+	# frappe.msgprint(str(tes)+" tes")
+	# for i in tes:
+	# 	frappe.msgprint(i['reference_name'])
+	tmp = []
+	# doc = frappe.get_doc("Payment Entry",dt)
+	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				outstanding_stnk as outstanding,
+				parenttype,
+				parent,
+				no_invoice
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran BPKB":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				outstanding_bpkb as outstanding,
+				parenttype,
+				parent,
+				no_invoice
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran Diskon Dealer":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				terbayarkan as outstanding,
+				parenttype,
+				parent,
+				no_invoice
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran Diskon Leasing":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				terbayarkan as outstanding,
+				parenttype,
+				parent,
+				no_invoice
+				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran SIPM":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				outstanding_sipm as outstanding,
+				parenttype,
+				parent,
+				no_invoice
+				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == "Tagihan Discount" and tipe_pembayaran == "Pembayaran Diskon":
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				pemilik,
+				item,
+				no_rangka,
+				terbayarkan as outstanding,
+				parenttype,
+				parent,
+				no_sinv as no_invoice
+				from `tabDaftar Tagihan` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	# frappe.msgprint(str(data))
+	return tmp

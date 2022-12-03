@@ -4,24 +4,29 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "nama_promo",
   "no_invoice",
   "tanggal_inv",
-  "nama_promo",
-  "nilai",
-  "terbayarkan",
+  "pemilik",
   "item",
   "no_rangka",
-  "pemilik"
+  "section_break_4",
+  "nilai",
+  "terbayarkan",
+  "column_break_7",
+  "tagihan_sipm",
+  "outstanding_sipm",
+  "section_break_9"
  ],
  "fields": [
   {
    "fieldname": "no_invoice",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "No Invoice",
    "options": "Sales Invoice Penjualan Motor"
   },
   {
+   "columns": 1,
    "fieldname": "tanggal_inv",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -37,7 +42,6 @@
   {
    "fieldname": "nama_promo",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Nama Promo",
    "options": "Category Discount Leasing"
   },
@@ -45,13 +49,13 @@
    "fieldname": "nilai",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Nilai"
+   "label": "Tagihan Discount"
   },
   {
    "fieldname": "terbayarkan",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Terbayarkan"
+   "label": "Outstanding Tagihan Discount"
   },
   {
    "fieldname": "item",
@@ -61,17 +65,42 @@
    "options": "Item"
   },
   {
+   "columns": 1,
    "fieldname": "pemilik",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Pemilik",
    "options": "Customer"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tagihan_sipm",
+   "fieldtype": "Currency",
+   "label": "Tagihan SIPM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "outstanding_sipm",
+   "fieldtype": "Currency",
+   "label": "Outstanding SIPM",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-11-18 16:18:45.797894",
+ "modified": "2022-11-23 15:27:07.506810",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Daftar Tagihan Leasing",

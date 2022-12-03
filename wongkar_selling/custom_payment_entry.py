@@ -302,12 +302,13 @@ def get_held_invoices(party_type, party):
 	return held_invoices
 
 @frappe.whitelist()
-def get_reference_details_chandra(reference_doctype, reference_name, party_account_currency):
+def get_reference_details_chandra(reference_doctype, doc_type,tipe_pembayaran,reference_name, party_account_currency):
 	# frappe.msgprint("MASUK KE METHOD GANTI@")
+	# frappe.msgprint(tipe_pembayaran+" tipe_pembayaran")
 	total_amount = outstanding_amount = exchange_rate = bill_no = None
 	ref_doc = frappe.get_doc(reference_doctype, reference_name)
 	company_currency = ref_doc.get("company_currency") or erpnext.get_company_currency(ref_doc.company)
-
+	# frappe.msgprint(reference_doctype+" reference_doctype")
 	if reference_doctype == "Fees":
 		total_amount = ref_doc.get("grand_total")
 		exchange_rate = 1
@@ -357,18 +358,57 @@ def get_reference_details_chandra(reference_doctype, reference_name, party_accou
 			total_amount = ref_doc.grand_total
 			bill_no = ref_doc.get("bill_no")
 			outstanding_amount = ref_doc.grand_total
-		elif reference_doctype == "Tagihan Discount Leasing":
+		elif reference_doctype == "Tagihan Discount Leasing" and not ref_doc.tagihan_sipm and not tipe_pembayaran:
+			# frappe.msgprint("Tagihan Discount Leasing 1ab")
 			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.outstanding_amount
 			bill_no = ref_doc.get("bill_no")
-			outstanding_amount = ref_doc.grand_total
+		elif reference_doctype == "Tagihan Discount Leasing" and ref_doc.tagihan_sipm and not tipe_pembayaran:
+			# frappe.msgprint("Tagihan Discount Leasing 2sdsdcd")
+			total_amount = ref_doc.total_tagihan_sipm
+			outstanding_amount = ref_doc.total_outstanding_tagihan_sipm
+			bill_no = ref_doc.get("bill_no")
 		elif reference_doctype == "Pembayaran Credit Motor":
 			total_amount = ref_doc.grand_total
 			bill_no = ref_doc.get("bill_no")
-			outstanding_amount = ref_doc.grand_total
-		elif reference_doctype == "Pembayaran Tagihan Motor":
+			outstanding_amount = ref_doc.outstanding_amount
+		elif reference_doctype == "Pembayaran Tagihan Motor" and not ref_doc.tagihan_stnk and not tipe_pembayaran and not ref_doc.tagihan_bpkb:
 			total_amount = ref_doc.grand_total
 			bill_no = ref_doc.get("bill_no")
-			outstanding_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.outstanding_amount
+		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_stnk:
+			total_amount = ref_doc.total_stnk
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount_stnk
+		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_bpkb:
+			total_amount = ref_doc.total_bpkb
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount_bpkb
+		elif reference_doctype == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
+			# frappe.msgprint("sksksksks")
+			total_amount = ref_doc.total_stnk
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount_stnk
+		elif reference_doctype == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran BPKB":
+			# frappe.msgprint("sksksksks")
+			total_amount = ref_doc.total_bpkb
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount_bpkb
+		elif reference_doctype == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran Diskon Dealer":
+			# frappe.msgprint("sksksksks")
+			total_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount
+		elif reference_doctype == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran Diskon Leasing":
+			# frappe.msgprint("sksksksks")
+			total_amount = ref_doc.grand_total
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.outstanding_amount
+		elif reference_doctype == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran SIPM":
+			# frappe.msgprint("sksksksks")
+			total_amount = ref_doc.total_tagihan_sipm
+			bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.total_outstanding_tagihan_sipm
 		elif reference_doctype == "Expense Claim":
 			outstanding_amount = flt(ref_doc.get("total_sanctioned_amount")) + flt(ref_doc.get("total_taxes_and_charges"))\
 				- flt(ref_doc.get("total_amount_reimbursed")) - flt(ref_doc.get("total_advance_amount"))
@@ -428,6 +468,9 @@ def validate_lutfi(self):
 	# frappe.msgprint("masuk validate_lutfi")
 	self.setup_party_account_field()
 	set_missing_values_lutfi(self)
+	cek_payment(self)
+	# bagi_alocated(self)
+	# get_data_tagihan(self)
 	self.validate_payment_type()
 	self.validate_party_details()
 	self.validate_bank_accounts()
@@ -447,6 +490,50 @@ def validate_lutfi(self):
 	self.validate_paid_invoices()
 	self.ensure_supplier_is_not_blocked()
 	self.set_status()
+
+
+def cek_payment(self):
+	if self.doc_type:
+		if self.doc_type == "Pembayaran Tagihan Motor":
+			if self.payment_type != "Pay":
+				frappe.throw("Salah Memilih Payment Tyepe")
+		else:
+			if self.payment_type != "Receive":
+				frappe.throw("Salah Memilih Payment Tyepe")
+	
+# def get_data_tagihan(self):
+# 	tmp = []
+# 	for i in self.references:
+# 		frappe.msgprint(i.reference_name)
+# 		data = frappe.db.sql(""" SELECT 
+# 			pemilik,
+# 			item,
+# 			no_rangka,
+# 			outstanding_stnk,
+# 			parenttype,
+# 			parent 
+# 			from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i.reference_name),as_dict=1)
+# 		if data:
+# 			tmp.append(data)
+	
+# 	for t in tmp:
+# 		frappe.msgprint(t)
+
+
+def bagi_alocated(self):
+	# res = {}
+	# for item in self.tagihan_payment_table:
+	# 	res.setdefault(item['doc_name'], []).append(item)
+	# frappe.msgprint(str(res)+" res")
+	# frappe.msgprint(str(self.name)+ " self.name")
+	# frappe.msgprint(str(self.tagihan_payment_table)+ " self.tagihan_payment_table")
+	tmp = []
+	for i in self.tagihan_payment_table:
+		tmp.append(i)
+
+	# frappe.msgprint(str(tmp)+ "tmp")
+
+
 
 
 def update_payment_schedule_lutfi(self, cancel=0):
@@ -554,9 +641,10 @@ def update_outstanding_amounts_chandra(self):
 
 def set_missing_ref_details_chandra(self, force=False):
 	# frappe.msgprint("masuk set_missing_ref_details_chandra")
+	# if not self.doc_type:
 	for d in self.get("references"):
 		if d.allocated_amount:
-			ref_details = get_reference_details_chandra(d.reference_doctype,
+			ref_details = get_reference_details_chandra(d.reference_doctype, self.doc_type,self.tipe_pembayaran,
 				d.reference_name, self.party_account_currency)
 
 			for field, value in iteritems(ref_details):
@@ -578,8 +666,9 @@ def validate_reference_documents_lutfi(self):
 	elif self.party_type == "Donor":
 		valid_reference_doctypes = ("Donation")
 
-	for d in self.get("references"):
+	for d in self.references:
 		if not d.allocated_amount:
+			# frappe.msgprint("masuk sini ssss")
 			continue
 		if d.reference_doctype not in valid_reference_doctypes:
 			frappe.throw(_("Reference Doctype must be one of {0}")
@@ -590,7 +679,8 @@ def validate_reference_documents_lutfi(self):
 				frappe.throw(_("{0} {1} does not exist").format(d.reference_doctype, d.reference_name))
 			else:
 				ref_doc = frappe.get_doc(d.reference_doctype, d.reference_name)
-
+				if d.reference_doctype == "Pembayaran Tagihan Motor":
+					return
 				if d.reference_doctype != "Journal Entry":
 					if self.party != ref_doc.get(scrub(self.party_type)):
 						frappe.throw(_("{0} {1} is not associated with {2} {3}")

@@ -8,17 +8,30 @@
  "field_order": [
   "naming_series",
   "section_break_2",
+  "tagihan_stnk",
+  "tagihan_bpkb",
   "date",
   "date_from",
   "date_to",
   "vendor",
   "type",
   "supplier",
+  "supplier_stnk",
+  "supplier_bpkb",
   "nama_vendor",
   "territory",
   "coa_biaya_motor",
+  "coa_biaya_motor_stnk",
+  "coa_biaya_motor_bpkb",
+  "section_break_16",
   "grand_total",
   "outstanding_amount",
+  "total_stnk",
+  "outstanding_amount_stnk",
+  "column_break_21",
+  "total_bpkb",
+  "outstanding_amount_bpkb",
+  "section_break_24",
   "tagihan_biaya_motor",
   "payment",
   "amended_from",
@@ -80,20 +93,23 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "STNK\nBPKB\nDiskon Dealer"
+   "options": "STNK dan BPKB\nSTNK\nBPKB\nDiskon Dealer"
   },
   {
+   "depends_on": "eval:doc.type == \"Diskon Dealer\"",
    "fieldname": "coa_biaya_motor",
    "fieldtype": "Link",
    "label": "Coa Biaya Motor",
-   "options": "Account",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.type == \"Diskon Dealer\"",
+   "options": "Account"
   },
   {
+   "depends_on": "eval:doc.type == \"Diskon Dealer\"",
    "fieldname": "supplier",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Supplier",
+   "mandatory_depends_on": "eval:doc.type == \"Diskon Dealer\"",
    "options": "Supplier"
   },
   {
@@ -117,6 +133,7 @@
    "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
   },
   {
+   "depends_on": "eval:doc.type == \"Diskon Dealer\"",
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -129,9 +146,10 @@
    "label": "Date"
   },
   {
+   "depends_on": "eval:doc.type == \"Diskon Dealer\"",
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
-   "label": "outstanding_amount",
+   "label": "Outstanding Amount",
    "read_only": 1
   },
   {
@@ -152,12 +170,102 @@
    "hidden": 1,
    "label": "Payment",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "coa_biaya_motor_stnk",
+   "fieldtype": "Link",
+   "label": "Coa Biaya Motor STNK",
+   "mandatory_depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "coa_biaya_motor_bpkb",
+   "fieldtype": "Link",
+   "label": "Coa Biaya Motor BPKB",
+   "mandatory_depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "supplier_stnk",
+   "fieldtype": "Link",
+   "label": "Supplier STNK",
+   "mandatory_depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "options": "Supplier"
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "supplier_bpkb",
+   "fieldtype": "Link",
+   "label": "Supplier BPKB",
+   "mandatory_depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "total_stnk",
+   "fieldtype": "Currency",
+   "label": "Total STNK",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "outstanding_amount_stnk",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount STNK",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "total_bpkb",
+   "fieldtype": "Currency",
+   "label": "Total BPKB",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
+   "fieldname": "outstanding_amount_bpkb",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount BPKB",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_24",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "tagihan_stnk",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "tagihan_stnk",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "tagihan_bpkb",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "tagihan_bpkb",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-09-28 10:10:14.516048",
+ "modified": "2022-11-28 09:44:21.326662",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Tagihan Motor",

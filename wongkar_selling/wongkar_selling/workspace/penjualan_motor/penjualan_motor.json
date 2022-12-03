@@ -42,7 +42,7 @@
    "type": "Link"
   }
  ],
- "modified": "2022-11-18 10:25:05.525091",
+ "modified": "2022-11-28 10:48:19.333914",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penjualan Motor",
@@ -64,14 +64,32 @@
   },
   {
    "doc_view": "List",
+   "label": "Tagihan Discount",
+   "link_to": "Tagihan Discount",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
    "label": "Pembayaran Tagihan Motor",
    "link_to": "Pembayaran Tagihan Motor",
    "type": "DocType"
   },
   {
    "doc_view": "List",
-   "label": "Rekap Tagihan Leasing",
-   "link_to": "Tagihan Leasing",
+   "label": "Rule",
+   "link_to": "Rule",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
+   "label": "Rule Discount Leasing",
+   "link_to": "Rule Discount Leasing",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "List",
+   "label": "Rule Biaya",
+   "link_to": "Rule Biaya",
    "type": "DocType"
   }
  ]

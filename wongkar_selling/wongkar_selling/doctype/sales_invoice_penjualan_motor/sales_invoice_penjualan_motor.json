@@ -69,6 +69,7 @@
   "cara_bayar",
   "tagihan_leasing",
   "item_code",
+  "item_group",
   "nama_diskon",
   "nama_promo",
   "nama_leasing",
@@ -2250,7 +2251,6 @@
    "depends_on": "eval:doc.cara_bayar == 'Credit'",
    "fieldname": "dp_gross",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "DP Gross"
   },
   {
@@ -2258,7 +2258,6 @@
    "depends_on": "eval:doc.cara_bayar == 'Credit'",
    "fieldname": "dp_gross_hitung",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "DP Gross Hitung",
    "read_only": 1
   },
@@ -2266,15 +2265,22 @@
    "depends_on": "eval:doc.cara_bayar == 'Credit'",
    "fieldname": "jangka_waktu",
    "fieldtype": "Int",
-   "hidden": 1,
    "label": "Jangka Waktu"
   },
   {
    "depends_on": "eval:doc.cara_bayar == 'Credit'",
    "fieldname": "angsuran",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "Angsuran"
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
@@ -2286,7 +2292,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2022-11-21 13:29:59.332498",
+ "modified": "2022-11-28 10:18:49.977370",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

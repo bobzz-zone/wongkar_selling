@@ -8,6 +8,7 @@
  "field_order": [
   "naming_series",
   "section_break_2",
+  "tagihan_sipm",
   "date",
   "date_from",
   "date_to",
@@ -17,13 +18,20 @@
   "nama_promo",
   "territory",
   "coa_tagihan_discount_leasing",
+  "coa_tagihan_sipm",
+  "section_break_12",
   "grand_total",
   "outstanding_amount",
+  "column_break_15",
+  "total_tagihan_sipm",
+  "total_outstanding_tagihan_sipm",
+  "section_break_18",
   "daftar_tagihan_leasing",
   "amended_from",
   "company",
   "base_grand_total",
-  "status"
+  "status",
+  "advance_paid"
  ],
  "fields": [
   {
@@ -145,12 +153,59 @@
    "fieldtype": "Date",
    "label": "Date To",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_15",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_tagihan_sipm",
+   "fieldtype": "Currency",
+   "label": "Total Tagihan SIPM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_outstanding_tagihan_sipm",
+   "fieldtype": "Currency",
+   "label": "Total Outstanding Tagihan SIPM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coa_tagihan_sipm",
+   "fieldtype": "Link",
+   "label": "COA Tagihan SIPM",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "tagihan_sipm",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "tagihan sipm",
+   "read_only": 1
+  },
+  {
+   "fieldname": "advance_paid",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "advance_paid",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-08-23 13:37:36.292705",
+ "modified": "2022-11-28 09:43:32.909695",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount Leasing",

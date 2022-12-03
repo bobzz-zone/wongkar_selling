@@ -8,19 +8,18 @@
  "field_order": [
   "naming_series",
   "section_break_2",
-  "type",
   "category_discount",
   "section_break_4",
   "customer",
   "valid_from",
   "valid_to",
   "item_code",
+  "item_group",
   "customer_group",
   "territory",
   "discount",
   "amount",
   "percent",
-  "coa_expense",
   "coa_receivable",
   "disable"
  ],
@@ -35,13 +34,6 @@
   {
    "fieldname": "section_break_2",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Type",
-   "unique": 1
   },
   {
    "fieldname": "section_break_4",
@@ -60,17 +52,10 @@
    "reqd": 1
   },
   {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Item Code",
-   "options": "Item",
-   "reqd": 1
-  },
-  {
    "fieldname": "territory",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Territory",
    "options": "Territory"
   },
@@ -91,13 +76,6 @@
    "fieldname": "percent",
    "fieldtype": "Percent",
    "label": "Percent"
-  },
-  {
-   "fieldname": "coa_expense",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "COA Expense",
-   "options": "Account"
   },
   {
    "fieldname": "coa_receivable",
@@ -132,11 +110,28 @@
    "label": "Category Discount",
    "options": "Category Discount",
    "reqd": 1
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-18 09:27:11.744429",
+ "modified": "2022-11-28 10:17:33.260690",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",
@@ -155,7 +150,7 @@
    "write": 1
   }
  ],
- "search_fields": "customer,type",
+ "search_fields": "customer",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

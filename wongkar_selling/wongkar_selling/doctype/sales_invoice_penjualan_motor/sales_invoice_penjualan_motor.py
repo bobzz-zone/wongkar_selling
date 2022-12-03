@@ -708,6 +708,9 @@ class SalesInvoicePenjualanMotor(SellingController):
 		if not self.item_code:
 			frappe.throw("Silahkan mengisi Kode Item")
 
+		if not self.item_group:
+			frappe.throw("Silahkan mengisi item_group")
+
 		if not self.nama_diskon:
 			frappe.throw("Silahkan mengisi Nama Diskon")
 		
@@ -739,7 +742,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 			self.set_posting_time = 1 
 
 		# cari nilai
-		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing
+		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
 		if not self.harga:
 			self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
 
@@ -749,12 +752,14 @@ class SalesInvoicePenjualanMotor(SellingController):
 		self.table_discount = []
 
 		# generate tabel biaya
-		list_tabel_biaya = frappe.db.get_list('Rule Biaya',filters={ 'item_code':  self.item_code,'territory': self.territory_biaya,'disable': 0}, fields=['*'])
+		list_tabel_biaya = get_biaya(self.item_group,self.territory_biaya,self.posting_date)
 		
 		total_biaya = 0
 		total_discount = 0
 		total_discount_leasing = 0
-
+		# generate tabel biaya
+		frappe.msgprint(str(self.posting_date.date()))
+		print(self.posting_date)
 		if list_tabel_biaya:
 			for row in list_tabel_biaya:
 				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
@@ -769,7 +774,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 					total_biaya += row.amount
 
 		# generate tabel discount
-		list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
+		# list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
+		list_table_discount = get_rule(self.item_group,self.territory_real,self.posting_date,self.nama_diskon)
 		if list_table_discount:
 			for row in list_table_discount:
 				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
@@ -788,7 +794,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 					total_discount += row.amount
 
 		# generate table discount leasing
-		list_table_discount_leasing = get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
+		list_table_discount_leasing = get_leasing(self.item_group,self.nama_promo,self.territory_real,self.posting_date)
+		# get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
 
 		if list_table_discount_leasing:
 			for row in list_table_discount_leasing:
@@ -904,207 +911,24 @@ class SalesInvoicePenjualanMotor(SellingController):
 						"base_tax_amount_after_discount_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100
 					})
 
+			# frappe.msgprint(str(total_discount)+" total_discount")
+			# frappe.msgprint(str(total_discount)+" total_discount_leasing")
+			# frappe.msgprint(str(self.outstanding_amount)+" outstanding_amount")
+			# frappe.msgprint(str(self.harga)+" harga")
+			# frappe.msgprint(str(self.adj_discount)+" adj_discount")
+			# frappe.msgprint(str(self.total_advance)+" total_advance")
+			
+			if self.total_advance:
+				tot_adv = self.total_advance
+			else:
+				tot_adv = 0
 
 			self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
 			self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
 			self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-			self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - self.total_advance
+			self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
 
-	def custom_missing_values2(self):
-		# validasi field
-		print("custom_missing_values2")
-		if not self.cara_bayar:
-			frappe.throw("Silahkan mengisi Cara Bayar")
-		
-		if not self.item_code:
-			frappe.throw("Silahkan mengisi Kode Item")
-
-		if not self.nama_diskon:
-			frappe.throw("Silahkan mengisi Nama Diskon")
-		
-		if self.cara_bayar == "Credit":
-			if not self.nama_promo:
-				frappe.throw("Silahkan mengisi Nama Promo")
-
-		if not self.no_rangka:
-			frappe.throw("Silahkan mengisi No Rangka")
-
-		if not self.selling_price_list:
-			frappe.throw("Silahkan mengisi Price List")
-		
-		if self.diskon == 1:
-			if self.nominal_diskon == 0:
-				frappe.throw("Silahkan mengisi Nominal Diskon")
-		else:
-			self.nominal_diskon = 0
-
-		if not self.territory_real:
-			frappe.throw("Silahkan mengisi Territory Real")
-		
-		if not self.territory_biaya:
-			frappe.throw("Silahkan mengisi Territory Biaya")
-
-		today = frappe.utils.nowdate()
-
-		if self.posting_date != today:
-			print('HHHH')
-			self.set_posting_time = 1 
-
-		# cari nilai
-		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing
-		if not self.harga:
-			self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
-
-		# reset semua table
-		self.tabel_biaya_motor = []
-		self.table_discount_leasing= []
-		self.table_discount = []
-		self.items = []
-		# self.taxes=[]
-
-		# generate tabel biaya
-		list_tabel_biaya = frappe.db.get_list('Rule Biaya',filters={ 'item_code':  self.item_code,'territory': self.territory_biaya,'disable': 0}, fields=['*'])
-		
-		total_biaya = 0
-		total_discount = 0
-		total_discount_leasing = 0
-
-		if list_tabel_biaya:
-			for row in list_tabel_biaya:
-				# if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-				if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
-					self.append("tabel_biaya_motor",{
-							"rule":row.name,
-							"vendor":row.vendor,
-							"type": row.type,
-							"amount" : row.amount,
-							"coa" : row.coa
-						})
-					total_biaya += row.amount
-
-		# generate tabel discount
-		list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
-		if list_table_discount:
-			for row in list_table_discount:
-				# if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-				if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
-					if row.discount == "Percent":
-						row.amount = row.percent * self.harga / 100
-					print('ckckc')
-					self.append("table_discount",{
-						"rule": row.name,
-						"customer":row.customer,
-						"category_discount": row.category_discount,
-						"coa_receivable": row.coa_receivable,
-						"nominal": row.amount
-						})
-
-					total_discount += row.amount
-
-		# generate table discount leasing
-		list_table_discount_leasing = get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
-
-		if list_table_discount_leasing:
-			for row in list_table_discount_leasing:
-				self.append("table_discount_leasing",{
-						"coa":row.coa,
-						"nominal":row.amount,
-						"nama_leasing":row.leasing
-					})
-				total_discount_leasing += row.amount
-
-		self.total_biaya = total_biaya
-
-		self.total_discoun_leasing = total_discount_leasing
-
-		# if self.taxes_and_charges:
-		# 	data_tax = frappe.db.sql(""" SELECT * from `tabSales Taxes and Charges` where parent='{}' """.format(self.taxes_and_charges),as_dict=1)
-
-		# if data_tax:
-		# 	for i in data_tax:
-
-		tax_template = frappe.db.get_list("Sales Taxes and Charges Template",{"is_default":1},"name")[0]
-		tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
-
-
-		ppn_rate = tax.taxes[0].rate
-		print(ppn_rate,'ppn_rate')
-		# self.taxes[0].rate
-		ppn_div = (100+ppn_rate)/100
-		print(ppn_div)
-		# cara mencari grand total
-		total2 = ( self.harga - self.total_biaya ) / ppn_div
-		print(total2)
-		hasil2 = self.harga - total2
-		akhir2 = self.harga - hasil2
-
-		income_account = frappe.db.get_list("Item Default",filters={"parent":self.item_code},fields=["income_account"])[0]["income_account"]
-		expense_account = frappe.db.get_list("Item Default",filters={"parent":self.item_code},fields=["expense_account"])[0]["expense_account"]
-
-		company = frappe.db.get_single_value("Global Defaults","default_company")
-		if not income_account:
-			income_account = frappe.db.get_value("Company",company,"default_income_account")
-			
-		if not expense_account:
-			expense_account = frappe.db.get_value("Company",company,"default_expense_account")
-
-		# menambah tabel item
-		self.append("items",{
-				"item_code":self.item_code,
-				"item_name": frappe.get_value("Item", self.item_code,"item_name"),
-				"description": frappe.get_value("Item", self.item_code,"description"),
-				"stock_uom": frappe.get_value("Item", self.item_code,"stock_uom"),
-				"uom": frappe.get_value("Item", self.item_code,"stock_uom"),
-				"conversion_factor": 1,
-				"rate": total2,
-				"base_rate": total2,
-				"amount": total2,
-				"base_amount": total2,
-				"qty": 1,
-				"stock_qty": 1,
-				"income_account": income_account,
-				"expense_account": expense_account,
-				"discount_amount": hasil2 + self.nominal_diskon,
-				"warehouse": self.set_warehouse,
-				"serial_no": self.no_rangka,
-				"cost_center": self.cost_center
-			})
-		
-		self.adj_discount = 0 if not self.adj_discount else self.adj_discount
-
-		tax_template = frappe.db.get_list("Sales Taxes and Charges Template",{"is_default":1},"name")[0]
-
-		# if not self.taxes:
-		self.taxes = []
-		self.taxes_and_charges = tax_template["name"]
-
-		tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
-		self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-		self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-
-		for row in tax.taxes:
-			print((self.harga - total_biaya) / ((100+row.rate)/100),'jkjk')
-			self.append("taxes",{
-					"charge_type":row.charge_type,
-					"account_head": row.account_head,
-					"description": row.description,
-					"currency": row.currency,
-					"included_in_print_rate": row.included_in_print_rate,
-					"rate":row.rate,
-					# "tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
-					# "base_tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
-					"total": (self.harga - total_biaya),
-					# "tax_amount_after_discount_amount": (self.harga - total_biaya)
-				})
-
-
-		# self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-		# self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-		self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-		self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - self.total_advance
-		frappe.throw(str((self.harga - total_discount - total_discount_leasing) + self.adj_discount - self.total_advance))
-		self.flags.ignore_permissions = True
-		# self.save()
+	
 			
 
 
@@ -1114,7 +938,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 			frappe.throw("No rangka tidak sama dengan item !")
 		#validate rule biaya harus ada 3
 		if not self.bypass_biaya:
-			if len(self.tabel_biaya_motor)<3:
+			if len(self.tabel_biaya_motor)<2:
 				frappe.throw("Error ada biaya yang belum di set")
 		# super(SalesInvoicePenjualanMotor, self).validate()
 		# self.validate_auto_set_posting_time()

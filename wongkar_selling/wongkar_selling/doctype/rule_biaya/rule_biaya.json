@@ -13,6 +13,7 @@
   "valid_from",
   "valid_to",
   "item_code",
+  "item_group",
   "territory",
   "amount",
   "coa",
@@ -33,6 +34,7 @@
    "fieldname": "type",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "reqd": 1
   },
@@ -57,14 +59,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Item Code",
-   "options": "Item",
-   "reqd": 1
-  },
-  {
    "fieldname": "amount",
    "fieldtype": "Currency",
    "label": "Amount"
@@ -86,11 +80,28 @@
    "fieldname": "disable",
    "fieldtype": "Check",
    "label": "Disable"
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-12-09 13:06:06.839236",
+ "modified": "2022-11-28 10:18:06.578995",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Biaya",
