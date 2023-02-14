@@ -386,6 +386,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		
 	},
 	refresh: function(doc, dt, dn) {
+
 		const me = this;
 		//this._super();
 		if(cur_frm.msgbox && cur_frm.msgbox.$wrapper.is(":visible")) {
@@ -2608,7 +2609,8 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "nama_promo", function(frm) {
 					item_code: cur_frm.doc.item_code,
 					nama_promo: cur_frm.doc.nama_promo,
 					territory_real: cur_frm.doc.territory_real,
-					posting_date: cur_frm.doc.posting_date
+					posting_date: cur_frm.doc.posting_date,
+					from_group:cur_frm.doc.from_group
 				},
 				callback: function(r) {
 					console.log(r,"leasing")
@@ -3125,6 +3127,13 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		cur_frm.refresh_fields("taxes");
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
+		cur_frm.set_query("nama_promo", function(doc) {
+			return {
+				filters: {
+					'disabled': 0,
+				}
+			}
+		});
 		/*cur_frm.set_query("nama_diskon", function() {
 			return {
 				filters: {

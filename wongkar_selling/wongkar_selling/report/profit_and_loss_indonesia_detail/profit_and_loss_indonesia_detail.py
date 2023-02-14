@@ -31,6 +31,7 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
 	filters50=filters
 	filters50["account_like"]="50.%"
@@ -43,6 +44,7 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
 
 	filters60=filters
@@ -56,6 +58,7 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
 
 	filters70=filters
@@ -69,6 +72,7 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
 
 	filters80=filters
@@ -82,6 +86,7 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
 	filters90=filters
 	filters90["account_like"]="90.%"
@@ -94,20 +99,55 @@ def execute(filters=None):
 		accumulated_values=filters.accumulated_values,
 		ignore_closing_entries=True,
 		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
-	net_profit_loss = get_net_profit_loss(
-		[acc40,acc70], [acc50,acc60,acc80,acc90], period_list, filters.company, filters.presentation_currency
+	filters99=filters
+	filters99["account_like"]="99.%"
+	acc99 = get_data(
+		filters.company,
+		"Expense",
+		"Debit",
+		period_list,
+		filters=filters99,
+		accumulated_values=filters.accumulated_values,
+		ignore_closing_entries=True,
+		ignore_accumulated_values_for_fy=True,
+		enable_total=False
 	)
+	laba_kotor = get_net_profit_loss(
+		[acc40], [acc50], period_list, filters.company, filters.presentation_currency,title="Laba Kotor"
+	)
+	laba_operasional = get_net_profit_loss(
+		[acc40], [acc50,acc60], period_list, filters.company, filters.presentation_currency,title="Laba Operasional"
+	)
+	laba_sebelum_pajak = get_net_profit_loss(
+		[acc40,acc70], [acc50,acc60,acc80], period_list, filters.company, filters.presentation_currency,title="Laba Sebelum Pajak"
+	)
+	laba_bersih = get_net_profit_loss(
+		[acc40,acc70], [acc50,acc60,acc80,acc99], period_list, filters.company, filters.presentation_currency,title="Laba Bersih"
+	)
+	# net_profit_loss = get_net_profit_loss(
+	# 	[acc40,acc70], [acc50,acc60,acc80,acc90,acc99], period_list, filters.company, filters.presentation_currency
+	# )
 
 	data = []
 	data.extend(acc40 or [])
 	data.extend(acc50 or [])
+	data.append(laba_kotor)
+	data.append({})
 	data.extend(acc60 or [])
+	data.append(laba_operasional)
+	data.append({})
 	data.extend(acc70 or [])
 	data.extend(acc80 or [])
+	data.append(laba_sebelum_pajak)
+	data.append({})
+	data.extend(acc99 or [])
+	data.append(laba_bersih)
+	data.append({})
 	data.extend(acc90 or [])
-	if net_profit_loss:
-		data.append(net_profit_loss)
+	# if net_profit_loss:
+	# 	data.append(net_profit_loss)
 
 	columns = get_columns(
 		filters.periodicity, period_list, filters.accumulated_values, filters.company
@@ -167,12 +207,11 @@ def execute(filters=None):
 # 		},
 # 	]
 
-
-def get_net_profit_loss(income_list, expense_list, period_list, company, currency=None, consolidated=False):
+def get_net_profit_loss(income_list, expense_list, period_list, company, currency=None, consolidated=False,title="Profit for the year"):
 	total = 0
 	net_profit_loss = {
-		"account_name": "'" + _("Profit for the year") + "'",
-		"account": "'" + _("Profit for the year") + "'",
+		"account_name": title,
+		"account": title,
 		"warn_if_negative": True,
 		"currency": currency or frappe.get_cached_value("Company", company, "default_currency"),
 	}
@@ -183,10 +222,10 @@ def get_net_profit_loss(income_list, expense_list, period_list, company, currenc
 		key = period if consolidated else period.key
 		total_income=0
 		for income in income_list:
-			total_income = total_income + (flt(income[-2][key], 3) if income else 0)
+			total_income = total_income + (flt(income[0][key], 8) if income else 0)
 		total_expense=0
 		for expense in expense_list:
-			total_expense =total_expense+ (flt(expense[-2][key], 3) if expense else 0)
+			total_expense =total_expense+ (flt(expense[0][key], 8) if expense else 0)
 
 		net_profit_loss[key] = total_income - total_expense
 

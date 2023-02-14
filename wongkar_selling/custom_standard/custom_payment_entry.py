@@ -503,11 +503,12 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 			})
 
 	if pe.references[0].reference_doctype == dt and not doc.tagihan_sipm:
-		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.terbayarkan,
@@ -516,11 +517,12 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 				
 			})
 	elif pe.references[0].reference_doctype == dt and doc.tagihan_sipm:
-		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.outstanding_sipm,
@@ -573,7 +575,7 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 def get_payment_entry_custom_bpkb(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
 	test2 =[]
 	reference_doc = None
-	frappe.db.sql(""" UPDATE `tabPembayaran Tagihan Motor` set tagihan_bpkb=1 where name='{}' """.format(dn))	
+	frappe.db.sql(""" UPDATE `tabPembayaran Tagihan Motor` set tagihan_bpkb=1,tagihan_stnk=0 where name='{}' """.format(dn))	
 	frappe.db.commit()
 	doc = frappe.get_doc(dt, dn)
 	if dt in ("Sales Order", "Purchase Order") and flt(doc.per_billed, 2) > 0:
@@ -666,11 +668,12 @@ def get_payment_entry_custom_bpkb(dt, dn, party_amount=None, bank_account=None, 
 	# tagihan
 	
 	if pe.references[0].reference_doctype == dt and doc.tagihan_bpkb:
-		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.outstanding_bpkb,
@@ -700,7 +703,7 @@ def get_payment_entry_custom_bpkb(dt, dn, party_amount=None, bank_account=None, 
 def get_payment_entry_custom_stnk(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
 	test2 =[]
 	reference_doc = None
-	frappe.db.sql(""" UPDATE `tabPembayaran Tagihan Motor` set tagihan_stnk=1 where name='{}' """.format(dn))	
+	frappe.db.sql(""" UPDATE `tabPembayaran Tagihan Motor` set tagihan_stnk=1,tagihan_bpkb=0 where name='{}' """.format(dn))	
 	frappe.db.commit()
 	doc = frappe.get_doc(dt, dn)
 	if dt in ("Sales Order", "Purchase Order") and flt(doc.per_billed, 2) > 0:
@@ -798,11 +801,13 @@ def get_payment_entry_custom_stnk(dt, dn, party_amount=None, bank_account=None, 
 	# tagihan
 	
 	if pe.references[0].reference_doctype == dt and doc.tagihan_stnk:
-		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'])
+		# data = frappe.db.sql(""" SELECT * from `tabChild Tagihan Biaya Motor` where parent='{}' order by pemilik asc """.format(dn),as_dict=1)
+		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.outstanding_stnk,
@@ -934,11 +939,12 @@ def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_
 				})
 	# tagihan
 	if pe.references[0].reference_doctype == dt:
-		data = frappe.db.get_list('Daftar Tagihan',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Daftar Tagihan',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_sinv,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.terbayarkan,
@@ -963,11 +969,12 @@ def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_
 	# 		})
 	
 	if pe.references[0].reference_doctype == dt:
-		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.terbayarkan,
@@ -1143,11 +1150,12 @@ def get_payment_entry_custom_sipm(dt, dn, party_amount=None, bank_account=None, 
 	# 			'doc_name': dn
 	# 		})
 	if pe.references[0].reference_doctype == dt:
-		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'])
+		data = frappe.db.get_list('Daftar Tagihan Leasing',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
 		for d in data:
 			pe.append("tagihan_payment_table", {
 				'no_sinv': d.no_invoice,
 				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
 				'nilai': d.outstanding_sipm,
@@ -1657,405 +1665,411 @@ def get_negative_outstanding_invoices(party_type, party, party_account,
 
 
 def get_terbayarkan_multi(doc,method):
-	if doc.doc_type:
-		if doc.tipe_pembayaran == "Pembayaran STNK":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount_stnk = data.outstanding_amount_stnk - i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_stnk = data.outstanding_stnk - t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran BPKB":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount_bpkb = data.outstanding_amount_bpkb - i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_bpkb = data.outstanding_bpkb - t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran Diskon Dealer":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount = data.outstanding_amount - i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			# 	if i.allocated_amount <= data.outstanding_amount:
-			# 		data.outstanding_amount = data.outstanding_amount - i.allocated_amount
-			# 		data.db_update()
-			# 		# frappe.db.commit()
-			# 	else:
-			# 		frappe.throw(i.reference_name+" lebih besar dari yang terbayarkan !")
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.terbayarkan = data.terbayarkan - t.nilai
-				data.db_update()
-				frappe.db.commit()
-				# if t.nilai <= data.terbayarkan:
-				# 	data.terbayarkan = data.terbayarkan - t.nilai
-				# 	data.db_update()
-				# 	# frappe.db.commit()
-				# else:
-				# 	frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-		elif doc.tipe_pembayaran == "Pembayaran Diskon Leasing":
-			for i in doc.references:
-				data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
-				data.outstanding_amount = data.outstanding_amount - i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.terbayarkan = data.terbayarkan - t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran SIPM":
-			for i in doc.references:
-				data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
-				data.total_outstanding_tagihan_sipm = data.total_outstanding_tagihan_sipm - i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_sipm = data.outstanding_sipm - t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran Diskon":
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if doc.doc_type:
+			if doc.tipe_pembayaran == "Pembayaran STNK":
 				for i in doc.references:
-					data = frappe.get_doc("Tagihan Discount",i.reference_name)
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount_stnk = data.outstanding_amount_stnk - i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_stnk = data.outstanding_stnk - t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran BPKB":
+				for i in doc.references:
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount_bpkb = data.outstanding_amount_bpkb - i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_bpkb = data.outstanding_bpkb - t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran Diskon Dealer":
+				for i in doc.references:
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount = data.outstanding_amount - i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				# 	if i.allocated_amount <= data.outstanding_amount:
+				# 		data.outstanding_amount = data.outstanding_amount - i.allocated_amount
+				# 		data.db_update()
+				# 		# frappe.db.commit()
+				# 	else:
+				# 		frappe.throw(i.reference_name+" lebih besar dari yang terbayarkan !")
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.terbayarkan = data.terbayarkan - t.nilai
+					data.db_update()
+					frappe.db.commit()
+					# if t.nilai <= data.terbayarkan:
+					# 	data.terbayarkan = data.terbayarkan - t.nilai
+					# 	data.db_update()
+					# 	# frappe.db.commit()
+					# else:
+					# 	frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+			elif doc.tipe_pembayaran == "Pembayaran Diskon Leasing":
+				for i in doc.references:
+					data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
 					data.outstanding_amount = data.outstanding_amount - i.allocated_amount
 					data.db_update()
 					frappe.db.commit()
 				for t in doc.tagihan_payment_table:
-					data = frappe.get_doc("Daftar Tagihan",{'parent':t.doc_name,"no_sinv":t.no_sinv})
+					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
 					data.terbayarkan = data.terbayarkan - t.nilai
 					data.db_update()
 					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran SIPM":
+				for i in doc.references:
+					data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
+					data.total_outstanding_tagihan_sipm = data.total_outstanding_tagihan_sipm - i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_sipm = data.outstanding_sipm - t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran Diskon":
+					for i in doc.references:
+						data = frappe.get_doc("Tagihan Discount",i.reference_name)
+						data.outstanding_amount = data.outstanding_amount - i.allocated_amount
+						data.db_update()
+						frappe.db.commit()
+					for t in doc.tagihan_payment_table:
+						data = frappe.get_doc("Daftar Tagihan",{'parent':t.doc_name,"no_sinv":t.no_sinv})
+						data.terbayarkan = data.terbayarkan - t.nilai
+						data.db_update()
+						frappe.db.commit()
 
 def get_terbayarkan_multi_cancel(doc,method):
-	if doc.doc_type:
-		if doc.tipe_pembayaran == "Pembayaran STNK":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount_stnk = data.outstanding_amount_stnk + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_stnk = data.outstanding_stnk + t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran BPKB":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount_bpkb = data.outstanding_amount_bpkb + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_bpkb = data.outstanding_bpkb + t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran Diskon Dealer":
-			for i in doc.references:
-				data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
-				data.outstanding_amount = data.outstanding_amount + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.terbayarkan = data.terbayarkan + t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran Diskon Leasing":
-			for i in doc.references:
-				data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
-				data.outstanding_amount = data.outstanding_amount + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.terbayarkan = data.terbayarkan + t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran SIPM":
-			for i in doc.references:
-				data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
-				data.total_outstanding_tagihan_sipm = data.total_outstanding_tagihan_sipm + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-				data.outstanding_sipm = data.outstanding_sipm + t.nilai
-				data.db_update()
-				frappe.db.commit()
-		elif doc.tipe_pembayaran == "Pembayaran Diskon":
-			for i in doc.references:
-				data = frappe.get_doc("Tagihan Discount",i.reference_name)
-				data.outstanding_amount = data.outstanding_amount + i.allocated_amount
-				data.db_update()
-				frappe.db.commit()
-			for t in doc.tagihan_payment_table:
-				data = frappe.get_doc("Daftar Tagihan",{'parent':t.doc_name,"no_sinv":t.no_sinv})
-				data.terbayarkan = data.terbayarkan + t.nilai
-				data.db_update()
-				frappe.db.commit()
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if doc.doc_type:
+			if doc.tipe_pembayaran == "Pembayaran STNK":
+				for i in doc.references:
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount_stnk = data.outstanding_amount_stnk + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_stnk = data.outstanding_stnk + t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran BPKB":
+				for i in doc.references:
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount_bpkb = data.outstanding_amount_bpkb + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_bpkb = data.outstanding_bpkb + t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran Diskon Dealer":
+				for i in doc.references:
+					data = frappe.get_doc("Pembayaran Tagihan Motor",i.reference_name)
+					data.outstanding_amount = data.outstanding_amount + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Child Tagihan Biaya Motor",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.terbayarkan = data.terbayarkan + t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran Diskon Leasing":
+				for i in doc.references:
+					data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
+					data.outstanding_amount = data.outstanding_amount + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.terbayarkan = data.terbayarkan + t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran SIPM":
+				for i in doc.references:
+					data = frappe.get_doc("Tagihan Discount Leasing",i.reference_name)
+					data.total_outstanding_tagihan_sipm = data.total_outstanding_tagihan_sipm + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
+					data.outstanding_sipm = data.outstanding_sipm + t.nilai
+					data.db_update()
+					frappe.db.commit()
+			elif doc.tipe_pembayaran == "Pembayaran Diskon":
+				for i in doc.references:
+					data = frappe.get_doc("Tagihan Discount",i.reference_name)
+					data.outstanding_amount = data.outstanding_amount + i.allocated_amount
+					data.db_update()
+					frappe.db.commit()
+				for t in doc.tagihan_payment_table:
+					data = frappe.get_doc("Daftar Tagihan",{'parent':t.doc_name,"no_sinv":t.no_sinv})
+					data.terbayarkan = data.terbayarkan + t.nilai
+					data.db_update()
+					frappe.db.commit()
 
 
 def get_terbayarkan(doc,method):
-	if doc.tagihan == 1 and not doc.doc_type:
-		# frappe.throw(doc.references[0].reference_name)
-		if doc.references[0].reference_doctype == "Tagihan Discount":
-			td_doc = frappe.get_doc("Tagihan Discount",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan:
-				for t in doc.tagihan_payment_table:
-					if d.no_sinv == t.no_sinv:
-						baru = d.terbayarkan - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan` SET terbayarkan= {} WHERE parent='{}' and no_sinv= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount - doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-			
-			# td_doc.flags.ignore_permissions = True
-			# td_doc.save()
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if doc.tagihan == 1 and not doc.doc_type:
+			# frappe.throw(doc.references[0].reference_name)
+			if doc.references[0].reference_doctype == "Tagihan Discount":
+				td_doc = frappe.get_doc("Tagihan Discount",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan:
+					for t in doc.tagihan_payment_table:
+						if d.no_sinv == t.no_sinv:
+							baru = d.terbayarkan - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan` SET terbayarkan= {} WHERE parent='{}' and no_sinv= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount - doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+				
+				# td_doc.flags.ignore_permissions = True
+				# td_doc.save()
 
-		if doc.references[0].reference_doctype == "Tagihan Discount Leasing" and not doc.tagihan_sipm:
-			td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan_leasing:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount - doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-		elif doc.references[0].reference_doctype == "Tagihan Discount Leasing" and doc.tagihan_sipm:
-			td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan_leasing:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_sipm - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_sipm:
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.total_outstanding_tagihan_sipm - doc.paid_amount
-			td_doc.total_outstanding_tagihan_sipm = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Tagihan Discount Leasing" and not doc.tagihan_sipm:
+				td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan_leasing:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount - doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+			elif doc.references[0].reference_doctype == "Tagihan Discount Leasing" and doc.tagihan_sipm:
+				td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan_leasing:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_sipm - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.outstanding_sipm:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.total_outstanding_tagihan_sipm - doc.paid_amount
+				td_doc.total_outstanding_tagihan_sipm = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		# if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and ('STNK' not in doc.party or 'BPKB' not in doc.party):
-		if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and not doc.tagihan_stnk and not doc.tagihan_bpkb:
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount - doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-		elif doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_stnk:
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_stnk - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_stnk:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_stnk= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount_stnk - doc.paid_amount
-			td_doc.outstanding_amount_stnk = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			# if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and ('STNK' not in doc.party or 'BPKB' not in doc.party):
+			if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and not doc.tagihan_stnk and not doc.tagihan_bpkb:
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount - doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+			elif doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_stnk:
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_stnk - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.outstanding_stnk:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_stnk= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount_stnk - doc.paid_amount
+				td_doc.outstanding_amount_stnk = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		elif doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_bpkb:
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_bpkb - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_bpkb:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_bpkb= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount_bpkb - doc.paid_amount
-			td_doc.outstanding_amount_bpkb = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			elif doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_bpkb:
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_bpkb - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.outstanding_bpkb:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_bpkb= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount_bpkb - doc.paid_amount
+				td_doc.outstanding_amount_bpkb = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		if doc.references[0].reference_doctype == "Pembayaran Credit Motor":
-			td_doc = frappe.get_doc("Pembayaran Credit Motor",doc.references[0].reference_name)
-			for d in td_doc.daftar_credit_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan - t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabDaftar Credit Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount - doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Pembayaran Credit Motor":
+				td_doc = frappe.get_doc("Pembayaran Credit Motor",doc.references[0].reference_name)
+				for d in td_doc.daftar_credit_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan - t.nilai
+							# d.terbayarkan = baru
+							if t.nilai <= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabDaftar Credit Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount - doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
 def get_terbayarkan_cancel(doc,method):
-	if doc.tagihan == 1 and not doc.doc_type:
-		# frappe.throw(doc.references[0].reference_name)
-		if doc.references[0].reference_doctype == "Tagihan Discount":
-			td_doc = frappe.get_doc("Tagihan Discount",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan:
-				for t in doc.tagihan_payment_table:
-					if d.no_sinv == t.no_sinv:
-						baru = d.terbayarkan + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan` SET terbayarkan= {} WHERE parent='{}' and no_sinv= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount + doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-			
-			# td_doc.flags.ignore_permissions = True
-			# td_doc.save()
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if doc.tagihan == 1 and not doc.doc_type:
+			# frappe.throw(doc.references[0].reference_name)
+			if doc.references[0].reference_doctype == "Tagihan Discount":
+				td_doc = frappe.get_doc("Tagihan Discount",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan:
+					for t in doc.tagihan_payment_table:
+						if d.no_sinv == t.no_sinv:
+							baru = d.terbayarkan + t.nilai
+							# d.terbayarkan = baru
+							if t.nilai >= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan` SET terbayarkan= {} WHERE parent='{}' and no_sinv= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount + doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+				
+				# td_doc.flags.ignore_permissions = True
+				# td_doc.save()
 
-		if doc.references[0].reference_doctype == "Tagihan Discount Leasing" and not doc.tagihan_sipm:
-			td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan_leasing:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							# frappe.throw("masek inis")
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						# else:
-						# 	frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount + doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-		elif doc.references[0].reference_doctype == "Tagihan Discount Leasing" and doc.tagihan_sipm:
-			td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
-			for d in td_doc.daftar_tagihan_leasing:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_sipm + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_sipm:
-							frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.total_outstanding_tagihan_sipm + doc.paid_amount
-			td_doc.total_outstanding_tagihan_sipm = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Tagihan Discount Leasing" and not doc.tagihan_sipm:
+				td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan_leasing:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan + t.nilai
+							# d.terbayarkan = baru
+							if t.nilai >= d.terbayarkan:
+								# frappe.throw("masek inis")
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							# else:
+							# 	frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount + doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+			elif doc.references[0].reference_doctype == "Tagihan Discount Leasing" and doc.tagihan_sipm:
+				td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
+				for d in td_doc.daftar_tagihan_leasing:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_sipm + t.nilai
+							# d.terbayarkan = baru
+							if t.nilai >= d.outstanding_sipm:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.total_outstanding_tagihan_sipm + doc.paid_amount
+				td_doc.total_outstanding_tagihan_sipm = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and not doc.tagihan_stnk and not doc.tagihan_bpkb:
-		# if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and ('STNK' not in doc.party or 'BPKB' not in doc.party):
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount + doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and not doc.tagihan_stnk and not doc.tagihan_bpkb:
+			# if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and ('STNK' not in doc.party or 'BPKB' not in doc.party):
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan + t.nilai
+							# d.terbayarkan = baru
+							print(t.nilai, d.terbayarkan, t.no_sinv)
+							if t.nilai >= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount + doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_stnk:
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_stnk + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_stnk:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_stnk= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount_stnk + doc.paid_amount
-			td_doc.outstanding_amount_stnk = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_stnk:
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_stnk + t.nilai
+							# d.terbayarkan = baru
+							print(t.nilai, d.terbayarkan, t.no_sinv)
+							if t.nilai >= d.outstanding_stnk:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_stnk= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount_stnk + doc.paid_amount
+				td_doc.outstanding_amount_stnk = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_bpkb:
-			td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
-			for d in td_doc.tagihan_biaya_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.outstanding_bpkb + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.outstanding_bpkb:
-							frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_bpkb= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount_bpkb + doc.paid_amount
-			td_doc.outstanding_amount_bpkb = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
+			if doc.references[0].reference_doctype == "Pembayaran Tagihan Motor" and doc.tagihan_bpkb:
+				td_doc = frappe.get_doc("Pembayaran Tagihan Motor",doc.references[0].reference_name)
+				for d in td_doc.tagihan_biaya_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_bpkb + t.nilai
+							# d.terbayarkan = baru
+							if t.nilai >= d.outstanding_bpkb:
+								frappe.db.sql("""UPDATE `tabChild Tagihan Biaya Motor` SET outstanding_bpkb= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount_bpkb + doc.paid_amount
+				td_doc.outstanding_amount_bpkb = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
 
-		if doc.references[0].reference_doctype == "Pembayaran Credit Motor":
-			td_doc = frappe.get_doc("Pembayaran Credit Motor",doc.references[0].reference_name)
-			for d in td_doc.daftar_credit_motor:
-				for t in doc.tagihan_payment_table:
-					if d.no_invoice == t.no_sinv:
-						baru = d.terbayarkan + t.nilai
-						# d.terbayarkan = baru
-						if t.nilai <= d.terbayarkan:
-							frappe.db.sql("""UPDATE `tabDaftar Credit Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
-							frappe.db.commit()
-						else:
-							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
-			oa_baru = td_doc.outstanding_amount + doc.paid_amount
-			td_doc.outstanding_amount = oa_baru
-			td_doc.db_update()
-			frappe.db.commit()
-			
-			# td_doc.flags.ignore_permissions = True
-			# td_doc.save()
+			if doc.references[0].reference_doctype == "Pembayaran Credit Motor":
+				td_doc = frappe.get_doc("Pembayaran Credit Motor",doc.references[0].reference_name)
+				for d in td_doc.daftar_credit_motor:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.terbayarkan + t.nilai
+							# d.terbayarkan = baru
+							if t.nilai >= d.terbayarkan:
+								frappe.db.sql("""UPDATE `tabDaftar Credit Motor` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount + doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+				
+				# td_doc.flags.ignore_permissions = True
+				# td_doc.save()

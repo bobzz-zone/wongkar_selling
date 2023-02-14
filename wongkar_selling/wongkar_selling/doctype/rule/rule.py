@@ -63,8 +63,8 @@ class Rule(Document):
 		# cek_valid_to = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to}, "name")
 		
 		#item_code
-		cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_from":self.valid_to}, "name")
-
+		cek_valid_to = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to,"customer":self.customer}, "name")
+		
 		if cek_valid_to:
 			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 		

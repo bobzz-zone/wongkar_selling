@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import json
-from wongkar_selling.wongkar_selling.frappeclient import FrappeClient
+# from wongkar_selling.wongkar_selling.frappeclient import FrappeClient
+from frappe.frappeclient import FrappeClient
 from erpnext.accounts.doctype.gl_entry.gl_entry import update_outstanding_amt
 from frappe.utils import cint, cstr, formatdate, flt, getdate, nowdate, get_link_to_form
 from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
@@ -381,6 +382,7 @@ def cencel_sumber_asli(self,method):
 				'web_tujuan':consumer[0].name
 			})]
 		elif consumer[0].name=="https://wongkarpjk.digitalasiasolusindo.com":
+			# frappe.msgprint("masuk sini")
 			server_pajak =[frappe._dict({
 				'password':"Rahasiakit@",
 				'username':username,
@@ -392,18 +394,25 @@ def cencel_sumber_asli(self,method):
 				'username':username,
 				'web_tujuan':consumer[0].name
 			})]
-		elif consumer[0].name=="https://hondatax.digitalasiasolusindo.com":
-			server_pajak = [frappe._dict({
-				'password':"admin",
-				'username':username,
-				'web_tujuan':consumer[0].name
-			})]
+		# elif consumer[0].name=="https://hondatax.digitalasiasolusindo.com":
+		# 	server_pajak = [frappe._dict({
+		# 		'password':"admin",
+		# 		'username':username,
+		# 		'web_tujuan':consumer[0].name
+		# 	})]
+		# frappe.msgprint(str(server_pajak)+ " server_pajak")
+		print(server_pajak, " server_pajak")
 		clientroot = FrappeClient(server_pajak[0].web_tujuan,server_pajak[0].username,server_pajak[0].password)
+		# frappe.msgprint(str(clientroot)+ " clientroot")
+		print(clientroot, " clientroot")
 		clientdoc = clientroot.get_doc(self.doctype, self.name)
+		print(clientdoc, " clientdoc")
 		if not clientdoc:
 			pass
 		elif clientdoc['docstatus'] == 1:
-			clientroot.cancel(self.doctype,clientdoc['name'])
+			# pass
+			# clientdoc.cancel()
+			clientroot.cancel(clientdoc['doctype'],clientdoc['name'])
 
 def delete_sumber_asli(self,method):
 	# pass

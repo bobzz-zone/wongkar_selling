@@ -190,6 +190,15 @@ def rename_item():
 		frappe.db.commit()
 		count=count+1
 
+def rename_cust():
+	list_rename = frappe.db.sql("""select name from `tabCustomer` where customer_group !="Leasing" order by creation asc """,as_list=1)
+	count=1
+	for row in list_rename:
+		print(count)
+		new_name="CUST-22-%05d"%count
+		frappe.rename_doc("Customer",row[0],new_name)
+		frappe.db.commit()
+		count=count+1
 @frappe.whitelist()
 def repair_gl_entry(doctype,docname):
 	print('masuk sini !')

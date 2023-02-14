@@ -54,6 +54,14 @@ form_grid_templates = {
 }
 
 class SalesInvoicePenjualanMotor(SellingController):
+	def cek_no_po_leasing(self):
+		if self.no_po_leasing:
+			cek = frappe.db.sql(""" SELECT name from `tabSales Invoice Penjualan Motor` where no_po_leasing = '{}' and docstatus != 2 """.format(self.no_po_leasing),as_dict=1)
+
+			if cek:
+				if len(cek) > 1:
+					frappe.throw("No Po sudah ada di "+str(cek))
+
 	def dp_gross_h(self):
 		rule = 0
 		rdl = 0
@@ -934,6 +942,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 	def validate(self):
 		#print('masuk save')
+		self.cek_no_po_leasing()
 		if self.no_rangka != self.items[0].serial_no:
 			frappe.throw("No rangka tidak sama dengan item !")
 		#validate rule biaya harus ada 3

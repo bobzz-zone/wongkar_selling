@@ -17,6 +17,7 @@
   "pemilik",
   "nama_pemilik",
   "bypass_biaya",
+  "from_group",
   "tax_id",
   "pos_profile",
   "is_pos",
@@ -2192,8 +2193,7 @@
    "fieldname": "no_po_leasing",
    "fieldtype": "Data",
    "label": "No PO Leasing",
-   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "unique": 1
+   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
   },
   {
    "depends_on": "eval:doc.cara_bayar == \"Credit\"",
@@ -2281,6 +2281,13 @@
    "label": "Item Group",
    "options": "Item Group",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "from_group",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "From Group"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2292,7 +2299,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2022-11-28 10:18:49.977370",
+ "modified": "2023-02-14 15:33:26.089769",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

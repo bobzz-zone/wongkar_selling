@@ -24,20 +24,21 @@ def get_inv(supplier,types,date_from,date_to):
 		tb.amount,
 		si.item_code,
 		si.no_rangka,
-		si.pemilik
+		si.pemilik,
+		si.nama_pemilik
 		 FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
 		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{}' and type = '{}' 
-		and si.posting_date BETWEEN '{}' and '{}' """.format(supplier,types,date_from,date_to),as_dict=1,debug=1)
+		and si.posting_date BETWEEN '{}' and '{}' order	by si.nama_pemilik ASC """.format(supplier,types,date_from,date_to),as_dict=1,debug=1)
 
 	return data
 
 @frappe.whitelist()
 def get_invd(customer,date_from,date_to):
 	# data = frappe.db.get_list('Table Discount',filters={'customer': customer,"tertagih": 0,'parenttype': 'Sales Invoice Penjualan Motor'},fields=['*'])
-	data = frappe.db.sql(""" SELECT si.name,si.posting_date,td.category_discount,td.nominal,si.item_code,si.no_rangka,si.pemilik FROM `tabSales Invoice Penjualan Motor` si 
+	data = frappe.db.sql(""" SELECT si.name,si.posting_date,td.category_discount,td.nominal,si.item_code,si.no_rangka,si.pemilik,si.nama_pemilik FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTable Discount` td on td.parent = si.name where td.customer = '{}' 
-		and td.tertagih = 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' """.format(customer,date_from,date_to),as_dict=1)
+		and td.tertagih = 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1)
 
 	return data
 
@@ -46,9 +47,9 @@ def get_invd_l(customer,date_from,date_to):
 	# data = frappe.db.get_list('Sales Invoice Penjualan Motor',filters={'cara_bayar': 'Credit',"docstatus": ["=",1],"tertagih": 0,'nama_leasing': customer},fields=['*'])
 
 	# return data
-	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,sinv.item_code,sinv.pemilik,tdl.nama_leasing,sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
+	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,sinv.item_code,sinv.pemilik,sinv.nama_pemilik,tdl.nama_leasing,sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent where tdl.nama_leasing = '{0}' and tdl.tertagih = 0 and sinv.docstatus = 1
-		and sinv.posting_date BETWEEN '{1}' and '{2}' """.format(customer,date_from,date_to),as_dict=1)
+		and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	return data
 
 @frappe.whitelist()
@@ -137,11 +138,12 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 		si.item_code,
 		si.no_rangka,
 		si.pemilik,
-		(select tb2.amount from `tabTabel Biaya Motor` tb2 where tb2.parent = si.name and tb2.vendor = '{1}' and type = '{3}') as amount_bpkb
+		(select tb2.amount from `tabTabel Biaya Motor` tb2 where tb2.parent = si.name and tb2.vendor = '{1}' and type = '{3}') as amount_bpkb,
+		si.nama_pemilik
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
 		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{0}' and type = '{2}'
-		and si.posting_date BETWEEN '{4}' and '{5}' order by si.name asc """.format(supplier_stnk,supplier_bpkb,"STNK","BPKB",date_from,date_to),as_dict=1)
+		and si.posting_date BETWEEN '{4}' and '{5}' order by si.nama_pemilik asc """.format(supplier_stnk,supplier_bpkb,"STNK","BPKB",date_from,date_to),as_dict=1)
 
 	return data
 
@@ -153,6 +155,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 	# 	frappe.msgprint(i['reference_name'])
 	tmp = []
 	# doc = frappe.get_doc("Payment Entry",dt)
+	# Pembayaran Tagihan Motor
 	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
@@ -162,7 +165,8 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				outstanding_stnk as outstanding,
 				parenttype,
 				parent,
-				no_invoice
+				no_invoice,
+				nama_pemilik
 				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
@@ -175,7 +179,8 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				outstanding_bpkb as outstanding,
 				parenttype,
 				parent,
-				no_invoice
+				no_invoice,
+				nama_pemilik
 				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
@@ -188,10 +193,13 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				terbayarkan as outstanding,
 				parenttype,
 				parent,
-				no_invoice
+				no_invoice,
+				nama_pemilik
 				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
+
+	# Tagihan Discount Leasing
 	elif doc_type == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran Diskon Leasing":
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
@@ -201,7 +209,8 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				terbayarkan as outstanding,
 				parenttype,
 				parent,
-				no_invoice
+				no_invoice,
+				nama_pemilik
 				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
@@ -214,10 +223,13 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				outstanding_sipm as outstanding,
 				parenttype,
 				parent,
-				no_invoice
+				no_invoice,
+				nama_pemilik
 				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
+
+	# Tagihan Discount
 	elif doc_type == "Tagihan Discount" and tipe_pembayaran == "Pembayaran Diskon":
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
@@ -227,7 +239,8 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 				terbayarkan as outstanding,
 				parenttype,
 				parent,
-				no_sinv as no_invoice
+				no_sinv as no_invoice,
+				nama_pemilik
 				from `tabDaftar Tagihan` where parent = '{}' """.format(i['reference_name']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)

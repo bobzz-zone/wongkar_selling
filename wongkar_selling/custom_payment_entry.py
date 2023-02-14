@@ -302,7 +302,7 @@ def get_held_invoices(party_type, party):
 	return held_invoices
 
 @frappe.whitelist()
-def get_reference_details_chandra(reference_doctype, doc_type,tipe_pembayaran,reference_name, party_account_currency):
+def get_reference_details_chandra(reference_doctype, tipe_pembayaran,reference_name, party_account_currency):
 	# frappe.msgprint("MASUK KE METHOD GANTI@")
 	# frappe.msgprint(tipe_pembayaran+" tipe_pembayaran")
 	total_amount = outstanding_amount = exchange_rate = bill_no = None
@@ -376,11 +376,11 @@ def get_reference_details_chandra(reference_doctype, doc_type,tipe_pembayaran,re
 			total_amount = ref_doc.grand_total
 			bill_no = ref_doc.get("bill_no")
 			outstanding_amount = ref_doc.outstanding_amount
-		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_stnk:
+		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_stnk and not ref_doc.tagihan_bpkb:
 			total_amount = ref_doc.total_stnk
 			bill_no = ref_doc.get("bill_no")
 			outstanding_amount = ref_doc.outstanding_amount_stnk
-		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_bpkb:
+		elif reference_doctype == "Pembayaran Tagihan Motor" and ref_doc.tagihan_bpkb and not ref_doc.tagihan_stnk:
 			total_amount = ref_doc.total_bpkb
 			bill_no = ref_doc.get("bill_no")
 			outstanding_amount = ref_doc.outstanding_amount_bpkb
@@ -493,13 +493,14 @@ def validate_lutfi(self):
 
 
 def cek_payment(self):
-	if self.doc_type:
-		if self.doc_type == "Pembayaran Tagihan Motor":
-			if self.payment_type != "Pay":
-				frappe.throw("Salah Memilih Payment Tyepe")
-		else:
-			if self.payment_type != "Receive":
-				frappe.throw("Salah Memilih Payment Tyepe")
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if self.doc_type:
+			if self.doc_type == "Pembayaran Tagihan Motor":
+				if self.payment_type != "Pay":
+					frappe.throw("Salah Memilih Payment Tyepe")
+			else:
+				if self.payment_type != "Receive":
+					frappe.throw("Salah Memilih Payment Tyepe")
 	
 # def get_data_tagihan(self):
 # 	tmp = []
@@ -641,17 +642,19 @@ def update_outstanding_amounts_chandra(self):
 
 def set_missing_ref_details_chandra(self, force=False):
 	# frappe.msgprint("masuk set_missing_ref_details_chandra")
-	# if not self.doc_type:
+
+	tipe_pembayaran=None
+	try:
+		tipe_pembayaran=self.tipe_pembayaran
+	except:
+		tipe_pembayaran=None
 	for d in self.get("references"):
 		if d.allocated_amount:
-			ref_details = get_reference_details_chandra(d.reference_doctype, self.doc_type,self.tipe_pembayaran,
+			ref_details = get_reference_details_chandra(d.reference_doctype,tipe_pembayaran,
 				d.reference_name, self.party_account_currency)
-
 			for field, value in iteritems(ref_details):
 				if field == 'exchange_rate' or not d.get(field) or force:
 					d.set(field, value)
-
-
 def validate_reference_documents_lutfi(self):
 	if self.party_type == "Student":
 		valid_reference_doctypes = ("Fees")
@@ -874,7 +877,8 @@ def kalkulasi_tagihan_cancel(doc,method):
 	# 		frappe.db.commit()
 
 def override_on_submit_on_cancel(self,method):
-	PaymentEntry.validate = validate_lutfi
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		PaymentEntry.validate = validate_lutfi
 	
 def coba():
 	frappe.throw("Coba cencel")

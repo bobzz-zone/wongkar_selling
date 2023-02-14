@@ -7,6 +7,7 @@
  "field_order": [
   "no_sinv",
   "pemilik",
+  "nama_pemilik",
   "item",
   "no_rangka",
   "nilai",
@@ -38,7 +39,6 @@
   {
    "fieldname": "item",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Item",
    "options": "Item"
   },
@@ -60,12 +60,19 @@
    "fieldtype": "Dynamic Link",
    "label": "Doc name",
    "options": "doc_type"
+  },
+  {
+   "fetch_from": "pemilik.customer_name",
+   "fieldname": "nama_pemilik",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Pemilik"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-11-24 13:38:10.248030",
+ "modified": "2023-02-03 09:49:11.039334",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Payment Table",

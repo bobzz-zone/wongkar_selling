@@ -163,6 +163,7 @@ def get_data(
 	ignore_closing_entries=False,
 	ignore_accumulated_values_for_fy=False,
 	total=True,
+	enable_total=True
 ):
 
 	accounts = get_accounts(company, root_type)
@@ -203,7 +204,7 @@ def get_data(
 	out = prepare_data(accounts, balance_must_be, period_list, company_currency)
 	out = filter_out_zero_value_rows(out, parent_children_map)
 
-	if out and total:
+	if out and total and enable_total:
 		add_total_row(out, root_type, balance_must_be, period_list, company_currency)
 
 	return out

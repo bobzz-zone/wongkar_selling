@@ -22,7 +22,8 @@
   "company",
   "amended_from",
   "base_grand_total",
-  "status"
+  "status",
+  "advance_paid"
  ],
  "fields": [
   {
@@ -135,12 +136,17 @@
    "fieldtype": "Date",
    "label": "Date To",
    "reqd": 1
+  },
+  {
+   "fieldname": "advance_paid",
+   "fieldtype": "Currency",
+   "label": "advance_paid"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-23 15:19:45.085751",
+ "modified": "2023-02-03 18:53:58.308997",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount",

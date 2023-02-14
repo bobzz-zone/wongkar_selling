@@ -101,6 +101,7 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 								frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 								frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
 								frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);
+								frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);
 							}
 							cur_frm.refresh_field("tagihan_biaya_motor");
 						}
@@ -199,6 +200,7 @@ frappe.ui.form.on("Pembayaran Tagihan Motor", "supplier", function(frm) {
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 						frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
 						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);
+						frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);
 					}
 				}
 				cur_frm.refresh_field("tagihan_biaya_motor");
@@ -224,7 +226,7 @@ var show_general_ledger= function() {
 				voucher_no: cur_frm.doc.name,
 				from_date: cur_frm.doc.date,
 				to_date: moment(cur_frm.doc.modified).format('YYYY-MM-DD'),
-				company: "DAS",
+				company: "IFMI Group",
 				group_by: "",
 				show_cancelled_entries: cur_frm.doc.docstatus === 2
 			};

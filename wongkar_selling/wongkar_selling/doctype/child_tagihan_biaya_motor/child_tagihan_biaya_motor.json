@@ -8,6 +8,7 @@
   "tanggal_inv",
   "no_invoice",
   "pemilik",
+  "nama_pemilik",
   "item",
   "no_rangka",
   "section_break_6",
@@ -113,12 +114,19 @@
    "fieldtype": "Currency",
    "label": "Outstanding BPKB",
    "read_only": 1
+  },
+  {
+   "fetch_from": "pemilik.customer_name",
+   "fieldname": "nama_pemilik",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nama Pemilik"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-11-24 09:59:34.126167",
+ "modified": "2023-02-03 09:04:57.581564",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Child Tagihan Biaya Motor",

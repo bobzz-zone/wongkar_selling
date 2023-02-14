@@ -164,7 +164,8 @@ frappe.ui.form.on("Tagihan Discount Leasing", "customer", function(frm) {
 						frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
 						frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
-						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik);       
+						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik); 
+						frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);       
 					}
 					cur_frm.refresh_field("daftar_tagihan_leasing");
 	         }
