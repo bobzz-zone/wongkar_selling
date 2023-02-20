@@ -19,13 +19,14 @@ def get_data(filters):
 	# po = filters.get('year')
 	# year = po+"%"
 	# frappe.msgprint(year)
+	# i.tahun_rakitan
 	data = frappe.db.sql(""" SELECT 
 		year(sipm.posting_date) as tahun,
-		month(sipm.posting_date) as bulan,
+		DATE_FORMAT(sipm.posting_date,'%Y%m') as bulan,
 		sipm.territory_real,
 		sipm.cost_center,
 		sipm.posting_date,
-		sipm.pemilik,
+		sipm.nama_pemilik,
 		c.kecamatan,
 		c.kelurahan,
 		c.nama_dati2,
@@ -45,20 +46,35 @@ def get_data(filters):
 		sipm.nominal_diskon,
 		sipm.total_advance,
 		sipm.name,
-		sipm.customer,
+		sipm.customer_name,
 		IF(IFNULL(SUM(tdl.nominal),0),SUM(tdl.nominal),0),
 		sipm.adj_discount,
 		sipm.outstanding_amount,
 		sipm.nama_promo,
 		u.full_name,
 		sipm.status,
-		sn.tanggal_faktur
+		sn.tanggal_faktur,
+		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
+		sn.nama_pemilik,
+		i.tahun_rakit,
+		sipm.dp_gross_hitung,
+		sipm.tanggal_tagih,
+		sipm.tanggal_cair,
+		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0),
+		sipm.marketing,
+		sipm.jangka_waktu,
+		sipm.angsuran,
+		IF(sipm.tanggal_tagih,DATEDIFF(sipm.tanggal_tagih, sipm.posting_date),0),
+		sipm.tanggal_po,
+		sipm.no_po_leasing,
+		i.warna
 		from `tabSales Invoice Penjualan Motor` sipm 
 		join `tabCustomer` c on c.name = sipm.pemilik
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
 		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
 		join `tabItem` i on i.name = sipm.item_code
 		join `tabUser` u on u.name = sipm.owner
+		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.parent = sipm.name
 		where sipm.docstatus = 1 and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1)
 
@@ -76,7 +92,7 @@ def get_data(filters):
 			w2 = w[1]+" - "+w[2]
 		else:
 			w2 = w[1]
-		output.append([i[0],i[1],i[10],"",i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],w2,"",nr[0],nr[1],i[20],i[25],i[21],i[22],i[23]])
+		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],i[25],i[21],i[22],i[23]])
 
 	output_beban = []
 	for d in data:
@@ -87,29 +103,65 @@ def get_data(filters):
 		datad = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
 			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Dealer' group by sipm.name """.format(d[24]),as_list=1)
 
+		disc_leasing = frappe.db.sql(""" SELECT nominal from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' """.format(d[24]),as_list=1)
+
+
+		bl = 0
+		tam_les = 0
+		tam_lain = 0
+		if len(disc_leasing) == 3:
+			bl = disc_leasing[0][0]
+			tam_les = disc_leasing[1][0]
+			tam_lain = disc_leasing[2][0]
+		elif len(disc_leasing) == 2:
+			bl = disc_leasing[0][0]
+			tam_les = disc_leasing[1][0]
+		elif len(disc_leasing) == 1:
+			bl = disc_leasing[0][0]
+
+		
+		# data_leasing = frappe.db.sql(""" SELECT td.nominal from `tabSales Invoice Penjualan Motor` sipm 
+		# 	LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' order by idx asc """.format(d[24]),as_list=1)
+
+		# if data_leasing:
+		# 	if len(data_leasing) > 2:
+		# 		pass
+
+		ahm=0
+		ap = 0
+		dea = 0
+		if data2:
+			ahm = data2[0][0]
+		if datamd:
+			ap = datamd[0][0]
+		if datad:
+			ap = datad[0][0]
+
 		# if datad:
 		# 	output_beban.append([0,0,datad[0][0],0,0])
 		# else:
 		# 	output_beban.append([0,0,0,0,0])
 
-		if data2 and datamd and datad:
-			output_beban.append([data2[0][0],datamd[0][0],datad[0][0],0,0])
-		elif data2 and not datamd and datad:
-			output_beban.append([data2[0][0],0,datad[0][0],0,0])
-		elif data2 and datamd and not datad:
-			output_beban.append([data2[0][0],datamd[0][0],0,0,0])
-		elif data2 and not datamd and not datad:
-			output_beban.append([data2[0][0],0,0,0,0])
-		elif not data2 and datamd and datad:
-			output_beban.append([0,datamd[0][0],datad[0][0],0,0])
-		elif not data2 and datamd and not datad:
-			output_beban.append([0,datamd[0][0],0,0,0])
-		elif not data2 and not datamd and datad:
-			output_beban.append([0,0,datad[0][0],0,0])
-		else:	
-			output_beban.append([0,0,0,0,0])
+		# if data2 and datamd and datad:
+		# 	output_beban.append([data2[0][0],datamd[0][0],datad[0][0],0,0])
+		# elif data2 and not datamd and datad:
+		# 	output_beban.append([data2[0][0],0,datad[0][0],0,0])
+		# elif data2 and datamd and not datad:
+		# 	output_beban.append([data2[0][0],datamd[0][0],0,0,0])
+		# elif data2 and not datamd and not datad:
+		# 	output_beban.append([data2[0][0],0,0,0,0])
+		# elif not data2 and datamd and datad:
+		# 	output_beban.append([0,datamd[0][0],datad[0][0],0,0])
+		# elif not data2 and datamd and not datad:
+		# 	output_beban.append([0,datamd[0][0],0,0,0])
+		# elif not data2 and not datamd and datad:
+		# 	output_beban.append([0,0,datad[0][0],0,0])
+		# else:	
+		# 	output_beban.append([0,0,0,0,0])
 	
-
+		output_beban.append([ahm,ap,ap])
+		
 
 	# output_tes = output
 	conter = 0
@@ -122,6 +174,39 @@ def get_data(filters):
 	tmp2 = tmp
 	tampil = []	
 	for t in tmp2:
+		# frappe.msgprint(data[con][24])
+		data_stnk = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "STNK" """.format(data[con][24]),as_list=1)
+		data_bpkb = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "BPKB" """.format(data[con][24]),as_list=1)
+		data_dealer = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.vendor = "Dealer" """.format(data[con][24]),as_list=1)
+
+		cair = frappe.db.sql(""" SELECT tagihan_sipm-outstanding_sipm from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabDaftar Tagihan Leasing` bm ON bm.`no_invoice` = sipm.name where bm.docstatus=1 and sipm.name='{0}' """.format(data[con][24]),as_list=1)
+
+		cair_disc = frappe.db.sql(""" SELECT nilai-terbayarkan from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabDaftar Tagihan Leasing` bm ON bm.`no_invoice` = sipm.name where bm.docstatus=1 and sipm.name='{0}' """.format(data[con][24]),as_list=1)
+		# frappe.msgprint(str(data_stnk[0][0]))
+		# frappe.msgprint(str(cair)+" "+data[con][24])
+		stnk=0
+		d_dealer = 0
+		d_cair = 0
+		ket_cair = 'N'
+		d_caird = 0
+		d_bpkb = 0
+		if data_stnk:
+			stnk=data_stnk[0][0]
+		if data_dealer:
+			d_dealer=data_dealer[0][0]
+		if cair:
+			d_cair=cair[0][0]
+			ket_cair = 'Y'
+		if cair_disc:
+			d_caird=cair_disc[0][0]
+		if data_bpkb:
+			d_bpkb=data_bpkb[0][0]
+		
 		tampil.append([
 			t[0],
 			t[1],
@@ -131,6 +216,7 @@ def get_data(filters):
 			t[5],
 			t[6],
 			t[7],
+			data[con][34],
 			t[8],
 			t[9],
 			t[10],
@@ -146,39 +232,42 @@ def get_data(filters):
 			t[20],
 			t[21],
 			t[22],
-			t[23],
+			t[23],#no rangka
 			t[24],
 			t[25],
 			t[26],
-			t[27],
+			t[27],#potongjual nominal diskon
 			t[28],
 			t[29],
 			t[30],
 			t[31],
-			data[con][26],
-			124,
-			0,
-			data[con][27],
-			0,
-			0,
+			bl, # beban leasing
+			d_dealer,#cashback
+			data[con][36],#gross dp
+			tam_les,
+			tam_lain, # tambah lain d_dealer
+			"",# ket tambahn
 			data[con][28],
-			0,
-			0,
-			0,
-			"Y",
-			0,
+			d_cair,# cair
+			d_caird,
+			d_cair-d_caird,
+			ket_cair,
 			data[con][29],
-			"2022-01-01",
-			"2022-01-01",
-			0,
-			0,
-			"SALES LAPANGAN",
-			data[con][30],
-			0,
-			0,
+			data[con][37],#tt
+			data[con][38],#tc
+			data[con][43],
+			data[con][39],#hc
+			data[con][28],#piutang Konsumen
+			data[con][44],
+			data[con][45],
+			# "SALES LAPANGAN",
+			data[con][40],
+			data[con][41],#top kredit
+			data[con][42], # angsuran
 			data[con][32],
 			data[con][31],
-			""
+			stnk,#stnk
+			d_bpkb
 			])
 		con = con + 1
 
@@ -235,8 +324,14 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("Nama"),
-			"fieldname": "name",
+			"label": _("Nama Konsumen"),
+			"fieldname": "nama_pemilik",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("Nama SKB"),
+			"fieldname": "nama_skb",
 			"fieldtype": "Data",
 			"width": 100
 		},
@@ -409,15 +504,15 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("TambahanPromosi"),
-			"fieldname": "tambahanpromosi",
+			"label": _("TambahanLain"),
+			"fieldname": "tambahanLain",
 			"fieldtype": "Currency",
 			"width": 100
 		},
 		{
-			"label": _("TambahanLain"),
-			"fieldname": "tambahanLain",
-			"fieldtype": "Currency",
+			"label": _("Ket Tambahan Lain"),
+			"fieldname": "kettambahanLain",
+			"fieldtype": "Data",
 			"width": 100
 		},
 		{
@@ -451,12 +546,6 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("PiutangKonsumen"),
-			"fieldname": "piutangkonsumen",
-			"fieldtype": "Currency",
-			"width": 100
-		},
-		{
 			"label": _("NamaProg"),
 			"fieldname": "namaprog",
 			"fieldtype": "Data",
@@ -487,11 +576,29 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("NamaBooking"),
-			"fieldname": "namabooking",
+			"label": _("PiutangKonsumen"),
+			"fieldname": "piutangkonsumen",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Tgl PO"),
+			"fieldname": "tgl_po",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
+			"label": _("No PO"),
+			"fieldname": "no_po",
 			"fieldtype": "Data",
 			"width": 100
 		},
+		# {
+		# 	"label": _("NamaBooking"),
+		# 	"fieldname": "namabooking",
+		# 	"fieldtype": "Data",
+		# 	"width": 100
+		# },
 		{
 			"label": _("Marketing"),
 			"fieldname": "marketing",
@@ -499,7 +606,7 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("JangkaWaktu"),
+			"label": _("TOP Kredit"), # jangkawaktu
 			"fieldname": "jangkawaktu",
 			"fieldtype": "Int",
 			"width": 100
@@ -523,10 +630,22 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("Info SKB"),
-			"fieldname": "infoskb",
-			"fieldtype": "Data",
+			"label": _("Biaya STNK"),
+			"fieldname": "biaya_stnk",
+			"fieldtype": "Currency",
 			"width": 100
 		},
+		{
+			"label": _("Biaya SKB"),
+			"fieldname": "biaya_skb",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		# {
+		# 	"label": _("Info SKB"),
+		# 	"fieldname": "infoskb",
+		# 	"fieldtype": "Data",
+		# 	"width": 100
+		# },
 	]
 	return columns

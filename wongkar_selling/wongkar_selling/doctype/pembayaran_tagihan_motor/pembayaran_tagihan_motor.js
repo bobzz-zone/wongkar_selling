@@ -65,6 +65,33 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 				make_payment_entry_bpkb, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
+
+		frm.set_query("coa_biaya_motor", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
+
+		frm.set_query("coa_biaya_motor_stnk", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
+
+		frm.set_query("coa_biaya_motor_bpkb", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
 	},
 	type:function(frm){
 		cur_frm.set_value("supplier","")

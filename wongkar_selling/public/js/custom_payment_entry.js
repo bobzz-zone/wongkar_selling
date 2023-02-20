@@ -107,15 +107,15 @@ frappe.ui.form.on('Payment Entry', {
 		
 		if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor" && cur_frm.doc.tipe_pembayaran == "Pembayaran STNK"){
 			// frappe.msgprint("test 123")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -130,15 +130,15 @@ frappe.ui.form.on('Payment Entry', {
 	        }
 		}else if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor" && cur_frm.doc.tipe_pembayaran == "Pembayaran BPKB"){
 			// frappe.msgprint("test")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -153,15 +153,15 @@ frappe.ui.form.on('Payment Entry', {
 	        }
 		}else if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor" && cur_frm.doc.tipe_pembayaran == "Pembayaran Diskon Dealer"){
 			// frappe.msgprint("test")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -176,15 +176,15 @@ frappe.ui.form.on('Payment Entry', {
 	        }
 		}else if(cur_frm.doc.doc_type == "Tagihan Discount Leasing" && cur_frm.doc.tipe_pembayaran == "Pembayaran Diskon Leasing"){
 			// frappe.msgprint("test")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -199,15 +199,15 @@ frappe.ui.form.on('Payment Entry', {
 	        }
 		}else if(cur_frm.doc.doc_type == "Tagihan Discount Leasing" && cur_frm.doc.tipe_pembayaran == "Pembayaran SIPM"){
 			// frappe.msgprint("test")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -222,15 +222,15 @@ frappe.ui.form.on('Payment Entry', {
 	        }
 		}else if(cur_frm.doc.doc_type == "Tagihan Discount" && cur_frm.doc.tipe_pembayaran == "Pembayaran Diskon"){
 			// frappe.msgprint("test")
-			cur_frm.fields_dict['list_doc_name'].grid.get_field('reference_name').get_query = function(doc, cdt, cdn) {
+			cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 		   		var child = locals[cdt][cdn];
 		        // console.log(child);
 		    	
 		    	var child_names = [];
 				if (cur_frm.doc.list_doc_name){
 					for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
-						if (cur_frm.doc.list_doc_name[i].reference_name){
-							child_names.push(cur_frm.doc.list_doc_name[i].reference_name);
+						if (cur_frm.doc.list_doc_name[i].docname){
+							child_names.push(cur_frm.doc.list_doc_name[i].docname);
 						}
 					}
 				}
@@ -256,7 +256,7 @@ frappe.ui.form.on('Payment Entry', {
 				for(var i =0;i<cur_frm.doc.list_doc_name.length;i++){
 					var child = cur_frm.add_child("references");
 					frappe.model.set_value(child.doctype, child.name, "reference_doctype", cur_frm.doc.list_doc_name[i].reference_doctype);
-					frappe.model.set_value(child.doctype, child.name, "reference_name", cur_frm.doc.list_doc_name[i].reference_name);
+					frappe.model.set_value(child.doctype, child.name, "reference_name", cur_frm.doc.list_doc_name[i].docname);
 					frappe.model.set_value(child.doctype, child.name, "total_amount", cur_frm.doc.list_doc_name[i].grand_total);
 					frappe.model.set_value(child.doctype, child.name, "outstanding_amount", cur_frm.doc.list_doc_name[i].outstanding);
 					frappe.model.set_value(child.doctype, child.name, "allocated_amount", cur_frm.doc.list_doc_name[i].outstanding);

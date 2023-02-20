@@ -425,6 +425,7 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 	pe = frappe.new_doc("Payment Entry")
 	pe.payment_type = payment_type
 	pe.tagihan = 1
+	pe.tagihan_diskon_l = 1
 	pe.tagihan_sipm = doc.tagihan_sipm
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
@@ -869,6 +870,7 @@ def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_
 	pe.payment_type = payment_type
 	pe.tagihan = 1
 	# pe.tagihan_sipm = doc.tagihan_sipm
+	pe.tagihan_diskon = 1
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
 	pe.posting_date = nowdate()
@@ -1990,7 +1992,7 @@ def get_terbayarkan_cancel(doc,method):
 						if d.no_invoice == t.no_sinv:
 							baru = d.outstanding_sipm + t.nilai
 							# d.terbayarkan = baru
-							if t.nilai >= d.outstanding_sipm:
+							if t.nilai != d.outstanding_sipm:
 								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
 								frappe.db.commit()
 							else:
@@ -2073,3 +2075,12 @@ def get_terbayarkan_cancel(doc,method):
 				
 				# td_doc.flags.ignore_permissions = True
 				# td_doc.save()
+
+def add_tanggalcair(self,method):
+
+	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+		if self.tagihan_diskon_l or self.tipe_pembayaran == "Pembayaran Diskon Leasing":
+			for i in self.tagihan_payment_table:
+				frappe.msgprint(self.posting_date+i.no_sinv)
+				frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_cair = '{}' where name='{}' """.format(self.posting_date,i.no_sinv),debug=1)
+				frappe.db.commit()

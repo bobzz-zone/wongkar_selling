@@ -113,25 +113,27 @@
   },
   {
    "fetch_from": "item_code.item_group",
+   "fetch_if_empty": 1,
    "fieldname": "item_group",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Item Group",
    "options": "Item Group",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "item_code",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
+   "hidden": 1,
    "label": "Item Code",
    "options": "Item",
-   "reqd": 1
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-02-14 13:00:58.014275",
+ "modified": "2023-02-16 09:10:19.436579",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",

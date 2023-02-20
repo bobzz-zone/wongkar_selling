@@ -301,7 +301,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 					item_code: cur_frm.doc.item_code,
 					territory: cur_frm.doc.territory_real,
 					posting_date: cur_frm.doc.posting_date,
-					category_discount: cur_frm.doc.nama_diskon
+					category_discount: cur_frm.doc.nama_diskon,
+					from_group: cur_frm.doc.from_group
 				},
 				callback: function(r) {
 					console.log(r.message,"rule")
@@ -2391,7 +2392,8 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 				// item_group: cur_frm.doc.item_group,
 				item_code: cur_frm.doc.item_code,
 				territory: cur_frm.doc.territory_biaya,
-				posting_date: cur_frm.doc.posting_date
+				posting_date: cur_frm.doc.posting_date,
+				from_group: cur_frm.doc.from_group
 			},
 			callback: function(r) {
 				console.log(r.message,"get_biaya")
@@ -2778,13 +2780,23 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		frm.add_fetch('payment_term', 'description', 'description');
 
 		frm.set_query("account_for_change_amount", function() {
-			return {
-				filters: {
-					account_type: ['in', ["Cash", "Bank"]],
-					company: frm.doc.company,
-					is_group: 0
-				}
-			};
+			return {    
+                filters:[
+                    ['is_group', '=', 0]
+                ]
+            }
+		});
+
+		frm.set_query("nama_promo", function() {
+			if (cur_frm.doc.item_group) {
+				return {
+					query: 'wongkar_selling.wongkar_selling.doctype.sales_invoice_penjualan_motor.sales_invoice_penjualan_motor.get_rdl',
+					filters: {
+						posting_date: cur_frm.doc.posting_date,
+						item_group: cur_frm.doc.item_group
+					}
+				};
+			}
 		});
 
 		frm.set_query("unrealized_profit_loss_account", function() {
@@ -3127,13 +3139,15 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		cur_frm.refresh_fields("taxes");
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
-		cur_frm.set_query("nama_promo", function(doc) {
-			return {
-				filters: {
-					'disabled': 0,
-				}
-			}
-		});
+		// cur_frm.set_query("nama_promo", function(doc) {
+		// 	return {
+		// 		filters: {
+		// 			'disabled': 0,
+		// 			'valid_from': ['<=',cur_frm.doc.posting_date],
+		// 			'valid_to': ['>=',cur_frm.doc.posting_date]
+		// 		}
+		// 	}
+		// });
 		/*cur_frm.set_query("nama_diskon", function() {
 			return {
 				filters: {

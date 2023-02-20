@@ -13,6 +13,13 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from erpnext.accounts.general_ledger import make_gl_entries
 
 class PembayaranTagihanMotor(Document):
+	def before_cancel(self):
+		cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
+			join `tabPayment Entry` pe on pe.name = per.parent
+			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		if cek:
+			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+			
 	def validasi_supplier(self):
 		if self.type == "STNK dan BPKB":
 			stnk = self.supplier_stnk.split("-")
@@ -238,11 +245,13 @@ class PembayaranTagihanMotor(Document):
 	def get_serial_no(self):
 		for i in self.tagihan_biaya_motor:
 			doc = frappe.get_doc("Serial No",i.no_rangka)
+
 			row = doc.append('list_status_serial_no', {})
 			row.list = "Tagihan "+self.type
 			row.date = self.date
 			row.ket = self.name
-			doc.flags.ignore_permissions = True
+			doc.flags.ignore_permission = True
+			frappe.msgprint(doc.name)
 			doc.save()
 
 	def get_serial_no_cancel(self):

@@ -16,6 +16,7 @@
   "new_territory",
   "pemilik",
   "nama_pemilik",
+  "marketing",
   "bypass_biaya",
   "from_group",
   "tax_id",
@@ -89,6 +90,8 @@
   "tertagih",
   "sb_tb_disc_section",
   "table_discount",
+  "tanggal_tagih",
+  "tanggal_cair",
   "table_discount_leasing",
   "total_discoun_leasing",
   "account_adj_discount",
@@ -2283,11 +2286,31 @@
    "read_only": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "from_group",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "From Group"
+   "label": "From Group",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "tanggal_tagih",
+   "fieldtype": "Date",
+   "label": "Tanggal Tagih"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "tanggal_cair",
+   "fieldtype": "Date",
+   "label": "Tanggal Cair"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "marketing",
+   "fieldtype": "Link",
+   "label": "Marketing",
+   "options": "Sales Person"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2299,7 +2322,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-02-14 15:33:26.089769",
+ "modified": "2023-02-17 11:15:28.252625",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

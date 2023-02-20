@@ -8,24 +8,42 @@
  "engine": "InnoDB",
  "field_order": [
   "category_name",
+  "valid_from",
+  "valid_to",
   "disabled"
  ],
  "fields": [
   {
    "fieldname": "category_name",
    "fieldtype": "Data",
-   "label": "Category Name"
+   "in_list_view": 1,
+   "label": "Category Name",
+   "reqd": 1
   },
   {
    "default": "0",
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Valid From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Valid To",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-14 15:29:42.409063",
+ "modified": "2023-02-17 16:58:39.428751",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Category Discount Leasing",

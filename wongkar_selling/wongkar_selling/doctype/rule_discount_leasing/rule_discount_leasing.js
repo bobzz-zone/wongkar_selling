@@ -2,9 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Rule Discount Leasing', {
-	// refresh: function(frm) {
-
-	// }
+	refresh: function(frm) {
+		frm.fields_dict['table_discount_leasing'].grid.get_field('coa').get_query = function(doc, cdt, cdn) {
+        var child = locals[cdt][cdn];
+        // console.log(child);
+            return {    
+                filters:[
+                    ['is_group', '=', 0]
+                ]
+            }
+        }
+	}
 });
 
 frappe.ui.form.on("Rule Discount Leasing", "leasing", function(frm) {

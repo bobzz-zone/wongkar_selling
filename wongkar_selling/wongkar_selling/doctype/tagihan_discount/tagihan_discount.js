@@ -29,6 +29,15 @@ frappe.ui.form.on('Tagihan Discount', {
 				make_payment_entry, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
+
+		frm.set_query("coa_tagihan_discount", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
 	}/*,
 	before_submit: function(frm){
 		cur_frm.set_value('status','Submitted')

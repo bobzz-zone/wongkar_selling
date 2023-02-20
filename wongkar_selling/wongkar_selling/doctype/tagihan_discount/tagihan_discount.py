@@ -16,6 +16,13 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import g
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
 
 class TagihanDiscount(Document):
+	def before_cancel(self):
+		cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
+			join `tabPayment Entry` pe on pe.name = per.parent
+			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		if cek:
+			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+			
 	def set_status(self):
 		if self.docstatus == 2:
 			self.status = 'Cancelled'

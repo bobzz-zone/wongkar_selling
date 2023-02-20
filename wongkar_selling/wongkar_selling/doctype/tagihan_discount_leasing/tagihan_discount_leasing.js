@@ -38,6 +38,24 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 				make_payment_entry2, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
+
+		frm.set_query("coa_tagihan_discount_leasing", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
+
+		frm.set_query("coa_tagihan_sipm", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0
+				}
+			};
+		});
 	}
 });
 

@@ -14,19 +14,20 @@ def execute(filters=None):
 	return get_columns(filters), get_data(filters)
 
 def get_data(filters):
+	# i.tahun_rakitan
 	data = frappe.db.sql(""" SELECT 
 		year(sipm.posting_date) as tahun,
-		month(sipm.posting_date) as bulan,
+		DATE_FORMAT(sipm.posting_date,'%Y%m') as bulan,
 		sle.warehouse,
 		sipm.territory_real,
 		sipm.cost_center,
 		sipm.posting_date,
-		sipm.pemilik,
+		sipm.nama_pemilik,
 		sipm.item_code,
 		i.item_name,
 		sipm.no_rangka,
 		sipm.harga,
-		sipm.customer,
+		sipm.customer_name,
 		sn.tanggal_faktur,
 		sn.tanggal_terima_faktur,
 		sn.no_faktur,
@@ -41,12 +42,17 @@ def get_data(filters):
 		sn.tgl_terima_bpkb,
 		sn.no_bpkb,
 		sn.tgl_serah_bpkb,
-		sn.keterangan_proses_skb
+		sn.keterangan_proses_skb,
+		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
+		sn.nama_pemilik,
+		i.tahun_rakit,
+		i.warna
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
 		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
 		join `tabItem` i on i.name = sipm.item_code
-		where sipm.docstatus = 1 and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
+		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
+		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
 
 	output = []
 
@@ -68,16 +74,17 @@ def get_data(filters):
 		output.append([
 			i[0],
 			i[1],
-			i[2],
-			"",
+			i[27],
+			i[4],
 			i[3],
 			i[4],
 			i[5],
 			i[6],
+			i[28],#skb
 			kt[0],
 			nt[0],
-			w2,
-			"",
+			i[30],#warna
+			i[29],
 			nr[0],
 			nr[1],
 			i[10],
@@ -147,8 +154,14 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("Nama"),
-			"fieldname": "name",
+			"label": _("Nama Konsumen"),
+			"fieldname": "name_konsumen",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("Nama SKB"),
+			"fieldname": "name_skb",
 			"fieldtype": "Data",
 			"width": 100
 		},

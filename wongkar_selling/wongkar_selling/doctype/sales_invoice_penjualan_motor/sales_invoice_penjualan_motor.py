@@ -54,6 +54,32 @@ form_grid_templates = {
 }
 
 class SalesInvoicePenjualanMotor(SellingController):
+	def cek_rdl(self):
+		if self.nama_promo:
+			if not self.table_discount_leasing:
+				frappe.throw("Table Discount Leasing harus ada isinya !")
+			if self.table_discount_leasing:
+				if len(self.table_discount_leasing) == 0:
+					frappe.throw("Table Discount Leasing harus ada isinya !")
+
+	def add_pemilik(self):
+		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik='{}',nama_pemilik='{}' where name='{}' """.format(self.pemilik,self.nama_pemilik,self.no_rangka))
+		for i in self.tabel_biaya_motor:
+			if i.type == "STNK":
+				frappe.db.sql(""" UPDATE `tabSerial No` set biaya_stnk='{}' where name = '{}' """.format(i.amount,self.no_rangka))
+			elif i.type == "BPKB":
+				frappe.db.sql(""" UPDATE `tabSerial No` set biaya_bpkb='{}' where name = '{}' """.format(i.amount,self.no_rangka))
+			else:
+				frappe.db.sql(""" UPDATE `tabSerial No` set biaya_dealer='{}' where name = '{}' """.format(i.amount,self.no_rangka))
+		# doc = frappe.get_doc("Serial No",self.no_rangka)
+		# doc.pemilik = self.pemilik
+		# doc.nama_pemilik = self.nama_pemilik
+		# doc.flags.ignore_permissions = True
+		# doc.save()
+
+	def remove_pemilik(self):
+		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik="",nama_pemilik="",biaya_stnk=0,biaya_bpkb=0,biaya_dealer=0  where name='{}' """.format(self.no_rangka))
+
 	def cek_no_po_leasing(self):
 		if self.no_po_leasing:
 			cek = frappe.db.sql(""" SELECT name from `tabSales Invoice Penjualan Motor` where no_po_leasing = '{}' and docstatus != 2 """.format(self.no_po_leasing),as_dict=1)
@@ -760,7 +786,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		self.table_discount = []
 
 		# generate tabel biaya
-		list_tabel_biaya = get_biaya(self.item_group,self.territory_biaya,self.posting_date)
+		list_tabel_biaya = get_biaya(self.item_group,self.territory_biaya,self.posting_date,self.from_group)
 		
 		total_biaya = 0
 		total_discount = 0
@@ -783,7 +809,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 		# generate tabel discount
 		# list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
-		list_table_discount = get_rule(self.item_group,self.territory_real,self.posting_date,self.nama_diskon)
+		list_table_discount = get_rule(self.item_group,self.territory_real,self.posting_date,self.nama_diskon,self.from_group)
 		if list_table_discount:
 			for row in list_table_discount:
 				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
@@ -802,7 +828,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 					total_discount += row.amount
 
 		# generate table discount leasing
-		list_table_discount_leasing = get_leasing(self.item_group,self.nama_promo,self.territory_real,self.posting_date)
+		list_table_discount_leasing = get_leasing(self.item_group,self.nama_promo,self.territory_real,self.posting_date,self.from_group)
 		# get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
 
 		if list_table_discount_leasing:
@@ -943,6 +969,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 	def validate(self):
 		#print('masuk save')
 		self.cek_no_po_leasing()
+		self.cek_rdl()
 		if self.no_rangka != self.items[0].serial_no:
 			frappe.throw("No rangka tidak sama dengan item !")
 		#validate rule biaya harus ada 3
@@ -1075,7 +1102,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		# # tambahan
 		# self.set_status()
 		# self.tambah_ref()
-		
+		self.add_pemilik()
 		
 		self.validate_pos_paid_amount()
 
@@ -1180,7 +1207,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 	def on_cancel(self):
 		# super(SalesInvoicePenjualanMotor, self).on_cancel()
-
+		self.remove_pemilik()
 		# self.check_sales_order_on_hold_or_close("sales_order")
 		from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
 		if self.doctype in ["Sales Invoice","Sales Invoice Penjualan Motor", "Purchase Invoice"]:
@@ -2373,6 +2400,13 @@ class SalesInvoicePenjualanMotor(SellingController):
 			for serial_no in item.serial_no.split("\n"):
 				if serial_no and frappe.db.get_value('Serial No', serial_no, 'item_code') == item.item_code:
 					frappe.db.set_value('Serial No', serial_no, 'sales_invoice', invoice)
+					frappe.db.set_value('Serial No', serial_no, 'sales_invoice_penjualan_motor', invoice)
+					doc = frappe.get_doc('Serial No',serial_no)
+					doc.sales_invoice = None
+					doc.customer = self.pemilik
+					doc.customer_name = self.nama_pemilik
+					doc.flags.ignore_permissions = True
+					doc.save()
 
 	def validate_serial_numbers(self):
 		"""
@@ -3505,3 +3539,36 @@ def get_item_price(item_code,price_list):
 		from `tabItem Price` where item_code='{}' and price_list='{}'' and posting_date between
 		ifnull(valid_from, '2000-01-01') and ifnull(valid_upto, '2500-12-31')
 		order by valid_from desc, batch_no desc, uom desc """.format(item_code,price_list,posting_date),as_dict=1)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_rdl(doctype, txt, searchfield, start, page_len, filters):
+	# frappe.msgprint(str(doctype)+" doctype")
+	# frappe.msgprint(str(txt)+ " txt")
+	# frappe.msgprint(str(searchfield)+" searchfield")
+	# frappe.msgprint(str(start)+ " start")
+	# frappe.msgprint(str(page_len)+ " page_len")
+	# frappe.msgprint(str(filters)+" filters")
+	# data = frappe.db.sql(""" SELECT cd.name from `tabCategory Discount Leasing`cd 
+	# 	join `tabRule Discount Leasing` rdl on rdl.nama_promo = cd.name 
+	# 	where rdl.item_group = '{0}' 
+	# 	and rdl.valid_from <= '{1}' 
+	# 	and rdl.valid_to >= '{1}' 
+	# 	and rdl.disable=0 group by cd.name """.format(filters['item_group'],filters['posting_date']))
+
+	# frappe.msgprint(str(data))
+	return frappe.db.sql(""" SELECT cd.name from `tabCategory Discount Leasing`cd 
+		join `tabRule Discount Leasing` rdl on rdl.nama_promo = cd.name 
+		where rdl.item_group = '{0}' 
+		and rdl.valid_from <= '{1}' 
+		and rdl.valid_to >= '{1}' 
+		and rdl.disable=0 
+		and cd.name like "%{2}%" 
+		group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=1)
+
+# @frappe.whitelist()
+# @frappe.validate_and_sanitize_search_inputs
+# def get_rdl(posting_date,item_group):
+# 	return frappe.db.sql(""" SELECT nama_promo `tabRule Discount Leasing` 
+# 		where item_group = '{1}' and valid_from <= '{0}' and valid_to='{0}' and disabled=0 """.format(posting_date,item_group))

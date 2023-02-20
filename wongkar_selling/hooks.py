@@ -41,7 +41,8 @@ jenv = {
 
 # include js in doctype views
 doctype_js = {"Payment Entry" : "public/js/custom_payment_entry.js",
-"Customer": "public/js/custom_customer.js"
+"Customer": "public/js/custom_customer.js",
+"Serial No": "public/js/custom_serial_no.js"
 }
 
 doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_motor.js",
@@ -115,7 +116,7 @@ doc_events = {
 		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
 		# "validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.wongkar_selling.get_invoice.cek_tagihan"],
 		"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel"],
-		"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan","wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi"],
+		"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan","wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi","wongkar_selling.custom_standard.custom_payment_entry.add_tanggalcair"],
 		"on_cancel" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa_cancel","wongkar_selling.custom_payment_entry.kalkulasi_tagihan_cancel","wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_cancel","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi_cancel"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
@@ -201,6 +202,9 @@ doc_events = {
 		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
+	"Serial No":{
+		"on_change": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv"
+	}
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
 	# 	"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],

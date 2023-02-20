@@ -13,6 +13,17 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from erpnext.accounts.general_ledger import make_gl_entries
 
 class TagihanDiscountLeasing(Document):
+	def before_cancel(self):
+		cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
+			join `tabPayment Entry` pe on pe.name = per.parent
+			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		if cek:
+			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+			
+	def add_tagihan(self):
+		for i in self.daftar_tagihan_leasing:
+			frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_tagih='{}' where name='{}' """.format(self.date,i.no_invoice))
+
 	def set_status(self):
 		if self.docstatus == 2:
 			self.status = 'Cancelled'
@@ -110,22 +121,22 @@ class TagihanDiscountLeasing(Document):
 				print( d2.name, d2.parent, ' d2')
 				total.append(d2.nominal)
 				# print(sum(total), " total")
-			gl_entries.append(
-				self.get_gl_dict({
-					"account": d2.coa,
-					"party_type": "Customer",
-					"party": self.customer,
-					# "due_date": self.due_date,
-					"against": self.coa_tagihan_discount_leasing,
-					"credit": sum(total),
-					"credit_in_account_currency": sum(total),
-					"against_voucher": d.no_invoice,
-					"against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": cost_center
-					# "project": self.project,
-					# "remarks": "coba Lutfi yyyyy!"
-				}, item=None)
-			)
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": d2.coa,
+						"party_type": "Customer",
+						"party": self.customer,
+						# "due_date": self.due_date,
+						"against": self.coa_tagihan_discount_leasing,
+						"credit": d2.nominal,
+						"credit_in_account_currency": d2.nominal,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
 		print(gl_entries, ' d')
 
@@ -245,6 +256,7 @@ class TagihanDiscountLeasing(Document):
 			frappe.db.commit()
 
 	def on_submit(self):
+		self.add_tagihan()
 		# add_party_gl_entries_custom_tambah(self)
 		# add_party_gl_entries_custom(self)
 		self.make_gl_entries()
