@@ -614,7 +614,7 @@ def get_columns(filters):
 		{
 			"label": _("Angsuran"),
 			"fieldname": "angsuran",
-			"fieldtype": "Int",
+			"fieldtype": "Currency",
 			"width": 100
 		},
 		{
