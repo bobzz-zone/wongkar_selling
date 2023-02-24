@@ -3567,6 +3567,32 @@ def get_rdl(doctype, txt, searchfield, start, page_len, filters):
 		and cd.name like "%{2}%" 
 		group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=1)
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def filter_rule(doctype, txt, searchfield, start, page_len, filters):
+	# frappe.msgprint(str(doctype)+" doctype")
+	# frappe.msgprint(str(txt)+ " txt")
+	# frappe.msgprint(str(searchfield)+" searchfield")
+	# frappe.msgprint(str(start)+ " start")
+	# frappe.msgprint(str(page_len)+ " page_len")
+	# frappe.msgprint(str(filters)+" filters")
+	# data = frappe.db.sql(""" SELECT cd.name from `tabCategory Discount Leasing`cd 
+	# 	join `tabRule Discount Leasing` rdl on rdl.nama_promo = cd.name 
+	# 	where rdl.item_group = '{0}' 
+	# 	and rdl.valid_from <= '{1}' 
+	# 	and rdl.valid_to >= '{1}' 
+	# 	and rdl.disable=0 group by cd.name """.format(filters['item_group'],filters['posting_date']))
+
+	# frappe.msgprint(str(data))
+	return frappe.db.sql(""" SELECT cd.name from `tabCategory Discount`cd 
+		join `tabRule` rdl on rdl.category_discount = cd.name 
+		where rdl.item_group = '{0}' 
+		and rdl.valid_from <= '{1}' 
+		and rdl.valid_to >= '{1}' 
+		and rdl.disable=0 
+		and cd.name like "%{2}%" 
+		group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=1)
+
 # @frappe.whitelist()
 # @frappe.validate_and_sanitize_search_inputs
 # def get_rdl(posting_date,item_group):

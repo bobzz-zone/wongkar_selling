@@ -7,18 +7,25 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "category_name"
+  "category_name",
+  "disabled"
  ],
  "fields": [
   {
    "fieldname": "category_name",
    "fieldtype": "Data",
    "label": "Category Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-23 17:36:06.141690",
+ "modified": "2023-02-24 10:06:40.371135",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Category Discount",

@@ -2799,6 +2799,18 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			}
 		});
 
+		frm.set_query("nama_diskon", function() {
+			if (cur_frm.doc.item_group) {
+				return {
+					query: 'wongkar_selling.wongkar_selling.doctype.sales_invoice_penjualan_motor.sales_invoice_penjualan_motor.filter_rule',
+					filters: {
+						posting_date: cur_frm.doc.posting_date,
+						item_group: cur_frm.doc.item_group
+					}
+				};
+			}
+		});
+
 		frm.set_query("unrealized_profit_loss_account", function() {
 			return {
 				filters: {
