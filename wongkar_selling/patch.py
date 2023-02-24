@@ -280,3 +280,25 @@ def benerin_sim_submit():
 	print(doc.posting_date)
 	doc.submit()
 	
+
+@frappe.whitelist()
+def repair_cost_center():
+	# bjm
+	data = frappe.db.sql(""" SELECT sipm.name,sipm.cost_center,cc.parent_cost_center as cc,cc2.`parent_cost_center` as cc2
+		FROM `tabSales Invoice Penjualan Motor` sipm 
+		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
+		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
+		WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'BJM%' """,as_dict=1)
+
+	# Ifmi
+	# data = frappe.db.sql(""" SELECT sipm.name,sipm.cost_center,cc.parent_cost_center as cc,cc2.`parent_cost_center` as cc2
+	# 	FROM `tabSales Invoice Penjualan Motor` sipm 
+	# 	JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
+	# 	JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
+	# 	WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'IFMI%' """,as_dict=1)
+
+	for i in data:
+		print(i['name']+'|'+i['cc2'])
+		# doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+		# doc.cancel()
+		# doc.delete()
