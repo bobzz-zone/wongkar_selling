@@ -297,10 +297,16 @@ def repair_cost_center():
 	# 	JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
 	# 	WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'IFMI%' """,as_dict=1)
 
+	tmp = []
 	print(len(data))
 	for i in data:
-		print(i['name']+'|'+i['cc2'])
-		# doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
-		# doc.cancel()
-		# doc.delete()
-		print(doc.name+"-"+"DONE")
+		try:
+			print(i['name']+'|'+i['cc2'])
+			# doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+			# doc.cancel()
+			# doc.delete()
+			print(doc.name+"-"+"DONE")
+		except Exception as e:
+			tmp.append(i['name']+'|'+i['cc2']+'-'+e)
+	print(tmp)
+			

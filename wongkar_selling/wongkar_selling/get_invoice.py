@@ -121,7 +121,7 @@ def get_leasing(item_code,nama_promo,territory_real,posting_date,from_group):
 			where rdl.item_group='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' 
 			and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') 
 			AND rdl.disable = 0 group by rdl.item_group,rdl.leasing,tdl.coa order by rdl.valid_from desc, tdl.idx asc """.format(item_group,nama_promo,territory_real,posting_date),as_dict=1)
-		frappe.msgprint(str(data))
+		# frappe.msgprint(str(data))
 	else:
 		data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount,rdl.valid_from,rdl.valid_to,rdl.name  from `tabRule Discount Leasing` rdl 
 			join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
