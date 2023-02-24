@@ -45,7 +45,7 @@ def get_data(filters):
 		sn.keterangan_proses_skb,
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
 		sn.nama_pemilik,
-		i.tahun_rakit,
+		i.tahun_rakitan, # tahun_rakit
 		i.warna
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka

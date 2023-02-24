@@ -2309,6 +2309,7 @@
    "allow_on_submit": 1,
    "fieldname": "marketing",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Marketing",
    "options": "Sales Person"
   }
@@ -2322,7 +2323,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-02-17 11:15:28.252625",
+ "modified": "2023-02-24 09:59:37.452855",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

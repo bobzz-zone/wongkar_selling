@@ -56,12 +56,12 @@ def get_data(filters):
 		sn.tanggal_faktur,
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
 		sn.nama_pemilik,
-		i.tahun_rakit,# i.tahun_rakitan
+		i.tahun_rakitan,# i.tahun_rakitan tahun_rakit
 		sipm.dp_gross_hitung,
 		sipm.tanggal_tagih,
 		sipm.tanggal_cair,
 		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0),
-		sipm.marketing,# sipm.sales_man
+		sipm.sales_man,# sipm.sales_man marketing
 		sipm.jangka_waktu,
 		sipm.angsuran,
 		IF(sipm.tanggal_tagih,DATEDIFF(sipm.tanggal_tagih, sipm.posting_date),0),

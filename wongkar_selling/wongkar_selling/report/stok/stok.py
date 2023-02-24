@@ -25,7 +25,7 @@ def get_data(filters):
 		sn.item_name,
 		sn.name,
 		pr.supplier_delivery_note,
-		i.tahun_rakit,
+		i.tahun_rakitan, # tahun_rakit
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
 		sn.kacaspion,
 		sn.tools,
