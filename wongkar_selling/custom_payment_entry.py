@@ -493,7 +493,8 @@ def validate_lutfi(self):
 
 
 def cek_payment(self):
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
 		if self.doc_type:
 			if self.doc_type == "Pembayaran Tagihan Motor":
 				if self.payment_type != "Pay":
@@ -877,7 +878,8 @@ def kalkulasi_tagihan_cancel(doc,method):
 	# 		frappe.db.commit()
 
 def override_on_submit_on_cancel(self,method):
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
 		PaymentEntry.validate = validate_lutfi
 	
 def coba():

@@ -1749,7 +1749,8 @@ def get_terbayarkan_multi(doc,method):
 						frappe.db.commit()
 
 def get_terbayarkan_multi_cancel(doc,method):
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
 		if doc.doc_type:
 			if doc.tipe_pembayaran == "Pembayaran STNK":
 				for i in doc.references:
@@ -1820,7 +1821,8 @@ def get_terbayarkan_multi_cancel(doc,method):
 
 
 def get_terbayarkan(doc,method):
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
 		if doc.tagihan == 1 and not doc.doc_type:
 			# frappe.throw(doc.references[0].reference_name)
 			if doc.references[0].reference_doctype == "Tagihan Discount":
@@ -1945,7 +1947,8 @@ def get_terbayarkan(doc,method):
 				frappe.db.commit()
 
 def get_terbayarkan_cancel(doc,method):
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
 		if doc.tagihan == 1 and not doc.doc_type:
 			# frappe.throw(doc.references[0].reference_name)
 			if doc.references[0].reference_doctype == "Tagihan Discount":
@@ -2077,8 +2080,8 @@ def get_terbayarkan_cancel(doc,method):
 				# td_doc.save()
 
 def add_tanggalcair(self,method):
-
-	if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com"]:
+	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
 		if self.tagihan_diskon_l or self.tipe_pembayaran == "Pembayaran Diskon Leasing":
 			for i in self.tagihan_payment_table:
 				frappe.msgprint(self.posting_date+i.no_sinv)
