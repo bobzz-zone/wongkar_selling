@@ -102,7 +102,7 @@ def get_rule(item_code,territory,posting_date,category_discount,from_group):
 		item_group = frappe.get_doc("Item",item_code).item_group
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 
 			where item_group='{0}' and  territory = '{1}' and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
-			and valid_to >= '{2}' group by item_group,customer  order by valid_from """.format(item_group,territory,posting_date,category_discount),as_dict=1)
+			and valid_to >= '{2}' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 	else:
 		# item_code
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 

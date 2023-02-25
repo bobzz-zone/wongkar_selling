@@ -282,20 +282,13 @@ def benerin_sim_submit():
 	
 
 @frappe.whitelist()
-def repair_cost_center():
+def repair_cost_center_bjm():
 	# bjm
 	data = frappe.db.sql(""" SELECT sipm.name,sipm.cost_center,cc.parent_cost_center as cc,cc2.`parent_cost_center` as cc2
 		FROM `tabSales Invoice Penjualan Motor` sipm 
 		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
 		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
 		WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'BJM%' """,as_dict=1)
-
-	# Ifmi
-	# data = frappe.db.sql(""" SELECT sipm.name,sipm.cost_center,cc.parent_cost_center as cc,cc2.`parent_cost_center` as cc2
-	# 	FROM `tabSales Invoice Penjualan Motor` sipm 
-	# 	JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
-	# 	JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-	# 	WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'IFMI%' """,as_dict=1)
 
 	tmp = []
 	print(len(data))
@@ -310,3 +303,42 @@ def repair_cost_center():
 			tmp.append(i['name']+'|'+i['cc2']+'-'+e)
 	print(tmp)
 			
+
+@frappe.whitelist()
+def repair_cost_center_ifmi():
+	# Ifmi
+	data = frappe.db.sql(""" SELECT sipm.name,sipm.cost_center,cc.parent_cost_center as cc,cc2.`parent_cost_center` as cc2
+		FROM `tabSales Invoice Penjualan Motor` sipm 
+		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
+		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
+		WHERE sipm.`docstatus`=1 AND cc2.parent_cost_center LIKE 'IFMI%' """,as_dict=1)
+
+	tmp = []
+	print(len(data))
+	for i in data:
+		try:
+			print(i['name']+'|'+i['cc2'])
+			# doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+			# doc.cancel()
+			# doc.delete()
+			print(doc.name+"-"+"DONE")
+		except Exception as e:
+			tmp.append(i['name']+'|'+i['cc2']+'-'+e)
+	print(tmp)
+
+
+
+@frappe.whitelist()
+def repair_sipm():
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-01491")
+	doc.cancel()
+	print(doc.name)
+	print(doc.docstatus)
+	frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(doc.name))
+	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(doc.name))
+	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(doc.name))
+	doc2 = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-01491")
+	doc2.custom_missing_values()
+	doc2.set_posting_time = 1
+	doc2.save()
+	doc2.submit()

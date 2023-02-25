@@ -61,6 +61,13 @@ class SalesInvoicePenjualanMotor(SellingController):
 			if self.table_discount_leasing:
 				if len(self.table_discount_leasing) == 0:
 					frappe.throw("Table Discount Leasing harus ada isinya !")
+	def cek_rule(self):
+		if self.nama_diskon:
+			if not self.table_discount:
+				frappe.throw("Table Discount Leasing harus ada isinya !")
+			if self.table_discount:
+				if len(self.table_discount) == 0:
+					frappe.throw("Table Discount Leasing harus ada isinya !")
 
 	def add_pemilik(self):
 		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik='{}',nama_pemilik='{}' where name='{}' """.format(self.pemilik,self.nama_pemilik,self.no_rangka))
@@ -786,18 +793,18 @@ class SalesInvoicePenjualanMotor(SellingController):
 		self.table_discount = []
 
 		# generate tabel biaya
-		list_tabel_biaya = get_biaya(self.item_group,self.territory_biaya,self.posting_date,self.from_group)
+		list_tabel_biaya = get_biaya(self.item_code,self.territory_biaya,self.posting_date,self.from_group)
 		
 		total_biaya = 0
 		total_discount = 0
 		total_discount_leasing = 0
 		# generate tabel biaya
-		frappe.msgprint(str(self.posting_date.date()))
+		# frappe.msgprint(str(self.posting_date.date()))
 		print(self.posting_date)
 		if list_tabel_biaya:
 			for row in list_tabel_biaya:
-				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-				# if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
+				# if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+				if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
 					self.append("tabel_biaya_motor",{
 							"rule":row.name,
 							"vendor":row.vendor,
@@ -809,11 +816,11 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 		# generate tabel discount
 		# list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
-		list_table_discount = get_rule(self.item_group,self.territory_real,self.posting_date,self.nama_diskon,self.from_group)
+		list_table_discount = get_rule(self.item_code,self.territory_real,self.posting_date,self.nama_diskon,self.from_group)
 		if list_table_discount:
 			for row in list_table_discount:
-				if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-				# if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
+				# if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+				if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
 					if row.discount == "Percent":
 						row.amount = row.percent * self.harga / 100
 
@@ -828,7 +835,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 					total_discount += row.amount
 
 		# generate table discount leasing
-		list_table_discount_leasing = get_leasing(self.item_group,self.nama_promo,self.territory_real,self.posting_date,self.from_group)
+		list_table_discount_leasing = get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date,self.from_group)
 		# get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
 
 		if list_table_discount_leasing:
@@ -970,6 +977,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		#print('masuk save')
 		self.cek_no_po_leasing()
 		self.cek_rdl()
+		self.cek_rule()
 		if self.no_rangka != self.items[0].serial_no:
 			frappe.throw("No rangka tidak sama dengan item !")
 		#validate rule biaya harus ada 3
