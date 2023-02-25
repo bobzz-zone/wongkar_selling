@@ -14,12 +14,13 @@ class Rule(Document):
 	def validate(self):
 		today = date.today()
 		if self.discount:
-			if self.discount == "Amount":
-				if not self.amount:
-					frappe.throw("Masukkan Amount")
-			if self.discount == "Percent":
-				if not self.percent:
-					frappe.throw("Masukkan Percent")
+			pass
+#			if self.discount == "Amount":
+#				if not self.amount:
+#					frappe.throw("Masukkan Amount")
+#			if self.discount == "Percent":
+#				if not self.percent:
+#					frappe.throw("Masukkan Percent")
 		elif not self.discount:
 			frappe.throw("Pilih discount terlebih dahulu")
 
@@ -71,6 +72,7 @@ class Rule(Document):
 
 
 	def before_insert(self):
+		return
 		# item_code
 		# cek = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,
 		# 	"customer":self.customer,"valid_to":self.valid_to}, "name")

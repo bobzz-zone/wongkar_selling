@@ -2409,12 +2409,12 @@ class SalesInvoicePenjualanMotor(SellingController):
 				if serial_no and frappe.db.get_value('Serial No', serial_no, 'item_code') == item.item_code:
 					frappe.db.set_value('Serial No', serial_no, 'sales_invoice', invoice)
 					# frappe.db.set_value('Serial No', serial_no, 'sales_invoice_penjualan_motor', invoice)
-					doc = frappe.get_doc('Serial No',serial_no)
-					# doc.sales_invoice = None
-					doc.customer = self.pemilik
-					doc.customer_name = self.nama_pemilik
-					doc.flags.ignore_permissions = True
-					doc.save()
+					# doc = frappe.get_doc('Serial No',serial_no)
+					# # doc.sales_invoice = None
+					# doc.customer = self.pemilik
+					# doc.customer_name = self.nama_pemilik
+					# doc.flags.ignore_permissions = True
+					# doc.save()
 
 	def validate_serial_numbers(self):
 		"""

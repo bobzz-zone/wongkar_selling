@@ -334,10 +334,15 @@ def repair_sipm():
 	doc.cancel()
 	print(doc.name)
 	print(doc.docstatus)
+
+@frappe.whitelist()
+def repair_sipm_after():
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-01491")
 	frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(doc.name))
 	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(doc.name))
 	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(doc.name))
 	doc2 = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-01491")
+	print(doc2.name)
 	doc2.custom_missing_values()
 	doc2.set_posting_time = 1
 	doc2.save()
