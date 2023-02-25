@@ -64,10 +64,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 	def cek_rule(self):
 		if self.nama_diskon:
 			if not self.table_discount:
-				frappe.throw("Table Discount Leasing harus ada isinya !")
+				frappe.throw("Table Discount harus ada isinya !")
 			if self.table_discount:
 				if len(self.table_discount) == 0:
-					frappe.throw("Table Discount Leasing harus ada isinya !")
+					frappe.throw("Table Discount harus ada isinya !")
 
 	def add_pemilik(self):
 		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik='{}',nama_pemilik='{}' where name='{}' """.format(self.pemilik,self.nama_pemilik,self.no_rangka))
