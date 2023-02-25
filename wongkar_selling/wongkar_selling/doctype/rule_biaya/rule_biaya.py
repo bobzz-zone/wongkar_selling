@@ -26,7 +26,7 @@ class RuleBiaya(Document):
 		if cek_valid_to:
 			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 	
-	def validate(self):
+	def on_change(self):
 		# item_code
 		# cek = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_to":self.valid_to,"vendor":self.vendor}, "name")
 		
