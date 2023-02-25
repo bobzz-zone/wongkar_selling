@@ -55,7 +55,7 @@ form_grid_templates = {
 
 class SalesInvoicePenjualanMotor(SellingController):
 	def cek_rdl(self):
-		if self.nama_promo:
+		if self.nama_promo and self.cara_bayar=="Credit":
 			if not self.table_discount_leasing:
 				frappe.throw("Table Discount Leasing harus ada isinya !")
 			if self.table_discount_leasing:
