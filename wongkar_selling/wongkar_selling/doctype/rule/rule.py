@@ -11,7 +11,7 @@ import time
 import datetime
 
 class Rule(Document):
-	def on_change(self):
+	def validate(self):
 		today = date.today()
 		if self.discount:
 			pass

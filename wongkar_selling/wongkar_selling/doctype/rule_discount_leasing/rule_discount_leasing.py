@@ -30,7 +30,7 @@ class RuleDiscountLeasing(Document):
 		if cek_valid_to:
 			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 
-	def on_change(self):
+	def validate(self):
 		# return
 		
 		# item_code
