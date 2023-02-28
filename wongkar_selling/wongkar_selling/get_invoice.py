@@ -24,8 +24,8 @@ def get_inv(supplier,types,date_from,date_to):
 		tb.amount,
 		si.item_code,
 		si.no_rangka,
-		IF(sn.pemilik or sn.pemilik != "",sn.`pemilik`,si.`pemilik`),
-		IF(sn.nama_pemilik or sn.nama_pemilik != "",sn.`nama_pemilik`,si.`nama_pemilik`)
+		IF(sn.pemilik or sn.pemilik != "",sn.`pemilik`,si.`pemilik`) as pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik != "",sn.`nama_pemilik`,si.`nama_pemilik`) as nama_pemilik
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
 		left join `tabSerial No` sn on sn.name = si.no_rangka
@@ -39,8 +39,8 @@ def get_invd(customer,date_from,date_to):
 	# data = frappe.db.get_list('Table Discount',filters={'customer': customer,"tertagih": 0,'parenttype': 'Sales Invoice Penjualan Motor'},fields=['*'])
 	data = frappe.db.sql(""" SELECT si.name,si.posting_date,td.category_discount,td.nominal,si.item_code,
 		si.no_rangka,
-		IF(sn.pemilik or sn.pemilik !="",sn.`pemilik`,si.`pemilik`),
-		IF(sn.nama_pemilik or sn.nama_pemilik!="",sn.`nama_pemilik`,si.`nama_pemilik`)
+		IF(sn.pemilik or sn.pemilik !="",sn.`pemilik`,si.`pemilik`) as pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik!="",sn.`nama_pemilik`,si.`nama_pemilik`) as nama_pemilik
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTable Discount` td on td.parent = si.name where td.customer = '{}'
 		left join `tabSerial No` sn on sn.name = si.no_rangka 
@@ -53,10 +53,20 @@ def get_invd_l(customer,date_from,date_to):
 	# data = frappe.db.get_list('Sales Invoice Penjualan Motor',filters={'cara_bayar': 'Credit',"docstatus": ["=",1],"tertagih": 0,'nama_leasing': customer},fields=['*'])
 
 	# return data
+	# data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,
+	# 	sinv.item_code,
+	# 	sinv.`pemilik`,
+	# 	sinv.`nama_pemilik`,
+	# 	tdl.nama_leasing,
+	# 	sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
+	# 	left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 
+	# 	left join `tabSerial No` sn on sn.name = sinv.no_rangka
+	# 	where tdl.nama_leasing = '{0}' and tdl.tertagih = 0 and sinv.docstatus = 1
+	# 	and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,
 		sinv.item_code,
-		IF(sn.pemilik or sn.pemilik != "",sn.`pemilik`,sinv.`pemilik`),
-		IF(sn.nama_pemilik or sn.nama_pemilik != "",sn.`pemilik`,sinv.`nama_pemilik`),
+		IF(sn.pemilik or sn.pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`pemilik`) as pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`nama_pemilik`) as nama_pemilik,
 		tdl.nama_leasing,
 		sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 
@@ -102,7 +112,7 @@ def get_rule(item_code,territory,posting_date,category_discount,from_group):
 		item_group = frappe.get_doc("Item",item_code).item_group
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 
 			where item_group='{0}' and  territory = '{1}' and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
-			and valid_to >= '{2}' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
+			and valid_to >= '{2}' and item_code is NULL order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 	else:
 		# item_code
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 
@@ -150,8 +160,8 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 		si.item_code,
 		si.no_rangka,
 		(select tb2.amount from `tabTabel Biaya Motor` tb2 where tb2.parent = si.name and tb2.vendor = '{1}' and type = '{3}') as amount_bpkb,
-		IF(sn.pemilik or sn.pemilik != "",sn.`pemilik`,si.`pemilik`),
-		IF(sn.nama_pemilik or sn.nama_pemilik != "",sn.`nama_pemilik`,si.`nama_pemilik`)
+		IF(sn.pemilik or sn.pemilik != "",sn.`pemilik`,si.`pemilik`) as pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik != "",sn.`nama_pemilik`,si.`nama_pemilik`) as nama_pemilik
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
 		join `tabSerial No` sn on sn.name = si.no_rangka

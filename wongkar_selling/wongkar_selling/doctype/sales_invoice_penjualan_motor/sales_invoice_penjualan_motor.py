@@ -739,6 +739,110 @@ class SalesInvoicePenjualanMotor(SellingController):
 						"tax_amount_after_discount_amount": (self.grand_total - total_biaya)
 					})
 
+	def custom_repair_rule(self):
+		# validasi field
+		if not self.cara_bayar:
+			frappe.throw("Silahkan mengisi Cara Bayar")
+		
+		if not self.item_code:
+			frappe.throw("Silahkan mengisi Kode Item")
+
+		if self.from_group:
+			if not self.item_group:
+				frappe.throw("Silahkan mengisi item_group")
+
+		if not self.nama_diskon:
+			frappe.throw("Silahkan mengisi Nama Diskon")
+		
+		if self.cara_bayar == "Credit":
+			if not self.nama_promo:
+				frappe.throw("Silahkan mengisi Nama Promo")
+
+		if not self.no_rangka:
+			frappe.throw("Silahkan mengisi No Rangka")
+
+		if not self.selling_price_list:
+			frappe.throw("Silahkan mengisi Price List")
+		
+		if self.diskon == 1:
+			if self.nominal_diskon == 0:
+				frappe.throw("Silahkan mengisi Nominal Diskon")
+		else:
+			self.nominal_diskon = 0
+
+		if not self.territory_real:
+			frappe.throw("Silahkan mengisi Territory Real")
+		
+		if not self.territory_biaya:
+			frappe.throw("Silahkan mengisi Territory Biaya")
+
+		today = frappe.utils.nowdate()
+
+		if self.posting_date != today:
+			self.set_posting_time = 1 
+
+		# cari nilai
+		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
+		if not self.harga:
+			self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
+
+		# reset semua table
+		self.table_discount = []
+
+		
+		total_biaya = self.total_biaya
+		total_discount = 0
+		total_discount_leasing = self.total_discoun_leasing
+		
+		# table_biaya
+		for i in self.tabel_biaya_motor:
+			pass
+
+		# generate tabel discount
+		# list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
+		list_table_discount = get_rule(self.item_code,self.territory_real,self.posting_date,self.nama_diskon,self.from_group)
+		print(list_table_discount, ' list_table_discount')
+		if list_table_discount:
+			for row in list_table_discount:
+				# if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+				if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
+					if row.discount == "Percent":
+						row.amount = row.percent * self.harga / 100
+
+					self.append("table_discount",{
+						"rule": row.name,
+						"customer":row.customer,
+						"category_discount": row.category_discount,
+						"coa_receivable": row.coa_receivable,
+						"nominal": row.amount
+						})
+
+					total_discount += row.amount
+
+
+		ppn_rate = self.taxes[0].rate
+		# self.taxes[0].rate
+		ppn_div = (100+ppn_rate)/100
+		print(ppn_div)
+		# cara mencari grand total
+		total2 = ( self.harga - self.total_biaya ) / ppn_div
+		print(total2)
+		hasil2 = self.harga - total2
+		akhir2 = self.harga - hasil2
+
+			
+		if self.total_advance:
+			tot_adv = self.total_advance
+		else:
+			tot_adv = 0
+		print(total_discount)
+		# self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+		# self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+		self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+		self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+		self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+		self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
+
 
 
 	def custom_missing_values(self):
@@ -968,9 +1072,6 @@ class SalesInvoicePenjualanMotor(SellingController):
 			self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
 			self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
 			self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
-
-	
-			
 
 
 	def validate(self):
