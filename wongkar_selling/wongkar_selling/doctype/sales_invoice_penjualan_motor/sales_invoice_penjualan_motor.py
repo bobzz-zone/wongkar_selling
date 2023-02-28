@@ -2499,6 +2499,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 	def update_serial_no(self, in_cancel=False):
 		""" update Sales Invoice refrence in Serial No """
 		invoice = None if (in_cancel or self.is_return) else self.name
+		pemilik = None if (in_cancel or self.is_return) else self.pemilik
+		nama_pemilik = None if (in_cancel or self.is_return) else self.nama_pemilik
 		if in_cancel and self.is_return:
 			invoice = self.return_against
 
@@ -2510,12 +2512,13 @@ class SalesInvoicePenjualanMotor(SellingController):
 				if serial_no and frappe.db.get_value('Serial No', serial_no, 'item_code') == item.item_code:
 					frappe.db.set_value('Serial No', serial_no, 'sales_invoice', invoice)
 					# frappe.db.set_value('Serial No', serial_no, 'sales_invoice_penjualan_motor', invoice)
-					# doc = frappe.get_doc('Serial No',serial_no)
-					# # doc.sales_invoice = None
-					# doc.customer = self.pemilik
-					# doc.customer_name = self.nama_pemilik
-					# doc.flags.ignore_permissions = True
-					# doc.save()
+					doc = frappe.get_doc('Serial No',serial_no)
+					# doc.sales_invoice = None
+					doc.customer = pemilik
+					doc.customer_name = nama_pemilik
+					doc.pemilik = pemilik
+					doc.nama_pemilik = nama_pemilik
+					doc.db_update()
 
 	def validate_serial_numbers(self):
 		"""
