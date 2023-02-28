@@ -22,7 +22,7 @@ def get_data(filters):
 		sipm.territory_real,
 		sipm.cost_center,
 		sipm.posting_date,
-		sipm.nama_pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sipm.`nama_pemilik`),
 		sipm.item_code,
 		i.item_name,
 		sipm.no_rangka,

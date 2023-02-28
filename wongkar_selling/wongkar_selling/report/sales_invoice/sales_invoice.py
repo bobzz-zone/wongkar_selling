@@ -55,7 +55,7 @@ def get_data(filters):
 		sipm.status,
 		sn.tanggal_faktur,
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
-		sn.nama_pemilik,
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sipm.`nama_pemilik`),
 		i.tahun_rakitan,# i.tahun_rakitan tahun_rakit
 		sipm.dp_gross_hitung,
 		sipm.tanggal_tagih,
