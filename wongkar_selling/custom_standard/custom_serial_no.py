@@ -76,8 +76,8 @@ def patch_serial_no(self,method):
 	
 	print(self.name)
 
-	frappe.msgprint(str(data)+' data')
-	frappe.msgprint(str(data_blm)+' data_blm')
+	print(str(data)+' data')
+	print(str(data_blm)+' data_blm')
 
 def patch_serial_all():
 	# if frappe.local.site == 'honda2.digitalasiasolusindo.com':
@@ -142,6 +142,6 @@ def patch_serial_all():
 		
 		print(i['name'])
 
-		frappe.msgprint(str(data)+' data')
-		frappe.msgprint(str(data_blm)+' data_blm')
+		print(str(data)+' data')
+		print(str(data_blm)+' data_blm')
 

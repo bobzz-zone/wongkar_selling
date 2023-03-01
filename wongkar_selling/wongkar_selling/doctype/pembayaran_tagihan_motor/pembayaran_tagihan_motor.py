@@ -250,8 +250,8 @@ class PembayaranTagihanMotor(Document):
 			row.list = "Tagihan "+self.type
 			row.date = self.date
 			row.ket = self.name
-			doc.flags.ignore_permission = True
-			frappe.msgprint(doc.name)
+			doc.flags.ignore_permissions = True
+			print(doc.name)
 			doc.save()
 
 	def get_serial_no_cancel(self):
