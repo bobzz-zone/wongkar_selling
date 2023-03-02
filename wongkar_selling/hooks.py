@@ -204,7 +204,7 @@ doc_events = {
 	},
 	"Serial No":{
 		"on_change": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
-		"validate": "wongkar_selling.custom_standard.custom_serial_no.patch_serial_no"
+		# "validate": "wongkar_selling.custom_standard.custom_serial_no.patch_serial_no"
 	}
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
