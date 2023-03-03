@@ -70,7 +70,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 			# 		frappe.throw("Table Discount harus ada isinya !")
 
 	def add_pemilik(self):
-		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik='{}',nama_pemilik='{}' where name='{}' """.format(self.pemilik,self.nama_pemilik,self.no_rangka))
+		frappe.db.sql(""" UPDATE `tabSerial No` set pemilik="{}",nama_pemilik="{}" where name="{}" """.format(self.pemilik,self.nama_pemilik,self.no_rangka))
 		for i in self.tabel_biaya_motor:
 			if i.type == "STNK":
 				frappe.db.sql(""" UPDATE `tabSerial No` set biaya_stnk='{}' where name = '{}' """.format(i.amount,self.no_rangka))
