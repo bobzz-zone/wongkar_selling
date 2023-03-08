@@ -25,10 +25,10 @@ class RuleDiscountLeasing(Document):
 		# cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
 		
 		# item_group
-		cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
+#		cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
 		
-		if cek_valid_to:
-			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
+#		if cek_valid_to:
+#			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 
 	def validate(self):
 		# return
@@ -40,18 +40,18 @@ class RuleDiscountLeasing(Document):
 		# item_group
 		cek = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,
 			"leasing": self.leasing,"valid_to":self.valid_to}, "name")
-		
-		if cek:
+
+		if cek and cek != self.name:
 			frappe.throw("Disconut Item "+cek+" sudah ada !")
 
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
 		
 		# item_group
-		cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
+#		cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
 		
-		if cek_valid_to:
-			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
+#		if cek_valid_to:
+#			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 
 		# mematika rule yang lama
 		# # item_code
