@@ -21,10 +21,10 @@ class RuleBiaya(Document):
 		# cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
 
 		# item_group
-		cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
+#		cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
 		
-		if cek_valid_to:
-			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
+#		if cek_valid_to:
+#			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 	
 	def validate(self):
 		# item_code
@@ -33,17 +33,17 @@ class RuleBiaya(Document):
 		# item_group
 		cek = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_to":self.valid_to,"vendor":self.vendor}, "name")
 		
-		if cek:
+		if cek and self.name!=cek:
 			frappe.throw("Discount Item "+cek+" sudah ada !")
 		
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_code": self.item_code,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
 
 		# item_group
-		cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
+#		cek_valid_to = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_from":self.valid_to,"vendor":self.vendor}, "name")
 		
-		if cek_valid_to:
-			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
+#		if cek_valid_to:
+#			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 		
 		if not self.amount:
 			frappe.throw("Masukkan Amount terlebih dahulu")
