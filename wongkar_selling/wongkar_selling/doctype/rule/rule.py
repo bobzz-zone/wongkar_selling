@@ -33,20 +33,31 @@ class Rule(Document):
 		# 	"customer":self.customer,"valid_to":self.valid_to}, "name")
 		
 		#item_group
-		cek = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,
-			"customer":self.customer,"valid_to":self.valid_to}, "name")
+		# cek = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,
+		# "customer":self.customer,"valid_to":self.valid_to}, "name")
 		
-		if cek and cek!=self.name:
-			frappe.throw("Rule "+cek+" sudah ada !")
+		cek = frappe.db.sql(""" SELECT * from `tabRule` where item_group = '{0}' and category_discount = '{1}' 
+			and territory = '{2}' and customer = '{3}' 
+			and (valid_to = '{4}' or valid_from= '{4}') 
+			and name != '{5}' and disable = 0 """.format(self.item_group,self.category_discount,self.territory,self.customer,self.valid_to,self.name),as_dict=1)
+
+		tmp_cek = []
+
+		if cek:
+			for i in cek:
+				tmp_cek.append(i['name'])
+			frappe.throw("Rule sama dengan di document "+str(tmp_cek)+" !")
+
+		
 
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to,"customer":self.customer}, "name")
 		
 		#item_group
-		cek_valid_to = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to}, "name")
+		# cek_valid_to = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to}, "name")
 		
-		if cek_valid_to:
-			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
+		# if cek_valid_to:
+		# 	frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 		
 
 		# mematikan rule yang lama
@@ -73,17 +84,29 @@ class Rule(Document):
 
 	def before_insert(self):
 		# return
+		cek = frappe.db.sql(""" SELECT * from `tabRule` where item_group = '{0}' and category_discount = '{1}' 
+			and territory = '{2}' and customer = '{3}' 
+			and (valid_to = '{4}' or valid_from= '{4}') 
+			and name != '{5}' and disable = 0 """.format(self.item_group,self.category_discount,self.territory,self.customer,self.valid_to,self.name),as_dict=1)
+
+		tmp_cek = []
+
+		if cek:
+			for i in cek:
+				tmp_cek.append(i['name'])
+			frappe.throw("Rule sama dengan di document "+str(tmp_cek)+" !")
+
 		# item_code
 		# cek = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,
 		# 	"customer":self.customer,"valid_to":self.valid_to}, "name")
 		
 		#item_group
-		cek = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,
-			"customer":self.customer,"valid_to":self.valid_to}, "name")
+		# cek = frappe.db.get_value("Rule",{"item_group": self.item_group,"category_discount": self.category_discount,"territory": self.territory,
+		# 	"customer":self.customer,"valid_to":self.valid_to}, "name")
 		
 
-		if cek:
-			frappe.throw("Disconut Item "+cek+" sudah ada !")		
+		# if cek:
+		# 	frappe.throw("Disconut Item "+cek+" sudah ada !")		
 
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule",{"item_code": self.item_code,"category_discount": self.category_discount,"territory": self.territory,"valid_from":self.valid_to,"customer":self.customer}, "name")

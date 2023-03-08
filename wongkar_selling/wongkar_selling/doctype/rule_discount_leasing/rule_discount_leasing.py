@@ -10,16 +10,27 @@ class RuleDiscountLeasing(Document):
 	def before_insert(self):
 		# pass
 		
+		cek	= frappe.db.sql(""" SELECT * from `tabRule Discount Leasing` where item_group = '{0}' and nama_promo = '{1}' 
+			and territory = '{2}' and leasing = '{3}' 
+			and (valid_to = '{4}' or valid_from = '{4}')
+			and name != '{5}' and disable = 0 """.format(self.item_group,self.nama_promo,self.territory,self.leasing,self.valid_to,self.name),as_dict=1)
+
+		tmp_cek = []
+		if cek:
+			for i in cek:
+				tmp_cek.append(i['name'])
+			frappe.throw("RuleDiscountLeasing sudah ada di document "+str(tmp_cek)+" !")
+		
 		# item_code
 		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,
 		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")
 
 		# item_group
-		cek = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,
-			"leasing": self.leasing,"valid_to":self.valid_to}, "name")
+		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,
+		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")
 		
-		if cek:
-			frappe.throw("Disconut Item "+cek+" sudah ada !")
+		# if cek:
+		# 	frappe.throw("Disconut Item "+cek+" sudah ada !")
 		
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
@@ -38,11 +49,22 @@ class RuleDiscountLeasing(Document):
 		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")
 
 		# item_group
-		cek = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,
-			"leasing": self.leasing,"valid_to":self.valid_to}, "name")
+		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_group": self.item_group,"nama_promo": self.nama_promo,"territory": self.territory,
+		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")
 
-		if cek and cek != self.name:
-			frappe.throw("Disconut Item "+cek+" sudah ada !")
+		# if cek and cek != self.name:
+		# 	frappe.throw("Disconut Item "+cek+" sudah ada !")
+
+		cek	= frappe.db.sql(""" SELECT * from `tabRule Discount Leasing` where item_group = '{0}' and nama_promo = '{1}' 
+			and territory = '{2}' and leasing = '{3}' 
+			and (valid_to = '{4}' or valid_from = '{4}')
+			and name != '{5}' and disable = 0 """.format(self.item_group,self.nama_promo,self.territory,self.leasing,self.valid_to,self.name),as_dict=1)
+
+		tmp_cek = []
+		if cek:
+			for i in cek:
+				tmp_cek.append(i['name'])
+			frappe.throw("RuleDiscountLeasing sudah ada di document "+str(tmp_cek)+" !")
 
 		#item_code
 		# cek_valid_to = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,"valid_from":self.valid_to,"leasing": self.leasing}, "name")
