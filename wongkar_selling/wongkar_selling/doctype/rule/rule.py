@@ -12,6 +12,7 @@ import datetime
 
 class Rule(Document):
 	def validate(self):
+		return
 		today = date.today()
 		if self.discount:
 			pass

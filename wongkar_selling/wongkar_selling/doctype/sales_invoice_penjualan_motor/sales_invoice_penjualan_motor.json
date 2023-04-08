@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
+ "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-22 10:00:58.661177",
  "doctype": "DocType",
@@ -2325,7 +2326,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-02-24 15:04:55.754320",
+ "modified": "2023-03-27 15:56:12.385161",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

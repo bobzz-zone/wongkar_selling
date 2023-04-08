@@ -12,6 +12,14 @@ frappe.ui.form.on('Rule Discount Leasing', {
                 ]
             }
         }
+        frm.set_df_property("nama_promo", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("leasing", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("valid_from", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("valid_to", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("item_group", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("customer_group", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("territory", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("table_discount_leasing", "read_only", frm.is_new() ? 0 : 1);
 	}
 });
 

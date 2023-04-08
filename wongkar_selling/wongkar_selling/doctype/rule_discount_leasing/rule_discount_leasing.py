@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 # Copyright (c) 2021, Wongkar and contributors
 # For license information, please see license.txt
@@ -42,7 +43,7 @@ class RuleDiscountLeasing(Document):
 #			frappe.throw("Discount Item "+cek_valid_to+" sudah ada !")
 
 	def validate(self):
-		# return
+		return
 		
 		# item_code
 		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,

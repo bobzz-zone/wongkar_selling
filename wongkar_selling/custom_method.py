@@ -239,6 +239,7 @@ def repair_only_gl_entry(doctype, docname):
 #	frappe.db.sql(""" UPDATE `tabSingles` SET value = 0 WHERE field = "allow_negative_stock" """)
 	# print("Membenarkan LEDGER dari {} - DONE ".format(docname))
 	frappe.db.commit()
+	print(docname, " --repair gl")
 
 @frappe.whitelist()
 def repair_sle_entry(doctype,docname):
@@ -827,3 +828,29 @@ def item_end_of_life(item_code):
 def validate_after_amend(self, method):
 	if self.amended_from and not self.alasan_amend:
 		frappe.throw(title='Missing Fields',msg='Alasan Amend field is required')
+
+@frappe.whitelist()
+def patch_pe():
+	list_pe = ['IFMI-PE-4329']
+	for i in list_pe:
+		doc = frappe.get_doc("Payment Entry",i)
+		print(doc.name, " --Pacth PE")
+		doc.received_amount = doc.paid_amount
+		doc.received_amount_after_tax = doc.paid_amount
+		doc.base_received_amount = doc.paid_amount
+		doc.base_received_amount_after_tax = doc.paid_amount
+		doc.unallocated_amount = doc.paid_amount
+		doc.db_update()
+		repair_only_gl_entry(doc.doctype,doc.name)
+		print(doc.name," --DONE")
+
+@frappe.whitelist()
+def patch_sipm():
+	list_sipm = ['ACC-SINVM-2022-22288']
+	for i in list_sipm:
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		print(doc.name, " --Patch SIPM")
+		repair_only_gl_entry(doc.doctype,doc.name)
+		doc.update_against_document_in_jv()
+		print(doc.name," --DONE")
+

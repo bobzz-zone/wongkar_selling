@@ -203,7 +203,7 @@ doc_events = {
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
 	"Serial No":{
-		"on_change": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
+		"onload": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
 		# "validate": "wongkar_selling.custom_standard.custom_serial_no.patch_serial_no"
 	}
 	# "Payment Entry": {
