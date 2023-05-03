@@ -424,63 +424,38 @@ def balik_sipm():
 @frappe.whitelist()
 def cencel_sipm():
 	list_sipm = [
-'ACC-SINVM-2022-25676',
-'ACC-SINVM-2022-26222',
-'ACC-SINVM-2022-25582',
-'ACC-SINVM-2022-25754',
-'ACC-SINVM-2022-25396',
-'ACC-SINVM-2022-25395',
-'ACC-SINVM-2022-24833',
-'ACC-SINVM-2022-24491',
-'ACC-SINVM-2022-24471',
-'ACC-SINVM-2022-24358',
-'ACC-SINVM-2022-24203',
-'ACC-SINVM-2022-24360',
-'ACC-SINVM-2023-01457',
-'ACC-SINVM-2023-01061',
-'ACC-SINVM-2023-00955',
-'ACC-SINVM-2023-01060',
-'ACC-SINVM-2023-00878',
-'ACC-SINVM-2023-00663',
-'ACC-SINVM-2023-01322',
-'ACC-SINVM-2023-00444',
-'ACC-SINVM-2023-00823',
-'ACC-SINVM-2022-27405',
-'ACC-SINVM-2023-00278',
-'ACC-SINVM-2022-27426',
-'ACC-SINVM-2022-27098',
-'ACC-SINVM-2022-27009',
-'ACC-SINVM-2022-27101',
-'ACC-SINVM-2022-27280',
-'ACC-SINVM-2022-26633',
-'ACC-SINVM-2022-26665',
-'ACC-SINVM-2022-26614',
-'ACC-SINVM-2022-27271',
-'ACC-SINVM-2022-25953',
-'ACC-SINVM-2022-26578',
-'ACC-SINVM-2022-26658',
-'ACC-SINVM-2022-26054',
-'ACC-SINVM-2022-27018',
-'ACC-SINVM-2022-25707',
-'ACC-SINVM-2022-26034',
-'ACC-SINVM-2022-25759',
-'ACC-SINVM-2022-26831',
-'ACC-SINVM-2022-26264',
-'ACC-SINVM-2022-25490',
-'ACC-SINVM-2022-25467',
-'ACC-SINVM-2022-25468',
-'ACC-SINVM-2022-25916',
-'ACC-SINVM-2022-25637',
-'ACC-SINVM-2022-25377',
-'ACC-SINVM-2022-25502',
-'ACC-SINVM-2022-25378',
-'ACC-SINVM-2022-25210',
-'ACC-SINVM-2022-25093',
-'ACC-SINVM-2022-24911-1',
-'ACC-SINVM-2022-24479',
-'ACC-SINVM-2022-24357',
-'ACC-SINVM-2022-24402',
-'ACC-SINVM-2022-24345'
+'ACC-SINVM-2022-18075',
+'ACC-SINVM-2022-18087',
+'ACC-SINVM-2022-18785',
+'ACC-SINVM-2022-23658',
+'ACC-SINVM-2022-18134',
+'ACC-SINVM-2022-18136',
+'ACC-SINVM-2022-18138',
+'ACC-SINVM-2022-18144',
+'ACC-SINVM-2022-18157',
+'ACC-SINVM-2022-18159',
+'ACC-SINVM-2022-22103',
+'ACC-SINVM-2022-22581',
+'ACC-SINVM-2022-23584',
+'ACC-SINVM-2022-18552',
+'ACC-SINVM-2022-18824',
+'ACC-SINVM-2022-18567',
+'ACC-SINVM-2022-18583',
+'ACC-SINVM-2022-18593',
+'ACC-SINVM-2022-18596',
+'ACC-SINVM-2022-23411',
+'ACC-SINVM-2022-19022',
+'ACC-SINVM-2022-18655',
+'ACC-SINVM-2022-18859',
+'ACC-SINVM-2022-18665',
+'ACC-SINVM-2022-18826',
+'ACC-SINVM-2022-19025',
+'ACC-SINVM-2022-19026',
+'ACC-SINVM-2022-19056',
+'ACC-SINVM-2022-19493',
+'ACC-SINVM-2022-19632',
+'ACC-SINVM-2022-18767',
+'ACC-SINVM-2022-23580'
 ]
 	conter = 1
 	tmp = []
@@ -493,7 +468,7 @@ def cencel_sipm():
 			doc.cancel()
 			print(doc.name, " --DONE")
 		else:
-			tmp.append(doc.name,'-',str(doc.docstatus), "-SC")
+			tmp.append(doc.name+'-'+str(doc.docstatus)+"-SC")
 		conter = conter + 1
 	print(tmp, '-tmp')
 
@@ -501,12 +476,18 @@ def cencel_sipm():
 @frappe.whitelist()
 def cancel_ste():
 	list_sn = [
-'JBK1E1883466--MH1JBK110NK885985'
+'JBK1E1876303--MH1JBK111NK878740'
 ]
 	conter = 1
 	tmp = []
+	tmp2 = []
+	tmp3 = []
+	tmp4= []
+	tmp5=[]
 	print(len(list_sn), " --list_sn")
-
+	file_name = "test.txt"
+	file_path = frappe.utils.get_files_path(file_name)
+	new_file = open("/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/test.txt", "w")
 	for i in list_sn:
 		print(conter, " --conter")
 		print(i, " --list_sn")
@@ -516,20 +497,184 @@ def cancel_ste():
 			LEFT JOIN `tabStock Entry` se ON se.name = sle.`voucher_no`
 			WHERE sle.`voucher_type`='Stock Entry' AND sle.`is_cancelled` = 0 AND sle.`serial_no` LIKE '%{}%'
 			GROUP BY sle.`voucher_no` ORDER BY se.posting_date DESC,se.`posting_time` DESC """.format(i),as_dict=1)
-		for d in data:
-			print(d['voucher_no'],'|',d.posting_date)
-			doc = frappe.get_doc("Stock Entry",d['voucher_no'])
-			print(doc.name, " --name")
-			if doc.docstatus == 1:
-				try:
-					doc.cancel()
-					print(doc.name, " --DONE")
-				except Exception as e:
-					print(e)
-					return
-				finally:
-  					print("err|",doc.name)
-			else:
-				tmp.append(doc.name,'-',str(doc.docstatus), "-SC")
+		if data:
+			for d in data:
+				print(d['voucher_no'],'|',d.posting_date)
+				doc = frappe.get_doc("Stock Entry",d['voucher_no'])
+				print(doc.name, " --name")
+				if doc.docstatus == 1:
+					try:
+						# frappe.db.begin()
+						doc.cancel()
+						# frappe.db.commit()
+						print(doc.name, " --DONE")
+						tmp4.append(i+"|"+doc.name+"|DONE")
+						tmp5.append(i+"|"+doc.name+"|DONE")
+					except Exception as e:
+						print(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp2.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp5.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						# raise e
+						frappe.db.rollback()
+				else:
+					print(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+					tmp.append(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+		else:
+			print(i+"|STEC")
+			tmp3.append(i+"|STEC")
 		conter = conter + 1
-	print(tmp, '-tmp')
+	new_file.write(str(tmp)+"|tmp"+'\n'+str(tmp2)+"|tmp2"+'\n'+str(tmp3)+"|tmp3"+'\n'+str(tmp4)+"|tmp4"+'\n'+str(tmp5)+'|tmp5')
+	new_file.close()
+	# print(tmp, '-tmp')
+	# print(tmp2, '-tmp2')
+	# print(tmp3, '-tmp3')
+
+@frappe.whitelist()
+def cancel_prec():
+	list_prec = [
+'JBK1E1817059--MH1JBK111NK820935'
+]
+	conter = 1
+	tmp = []
+	tmp2 = []
+	tmp3 = []
+	tmp4= []
+	tmp5=[]
+	print(len(list_prec), " --list_prec")
+	file_name = "test.txt"
+	file_path = frappe.utils.get_files_path(file_name)
+	new_file = open("/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/test.txt", "w")
+	for i in list_prec:
+		print(conter, " --conter")
+		print(i, " --list_prec")
+		data = frappe.db.sql(""" SELECT sle.`name`,sle.`creation`,sle.`serial_no`,sle.`voucher_type`,sle.`voucher_no`,sle.`warehouse` 
+			FROM `tabStock Ledger Entry` sle 
+			WHERE sle.`voucher_type`='Purchase Receipt' AND sle.`is_cancelled` = 0 AND sle.`serial_no` LIKE '%{}%'
+			GROUP BY sle.`voucher_no` """.format(i),as_dict=1)
+		if data:
+			for d in data:
+				print(d['voucher_no'],'|',d.posting_date)
+				doc = frappe.get_doc("Purchase Receipt",d['voucher_no'])
+				print(doc.name, " --name")
+				if doc.docstatus == 1:
+					try:
+						# frappe.db.begin()
+						doc.cancel()
+						# frappe.db.commit()
+						print(doc.name, " --DONE")
+						tmp4.append(i+"|"+doc.name+"|DONE")
+						tmp5.append(i+"|"+doc.name+"|DONE")
+					except Exception as e:
+						print(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp2.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp5.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						# raise e
+						frappe.db.rollback()
+				else:
+					print(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+					tmp.append(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+		else:
+			print(i+"|PREC")
+			tmp3.append(i+"|PREC")
+		conter = conter + 1
+	new_file.write(str(tmp)+"|tmp"+'\n'+str(tmp2)+"|tmp2"+'\n'+str(tmp3)+"|tmp3"+'\n'+str(tmp4)+"|tmp4"+'\n'+str(tmp5)+'|tmp5')
+	new_file.close()
+	# print(tmp, '-tmp')
+	# print(tmp2, '-tmp2')
+	# print(tmp3, '-tmp3')
+
+@frappe.whitelist()
+def cancel_prec_pinv():
+	list_prec = [
+"JMB1E1055152--MH1JMB111NK055008",
+"JMB1E1055173--MH1JMB11XNK055010",
+"JMB1E1058774--MH1JMB116PK058778",
+"JMB1E1060255--MH1JMB11XPK060260",
+"JMB1E1060272--MH1JMB114PK060271",
+"JMB1E1061621--MH1JMB112PK061628",
+"JMB1E1063121--MH1JMB117PK063245",
+"JMD1E1054419--MH1JMD117NK054196",
+"KCB1E1040068--MH1KCB115PK040117",
+"KCD2E1033906--MH1KCD217PK033955",
+"KCE1E1006100 / MH1KCE111NK006075",
+"KCE1E1006148 / MH1KCE113NK006059",
+"KD11E1357267--MH1KD1110PK357939",
+"KD11E1359696--MH1KD1115PK360416",
+"KD11E1360050--MH1KD1112PK360759",
+"KF71E1472128--MH1KF7118PK472060",
+"JMB1E1055069--MH1JMB112NK054921",
+"KB11E1318863--MH1KB1112NK319325",
+"KFB2E1008261--MH1KFB214NK008276",
+"KFB2E1009997--MH1KFB213NK009905"
+]
+	conter = 1
+	tmp = []
+	tmp2 = []
+	tmp3 = []
+	tmp4= []
+	tmp5=[]
+	tmp_pi = []
+	tmp_lcv = []
+	print(len(list_prec), " --list_prec")
+	file_name = "test.txt"
+	file_path = frappe.utils.get_files_path(file_name)
+	new_file = open("/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/test.txt", "w")
+	for i in list_prec:
+		print(conter, " --conter")
+		print(i, " --list_prec")
+		data = frappe.db.sql(""" SELECT sle.`name`,sle.`creation`,sle.`serial_no`,sle.`voucher_type`,sle.`voucher_no`,sle.`warehouse` 
+			FROM `tabStock Ledger Entry` sle 
+			WHERE sle.`voucher_type`='Purchase Receipt' AND sle.`is_cancelled` = 0 AND sle.`serial_no` LIKE '%{}%'
+			GROUP BY sle.`voucher_no` """.format(i),as_dict=1)
+		if data:
+			for d in data:
+				print(d['voucher_no'],'|',d.posting_date)
+				cek_lcv = frappe.db.sql(""" SELECT DISTINCT lcv.name from `tabLanded Cost Purchase Receipt` lc 
+					join `tabLanded Cost Voucher` lcv on lcv.name = lc.parent
+					where lc.receipt_document = '{}' and lcv.docstatus = 1 """.format(d['voucher_no']),as_dict=1)
+
+				if cek_lcv:
+					for l in cek_lcv:
+						print(l['name'], ' --cek_lcv')
+						tmp_lcv.append(i+"|"+l['name']+'|LCV')
+						doc_lcv = frappe.get_doc("Landed Cost Voucher",l['name'])
+						doc_lcv.cancel()
+
+				cek = frappe.db.sql(""" SELECT DISTINCT  pi.name from `tabPurchase Invoice Item` pii 
+					join `tabPurchase Invoice` pi on pi.name = pii.parent 
+					where pii.purchase_receipt = '{}' and pi.docstatus = 1 """.format(d['voucher_no']),as_dict=1)
+				if cek:
+					for c in cek:
+						print(c['name'], ' --pi_name')
+						tmp_pi.append(i+"|"+c['name']+'|PI')
+						doc_pi = frappe.get_doc("Purchase Invoice",c['name'])
+						doc_pi.cancel()
+				
+				doc = frappe.get_doc("Purchase Receipt",d['voucher_no'])
+				print(doc.name, " --name")
+				if doc.docstatus == 1:
+					try:
+						# frappe.db.begin()
+						doc.cancel()
+						# frappe.db.commit()
+						print(doc.name, " --DONE")
+						tmp4.append(i+"|"+doc.name+"|DONE")
+						tmp5.append(i+"|"+doc.name+"|DONE")
+					except Exception as e:
+						print(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp2.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						tmp5.append(i+"|"+doc.name+'|'+str(e)+"|err")
+						# raise e
+						frappe.db.rollback()
+				else:
+					print(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+					tmp.append(i+"|"+doc.name+'|'+str(doc.docstatus)+"|SC")
+		else:
+			print(i+"|PREC")
+			tmp3.append(i+"|PREC")
+		conter = conter + 1
+	new_file.write(str(tmp)+"|tmp"+'\n'+str(tmp2)+"|tmp2"+'\n'+str(tmp3)+"|tmp3"+'\n'+str(tmp4)+"|tmp4"+'\n'+str(tmp5)+'|tmp5'+'\n'+str(tmp_pi)+'|tmp_pi'+'\n'+str(tmp_lcv)+'|tmp_lcv')
+	new_file.close()
+	# print(tmp, '-tmp')
+	# print(tmp2, '-tmp2')
+	# print(tmp3, '-tmp3')

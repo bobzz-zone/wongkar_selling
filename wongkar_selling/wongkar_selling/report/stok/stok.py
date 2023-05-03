@@ -31,7 +31,7 @@ def get_data(filters):
 		sn.tools,
 		sn.helm,
 		sn.aki,
-		sn.buku_servis,
+		sn.buku_service,
 		sn.kunci_kontak,
 		sn.jaket,
 		sn.kondisi,

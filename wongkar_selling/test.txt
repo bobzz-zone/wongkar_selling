@@ -1,0 +1,5 @@
+[]|tmp
+['JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-03943|Cannot cancel Stock Entry <a href="https://ifmi.digitalasiasolusindo.com/app/stock-entry/MAT-STE-2022-03943">MAT-STE-2022-03943</a> as Serial No <a href="https://ifmi.digitalasiasolusindo.com/app/serial-no/KFA1E1111206--MH1KFA117NK111168">KFA1E1111206--MH1KFA117NK111168</a> does not belong to the warehouse <b>Tentena - Motor - HND</b>|err']|tmp2
+[]|tmp3
+['JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-04018|DONE', 'JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-03971|DONE']|tmp4
+['JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-04018|DONE', 'JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-03971|DONE', 'JBK1E1876303--MH1JBK111NK878740|MAT-STE-2022-03943|Cannot cancel Stock Entry <a href="https://ifmi.digitalasiasolusindo.com/app/stock-entry/MAT-STE-2022-03943">MAT-STE-2022-03943</a> as Serial No <a href="https://ifmi.digitalasiasolusindo.com/app/serial-no/KFA1E1111206--MH1KFA117NK111168">KFA1E1111206--MH1KFA117NK111168</a> does not belong to the warehouse <b>Tentena - Motor - HND</b>|err']|tmp5
