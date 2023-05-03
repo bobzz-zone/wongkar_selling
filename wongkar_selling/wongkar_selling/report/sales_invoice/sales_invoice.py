@@ -44,9 +44,9 @@ def get_data(filters):
 		sipm.harga,
 		sipm.cara_bayar,
 		sipm.nominal_diskon,
-		sipm.total_advance,
+		IF(sipm.cara_bayar = "Cash",sipm.total_advance-sipm.nominal_diskon,sipm.total_advance),
 		sipm.name,
-		sipm.customer_name,
+		IF(sipm.cara_bayar = "Credit",sipm.customer_name,"CASH"),
 		IF(IFNULL(SUM(tdl.nominal),0),SUM(tdl.nominal),0),
 		sipm.adj_discount,
 		sipm.outstanding_amount,
@@ -55,7 +55,7 @@ def get_data(filters):
 		sipm.status,
 		sn.tanggal_faktur,
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sipm.`nama_pemilik`),
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`nama_pemilik`,sipm.`nama_pemilik`),
 		i.tahun_rakitan,# i.tahun_rakitan tahun_rakit
 		sipm.dp_gross_hitung,
 		sipm.tanggal_tagih,
@@ -67,7 +67,8 @@ def get_data(filters):
 		IF(sipm.tanggal_tagih,DATEDIFF(sipm.tanggal_tagih, sipm.posting_date),0),
 		sipm.tanggal_po,
 		sipm.no_po_leasing,
-		i.warna
+		i.warna,
+		sipm.nama_penjualan
 		from `tabSales Invoice Penjualan Motor` sipm 
 		join `tabCustomer` c on c.name = sipm.pemilik
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
@@ -80,7 +81,18 @@ def get_data(filters):
 
 	
 	output = []
+	output_beban = []
 	for i in data:
+		data2 = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'AHM' group by sipm.name """.format(i[24]),as_list=1)
+		datamd = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Anugerah Perdana' group by sipm.name """.format(i[24]),as_list=1)
+		datad = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Dealer' group by sipm.name """.format(i[24]),as_list=1)
+
+		disc_leasing = frappe.db.sql(""" SELECT IFNULL(nominal,0) from `tabSales Invoice Penjualan Motor` sipm 
+			LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' """.format(i[24]),as_list=1)
+
 		kd = i[17].split("-")
 		i_n = i[18].split("-")
 		w = i[18].split("-")
@@ -92,20 +104,6 @@ def get_data(filters):
 			w2 = w[1]+" - "+w[2]
 		else:
 			w2 = w[1]
-		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],i[25],i[21],i[22],i[23]])
-
-	output_beban = []
-	for d in data:
-		data2 = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'AHM' group by sipm.name """.format(d[24]),as_list=1)
-		datamd = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Anugerah Perdana' group by sipm.name """.format(d[24]),as_list=1)
-		datad = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Dealer' group by sipm.name """.format(d[24]),as_list=1)
-
-		disc_leasing = frappe.db.sql(""" SELECT nominal from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' """.format(d[24]),as_list=1)
-
 
 		bl = 0
 		tam_les = 0
@@ -121,13 +119,6 @@ def get_data(filters):
 			bl = disc_leasing[0][0]
 
 		
-		# data_leasing = frappe.db.sql(""" SELECT td.nominal from `tabSales Invoice Penjualan Motor` sipm 
-		# 	LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' order by idx asc """.format(d[24]),as_list=1)
-
-		# if data_leasing:
-		# 	if len(data_leasing) > 2:
-		# 		pass
-
 		ahm=0
 		ap = 0
 		dea = 0
@@ -136,50 +127,31 @@ def get_data(filters):
 		if datamd:
 			ap = datamd[0][0]
 		if datad:
-			ap = datad[0][0]
+			dea = datad[0][0]
+		# grosdp = i[28]+ahm+ap+dea
 
-		# if datad:
-		# 	output_beban.append([0,0,datad[0][0],0,0])
-		# else:
-		# 	output_beban.append([0,0,0,0,0])
-
-		# if data2 and datamd and datad:
-		# 	output_beban.append([data2[0][0],datamd[0][0],datad[0][0],0,0])
-		# elif data2 and not datamd and datad:
-		# 	output_beban.append([data2[0][0],0,datad[0][0],0,0])
-		# elif data2 and datamd and not datad:
-		# 	output_beban.append([data2[0][0],datamd[0][0],0,0,0])
-		# elif data2 and not datamd and not datad:
-		# 	output_beban.append([data2[0][0],0,0,0,0])
-		# elif not data2 and datamd and datad:
-		# 	output_beban.append([0,datamd[0][0],datad[0][0],0,0])
-		# elif not data2 and datamd and not datad:
-		# 	output_beban.append([0,datamd[0][0],0,0,0])
-		# elif not data2 and not datamd and datad:
-		# 	output_beban.append([0,0,datad[0][0],0,0])
-		# else:	
-		# 	output_beban.append([0,0,0,0,0])
-	
-		output_beban.append([ahm,ap,ap])
+		
+		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47]])
 		
 
 	# output_tes = output
 	conter = 0
 	tmp = []
 	for ot in output:
-		ot.extend(output_beban[conter])
+		# ot.extend(output_beban[conter])
 		tmp.append(ot)
 		conter = conter+1
 	con = 0
 	tmp2 = tmp
 	tampil = []	
+	# frappe.msgprint(str(tmp2)+'tmp2')
 	for t in tmp2:
 		# frappe.msgprint(data[con][24])
 		data_stnk = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
 			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "STNK" """.format(data[con][24]),as_list=1)
 		data_bpkb = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
 			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "BPKB" """.format(data[con][24]),as_list=1)
-		data_dealer = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
+		data_dealer = frappe.db.sql(""" SELECT IFNULL(sum(bm.amount),0) from `tabSales Invoice Penjualan Motor` sipm 
 			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.vendor = "Dealer" """.format(data[con][24]),as_list=1)
 
 		cair = frappe.db.sql(""" SELECT tagihan_sipm-outstanding_sipm from `tabSales Invoice Penjualan Motor` sipm 
@@ -233,21 +205,21 @@ def get_data(filters):
 			t[21],
 			t[22],
 			t[23],#no rangka
-			t[24],
+			t[24],#otr
 			t[25],
 			t[26],
 			t[27],#potongjual nominal diskon
-			t[28],
-			t[29],
-			t[30],
-			t[31],
-			bl, # beban leasing
+			t[28],#dpmurni
+			t[32], # beban_ahm
+			t[33],#beban_md
+			t[34],#beban_de
+			t[29], # beban leasing
 			d_dealer,#cashback
-			data[con][36],#gross dp
-			tam_les,
-			tam_lain, # tambah lain d_dealer
+			t[28]+t[32]+t[33]+t[34],#gross dp data[con][36]
+			t[30], # tambahn leasing
+			t[31], # tambah lain d_dealer
 			"",# ket tambahn
-			data[con][28],
+			t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31],#piutang leasing data[con][28]
 			d_cair,# cair
 			d_caird,
 			d_cair-d_caird,
@@ -257,10 +229,11 @@ def get_data(filters):
 			data[con][38],#tc
 			data[con][43],
 			data[con][39],#hc
-			data[con][28],#piutang Konsumen
+			t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31],#piutang Konsumen data[con][28]
 			data[con][44],
 			data[con][45],
 			# "SALES LAPANGAN",
+			t[35], # "Mediator" nama penjualan
 			data[con][40],
 			data[con][41],#top kredit
 			data[con][42], # angsuran
@@ -600,7 +573,13 @@ def get_columns(filters):
 		# 	"width": 100
 		# },
 		{
-			"label": _("Marketing"),
+			"label": _("Nama Penjualan"),
+			"fieldname": "nama_penjualan",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("Nama Marketing"),
 			"fieldname": "marketing",
 			"fieldtype": "Data",
 			"width": 100

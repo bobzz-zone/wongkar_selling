@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_import": 1,
- "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-22 10:00:58.661177",
  "doctype": "DocType",
@@ -18,6 +17,7 @@
   "pemilik",
   "nama_pemilik",
   "marketing",
+  "nama_penjualan",
   "bypass_biaya",
   "from_group",
   "tax_id",
@@ -2315,6 +2315,13 @@
    "hidden": 1,
    "label": "Marketing",
    "options": "Sales Person"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "nama_penjualan",
+   "fieldtype": "Select",
+   "label": "Nama Penjualan",
+   "options": "\nCS\nMarketing\nMediator\nTitip Jual"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2326,7 +2333,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-03-27 15:56:12.385161",
+ "modified": "2023-05-03 14:04:26.799805",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
