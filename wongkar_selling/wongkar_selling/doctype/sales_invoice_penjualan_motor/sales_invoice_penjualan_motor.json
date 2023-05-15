@@ -2225,7 +2225,8 @@
    "fieldname": "nama_diskon",
    "fieldtype": "Link",
    "label": "Category Discount",
-   "options": "Category Discount"
+   "options": "Category Discount",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -2333,7 +2334,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-03 14:04:26.799805",
+ "modified": "2023-05-15 09:53:04.611432",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

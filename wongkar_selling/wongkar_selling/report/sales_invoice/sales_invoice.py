@@ -214,15 +214,15 @@ def get_data(filters):
 			t[33],#beban_md
 			t[34],#beban_de
 			t[29], # beban leasing
-			d_dealer,#cashback
-			t[28]+t[32]+t[33]+t[34],#gross dp data[con][36]
-			t[30], # tambahn leasing
+			0,#cashback d_dealer
+			t[28]+t[32]+t[33]+t[34]+t[29],#gross dp data[con][36] t[28]+t[32]+t[33]+t[34]
+			t[29], # tambahn leasing t[30]
 			t[31], # tambah lain d_dealer
 			"",# ket tambahn
-			t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31],#piutang leasing data[con][28]
+			t[24]-(t[28]+t[32]+t[33]+t[34]+t[29])+t[29]+t[31],#piutang leasing data[con][28]
 			d_cair,# cair
 			d_caird,
-			d_cair-d_caird,
+			(t[24]-(t[28]+t[32]+t[33]+t[34]+t[29])+t[29]+t[31])-d_cair-d_caird,# selisih cair d_cair-d_caird
 			ket_cair,
 			data[con][29],
 			data[con][37],#tt
