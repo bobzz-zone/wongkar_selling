@@ -36,12 +36,13 @@ def get_data(filters):
 		sn.jaket,
 		sn.kondisi,
 		pr.supplier_delivery_order,
-		i.warna
+		i.warna,
+		sn.warehouse
 		FROM `tabSerial No` sn 
 		join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabItem` i on i.name = sn.item_code
-		where sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry' group by sn.name """,as_list=1)
+		where sn.status = "Active" and (sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry') group by sn.name """,as_list=1)
 
 	output =[]
 
@@ -70,8 +71,9 @@ def get_data(filters):
 			i[2],
 			i[9],#asal_beli
 			"",
-			i[3],
-			kt[0],
+			i[3],#pos
+			i[20],# wh
+			i[4], # kt[0] kode tipe
 			nt[0],
 			nr[0],
 			nr[1],
@@ -132,6 +134,13 @@ def get_columns(filters):
 			"label": _("Pos"),
 			"fieldname": "pos",
 			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("Warehouse"),
+			"fieldname": "warehouse",
+			"fieldtype": "Link",
+			"options": "Warehouse",
 			"width": 100
 		},
 		{
