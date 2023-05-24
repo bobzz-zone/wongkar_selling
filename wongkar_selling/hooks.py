@@ -14,7 +14,8 @@ app_license = "MIT"
 jenv = {
     "filters": [
         "number2word:wongkar_selling.wongkar_selling.jinja.toTerbilang",
-        "outhari:wongkar_selling.wongkar_selling.jinja.hari"
+        "outhari:wongkar_selling.wongkar_selling.jinja.hari",
+        "outtgl:wongkar_selling.wongkar_selling.jinja.tgl"
     ]
 }
 
@@ -204,7 +205,7 @@ doc_events = {
 	},
 	"Serial No":{
 		"onload": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
-		# "validate": "wongkar_selling.custom_standard.custom_serial_no.patch_serial_no"
+		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin"
 	}
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],

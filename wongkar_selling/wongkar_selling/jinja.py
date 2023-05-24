@@ -1,6 +1,7 @@
 from num2words import num2words
 import frappe
 import datetime
+from datetime import date
 
 @frappe.whitelist()
 def toTerbilang(num):
@@ -14,3 +15,9 @@ def hari(tanggal):
   output = days[test]
 
   return output
+
+@frappe.whitelist()
+def tgl(name):
+  today = date.today()
+
+  return today.strftime("%d %B %Y")

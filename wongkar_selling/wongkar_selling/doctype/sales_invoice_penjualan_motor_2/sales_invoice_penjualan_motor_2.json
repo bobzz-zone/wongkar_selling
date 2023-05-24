@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
- "creation": "2021-09-22 10:00:58.661177",
+ "creation": "2023-05-22 09:57:56.823819",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -17,7 +17,6 @@
   "pemilik",
   "nama_pemilik",
   "marketing",
-  "nama_penjualan",
   "bypass_biaya",
   "from_group",
   "tax_id",
@@ -77,10 +76,6 @@
   "nama_promo",
   "nama_leasing",
   "no_rangka",
-  "foto_invoice",
-  "foto_surat_jalan",
-  "foto_kwitansi_uang_muka",
-  "foto_kwitansi_sub",
   "no_mesin",
   "diskon",
   "nominal_diskon",
@@ -300,6 +295,65 @@
    "read_only": 1
   },
   {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Territory",
+   "options": "Territory",
+   "print_hide": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "territory_baru",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Territory Baru"
+  },
+  {
+   "depends_on": "eval:doc.territory_baru == 1",
+   "fieldname": "new_territory",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "New Territory"
+  },
+  {
+   "fieldname": "pemilik",
+   "fieldtype": "Link",
+   "label": "Pemilik",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "pemilik.customer_name",
+   "fieldname": "nama_pemilik",
+   "fieldtype": "Data",
+   "label": "Nama Pemilik",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "marketing",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Marketing",
+   "options": "Sales Person"
+  },
+  {
+   "default": "0",
+   "fieldname": "bypass_biaya",
+   "fieldtype": "Check",
+   "label": "Bypass Rule Biaya"
+  },
+  {
+   "default": "1",
+   "fieldname": "from_group",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "From Group",
+   "read_only": 1
+  },
+  {
    "fieldname": "tax_id",
    "fieldtype": "Data",
    "hide_days": 1,
@@ -434,6 +488,19 @@
    "oldfieldtype": "Date"
   },
   {
+   "fetch_if_empty": 1,
+   "fieldname": "territory_real",
+   "fieldtype": "Link",
+   "label": "Territory Real",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "territory_biaya",
+   "fieldtype": "Link",
+   "label": "Territory Biaya",
+   "options": "Territory"
+  },
+  {
    "depends_on": "return_against",
    "fieldname": "return_against",
    "fieldtype": "Link",
@@ -445,15 +512,6 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Sales Invoice Penjualan Motor",
-   "print_hide": 1,
-   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -585,16 +643,6 @@
    "options": "Email",
    "print_hide": 1,
    "read_only": 1
-  },
-  {
-   "fieldname": "territory",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Territory",
-   "options": "Territory",
-   "print_hide": 1
   },
   {
    "fieldname": "col_break4",
@@ -758,6 +806,195 @@
    "fieldtype": "Link",
    "label": "Set Target Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "penjualan_motor_section",
+   "fieldtype": "Section Break",
+   "label": "Penjualan Motor"
+  },
+  {
+   "fieldname": "cara_bayar",
+   "fieldtype": "Select",
+   "label": "Cara Bayar",
+   "options": "Cash\nCredit"
+  },
+  {
+   "default": "0",
+   "fieldname": "tagihan_leasing",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Tagihan Leasing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nama_diskon",
+   "fieldtype": "Link",
+   "label": "Category Discount",
+   "options": "Category Discount"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "nama_promo",
+   "fieldtype": "Link",
+   "label": "Nama Promo",
+   "options": "Category Discount Leasing"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "nama_leasing",
+   "fieldtype": "Link",
+   "label": "Nama Leasing",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.set_warehouse",
+   "fieldname": "no_rangka",
+   "fieldtype": "Link",
+   "label": "No Rangka",
+   "options": "Serial No"
+  },
+  {
+   "fetch_from": "no_rangka.no_mesin",
+   "fieldname": "no_mesin",
+   "fieldtype": "Data",
+   "label": "No Mesin",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "diskon",
+   "fieldtype": "Check",
+   "label": "Diskon"
+  },
+  {
+   "depends_on": "eval:doc.diskon",
+   "fieldname": "nominal_diskon",
+   "fieldtype": "Currency",
+   "label": "Nominal Diskon"
+  },
+  {
+   "fieldname": "harga",
+   "fieldtype": "Currency",
+   "label": "Harga",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_sinvm0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "no_po_leasing",
+   "fieldtype": "Data",
+   "label": "No PO Leasing",
+   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "po_attch",
+   "fieldtype": "Attach Image",
+   "label": "PO Attch",
+   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "dp_gross",
+   "fieldtype": "Currency",
+   "label": "DP Gross"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "dp_gross_hitung",
+   "fieldtype": "Currency",
+   "label": "DP Gross Hitung",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "jangka_waktu",
+   "fieldtype": "Int",
+   "label": "Jangka Waktu"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "angsuran",
+   "fieldtype": "Currency",
+   "label": "Angsuran"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "tertagih",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Tertagih"
+  },
+  {
+   "fieldname": "sb_tb_disc_section",
+   "fieldtype": "Section Break",
+   "label": "Diskon Section"
+  },
+  {
+   "fieldname": "table_discount",
+   "fieldtype": "Table",
+   "label": "Table Discount",
+   "options": "Table Discount",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "tanggal_tagih",
+   "fieldtype": "Date",
+   "label": "Tanggal Tagih"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "tanggal_cair",
+   "fieldtype": "Date",
+   "label": "Tanggal Cair"
+  },
+  {
+   "fieldname": "table_discount_leasing",
+   "fieldtype": "Table",
+   "label": "Table Discount Leasing",
+   "options": "Table Disc Leasing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_discoun_leasing",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Total DIscoun leasing"
+  },
+  {
+   "fieldname": "account_adj_discount",
+   "fieldtype": "Link",
+   "label": "Account Adj Discount",
+   "options": "Account"
+  },
+  {
+   "fieldname": "adj_discount",
+   "fieldtype": "Currency",
+   "label": "Adj Discount Amount"
   },
   {
    "fieldname": "items_section",
@@ -1005,6 +1242,24 @@
    "options": "Sales Taxes and Charges"
   },
   {
+   "fieldname": "sb_biaya_section",
+   "fieldtype": "Section Break",
+   "label": "Biaya Section"
+  },
+  {
+   "fieldname": "tabel_biaya_motor",
+   "fieldtype": "Table",
+   "label": "Tabel Biaya Motor",
+   "options": "Tabel Biaya Motor",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_biaya",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Total Biaya"
+  },
+  {
    "collapsible": 1,
    "fieldname": "sec_tax_breakup",
    "fieldtype": "Section Break",
@@ -1214,6 +1469,12 @@
    "reqd": 1
   },
   {
+   "fieldname": "base_grand_total_2",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "base_grand_total_2"
+  },
+  {
    "fieldname": "base_rounding_adjustment",
    "fieldtype": "Currency",
    "hidden": 1,
@@ -1274,6 +1535,13 @@
    "reqd": 1
   },
   {
+   "fieldname": "grand_total_2",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Grand Total 2",
+   "read_only": 1
+  },
+  {
    "fieldname": "rounding_adjustment",
    "fieldtype": "Currency",
    "hidden": 1,
@@ -1295,6 +1563,13 @@
    "oldfieldname": "rounded_total_export",
    "oldfieldtype": "Currency",
    "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rounded_total_2",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Rounded Total 2",
    "read_only": 1
   },
   {
@@ -2032,326 +2307,17 @@
    "read_only": 1
   },
   {
-   "fieldname": "penjualan_motor_section",
-   "fieldtype": "Section Break",
-   "label": "Penjualan Motor"
-  },
-  {
-   "fieldname": "cara_bayar",
-   "fieldtype": "Select",
-   "label": "Cara Bayar",
-   "options": "Cash\nCredit"
-  },
-  {
-   "fieldname": "item_code",
+   "fieldname": "amended_from",
    "fieldtype": "Link",
-   "label": "Item Code",
-   "options": "Item"
-  },
-  {
-   "depends_on": "eval:doc.set_warehouse",
-   "fieldname": "no_rangka",
-   "fieldtype": "Link",
-   "label": "No Rangka",
-   "options": "Serial No"
-  },
-  {
-   "fetch_from": "no_rangka.no_mesin",
-   "fieldname": "no_mesin",
-   "fieldtype": "Data",
-   "label": "No Mesin",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sales Invoice Penjualan Motor",
+   "print_hide": 1,
    "read_only": 1
-  },
-  {
-   "fieldname": "harga",
-   "fieldtype": "Currency",
-   "label": "Harga",
-   "read_only": 1
-  },
-  {
-   "fieldname": "cb_sinvm0",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fieldname": "nama_promo",
-   "fieldtype": "Link",
-   "label": "Nama Promo",
-   "options": "Category Discount Leasing"
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fieldname": "nama_leasing",
-   "fieldtype": "Link",
-   "label": "Nama Leasing",
-   "options": "Customer",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fieldname": "tertagih",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Tertagih"
-  },
-  {
-   "fieldname": "sb_tb_disc_section",
-   "fieldtype": "Section Break",
-   "label": "Diskon Section"
-  },
-  {
-   "fieldname": "table_discount",
-   "fieldtype": "Table",
-   "label": "Table Discount",
-   "options": "Table Discount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "table_discount_leasing",
-   "fieldtype": "Table",
-   "label": "Table Discount Leasing",
-   "options": "Table Disc Leasing",
-   "read_only": 1
-  },
-  {
-   "fieldname": "account_adj_discount",
-   "fieldtype": "Link",
-   "label": "Account Adj Discount",
-   "options": "Account"
-  },
-  {
-   "fieldname": "adj_discount",
-   "fieldtype": "Currency",
-   "label": "Adj Discount Amount"
-  },
-  {
-   "fieldname": "sb_biaya_section",
-   "fieldtype": "Section Break",
-   "label": "Biaya Section"
-  },
-  {
-   "fieldname": "tabel_biaya_motor",
-   "fieldtype": "Table",
-   "label": "Tabel Biaya Motor",
-   "options": "Tabel Biaya Motor",
-   "read_only": 1
-  },
-  {
-   "fieldname": "total_discoun_leasing",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Total DIscoun leasing"
-  },
-  {
-   "fieldname": "grand_total_2",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Grand Total 2",
-   "read_only": 1
-  },
-  {
-   "fieldname": "rounded_total_2",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Rounded Total 2",
-   "read_only": 1
-  },
-  {
-   "fieldname": "base_grand_total_2",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "base_grand_total_2"
-  },
-  {
-   "fieldname": "total_biaya",
-   "fieldtype": "Currency",
-   "hidden": 1,
-   "label": "Total Biaya"
-  },
-  {
-   "fieldname": "pemilik",
-   "fieldtype": "Link",
-   "label": "Pemilik",
-   "options": "Customer"
-  },
-  {
-   "fetch_from": "pemilik.customer_name",
-   "fieldname": "nama_pemilik",
-   "fieldtype": "Data",
-   "label": "Nama Pemilik",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.territory_baru == 1",
-   "fieldname": "new_territory",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "New Territory"
-  },
-  {
-   "default": "0",
-   "fieldname": "territory_baru",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Territory Baru"
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fieldname": "no_po_leasing",
-   "fieldtype": "Data",
-   "label": "No PO Leasing",
-   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
-   "fieldname": "po_attch",
-   "fieldtype": "Attach Image",
-   "label": "PO Attch",
-   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\""
-  },
-  {
-   "fetch_if_empty": 1,
-   "fieldname": "territory_real",
-   "fieldtype": "Link",
-   "label": "Territory Real",
-   "options": "Territory"
-  },
-  {
-   "fieldname": "territory_biaya",
-   "fieldtype": "Link",
-   "label": "Territory Biaya",
-   "options": "Territory"
-  },
-  {
-   "fieldname": "nama_diskon",
-   "fieldtype": "Link",
-   "label": "Category Discount",
-   "options": "Category Discount",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "diskon",
-   "fieldtype": "Check",
-   "label": "Diskon"
-  },
-  {
-   "depends_on": "eval:doc.diskon",
-   "fieldname": "nominal_diskon",
-   "fieldtype": "Currency",
-   "label": "Nominal Diskon"
-  },
-  {
-   "default": "0",
-   "fieldname": "bypass_biaya",
-   "fieldtype": "Check",
-   "label": "Bypass Rule Biaya"
-  },
-  {
-   "default": "0",
-   "fieldname": "tagihan_leasing",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Tagihan Leasing",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
-   "fieldname": "dp_gross",
-   "fieldtype": "Currency",
-   "label": "DP Gross"
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
-   "fieldname": "dp_gross_hitung",
-   "fieldtype": "Currency",
-   "label": "DP Gross Hitung",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
-   "fieldname": "jangka_waktu",
-   "fieldtype": "Int",
-   "label": "Jangka Waktu"
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
-   "fieldname": "angsuran",
-   "fieldtype": "Currency",
-   "label": "Angsuran"
-  },
-  {
-   "fetch_from": "item_code.item_group",
-   "fieldname": "item_group",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Item Group",
-   "options": "Item Group",
-   "read_only": 1
-  },
-  {
-   "default": "1",
-   "fieldname": "from_group",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "From Group",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "tanggal_tagih",
-   "fieldtype": "Date",
-   "label": "Tanggal Tagih"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "tanggal_cair",
-   "fieldtype": "Date",
-   "label": "Tanggal Cair"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "marketing",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Marketing",
-   "options": "Sales Person"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "nama_penjualan",
-   "fieldtype": "Select",
-   "label": "Nama Penjualan",
-   "options": "\nCS\nMarketing\nMediator\nTitip Jual"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "foto_invoice",
-   "fieldtype": "Attach Image",
-   "label": "Foto Invoice"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "foto_surat_jalan",
-   "fieldtype": "Attach Image",
-   "label": "Foto Surat Jalan"
-  },
-  {
-   "fieldname": "foto_kwitansi_uang_muka",
-   "fieldtype": "Attach Image",
-   "label": "Foto Kwitansi Uang Muka"
-  },
-  {
-   "fieldname": "foto_kwitansi_sub",
-   "fieldtype": "Attach Image",
-   "label": "Foto Kwitansi Sub"
   }
  ],
  "icon": "fa fa-file-text",
+ "in_create": 1,
  "is_submittable": 1,
  "links": [
   {
@@ -2360,10 +2326,10 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-22 13:48:41.250797",
+ "modified": "2023-05-23 12:39:57.167204",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
- "name": "Sales Invoice Penjualan Motor",
+ "name": "Sales Invoice Penjualan Motor 2",
  "name_case": "Title Case",
  "owner": "Administrator",
  "permissions": [
@@ -2418,6 +2384,7 @@
   }
  ],
  "quick_entry": 1,
+ "read_only": 1,
  "search_fields": "posting_date, due_date, customer, base_grand_total, outstanding_amount",
  "show_name_in_global_search": 1,
  "sort_field": "modified",

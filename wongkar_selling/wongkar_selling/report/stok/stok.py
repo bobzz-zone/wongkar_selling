@@ -37,11 +37,14 @@ def get_data(filters):
 		sn.kondisi,
 		pr.supplier_delivery_order,
 		i.warna,
-		sn.warehouse
+		sn.warehouse,
+		(SELECT cost_center from `tabStock Entry Detail` where parent=se.name Limit 1),
+		pr.supplier
 		FROM `tabSerial No` sn 
 		join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabItem` i on i.name = sn.item_code
+		left join `tabStock Entry` se on se.name = sle.voucher_no
 		where sn.status = "Active" and (sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry') group by sn.name """,as_list=1)
 
 	output =[]
@@ -63,14 +66,19 @@ def get_data(filters):
 		elif "/" in i[6]:
 			nr = i[6].split("/")
 
+		if i[9]:
+			asal_beli = i[9]
+		else:
+			asal_beli = i[21]
 		# frappe.msgprint(tes[5:7])
 		output.append([
 			i[8],
 			i[0],
 			i[1],
 			i[2],
-			i[9],#asal_beli
-			"",
+			i[22],# sumber "MD"
+			asal_beli,#asal_beli
+			i[20],# cabang
 			i[3],#pos
 			i[20],# wh
 			i[4], # kt[0] kode tipe
@@ -119,14 +127,20 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Sumber Stok"),
+			"fieldname": "sumber_stok",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
 			"label": _("AsalBeli"),
 			"fieldname": "asalbeli",
 			"fieldtype": "Data",
 			"width": 100
 		},
 		{
-			"label": _("Cabang1"),
-			"fieldname": "cabang1",
+			"label": _("Cabang"),
+			"fieldname": "cabang",
 			"fieldtype": "Data",
 			"width": 100
 		},

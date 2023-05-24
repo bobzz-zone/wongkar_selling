@@ -1,5 +1,10 @@
 import frappe
 
+def isi_nosin(self,method):
+	split = self.name.split("--")
+	self.no_rangka = split[0]
+	self.no_mesin = split[1]
+
 def rem_sinv(self,method):
 	# doc = frappe.get_doc("Serial No",self.name)
 	if self.delivery_document_type == 'Sales Invoice Penjualan Motor' and self.delivery_document_no:

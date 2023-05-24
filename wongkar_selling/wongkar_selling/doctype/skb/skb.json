@@ -1,0 +1,203 @@
+{
+ "actions": [],
+ "autoname": "format:{serial_no}-{nama_pemilik}",
+ "creation": "2023-05-22 09:24:58.636946",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "serial_no",
+  "item_code",
+  "pemilik",
+  "nama_pemilik",
+  "sales_invoice_penjualan_motor",
+  "section_break_4",
+  "no_faktur",
+  "tanggal_faktur",
+  "tanggal_terima_faktur",
+  "tanggal_serah_faktur",
+  "detail_stnk_dan_bpkb_section",
+  "stnk_column",
+  "biaya_stnk",
+  "no_stnk",
+  "no_notice_stnk",
+  "tanggal_terima_stnk",
+  "tanggal_serah_stnk",
+  "no_plat",
+  "tanggal_terima_plat",
+  "tanggal_serah_plat",
+  "bpkb_column",
+  "biaya_bpkb",
+  "no_bpkb",
+  "tanggal_terima_bpkb",
+  "tanggal_serah_bpkb",
+  "keterangan_proses_skb"
+ ],
+ "fields": [
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Link",
+   "label": "Serial No",
+   "options": "Serial No",
+   "unique": 1
+  },
+  {
+   "fetch_from": "serial_no.pemilik",
+   "fieldname": "pemilik",
+   "fieldtype": "Link",
+   "label": "Pemilik",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "pemilik.customer_name",
+   "fieldname": "nama_pemilik",
+   "fieldtype": "Data",
+   "label": "Nama Pemilik"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Detail Faktur"
+  },
+  {
+   "fieldname": "no_faktur",
+   "fieldtype": "Data",
+   "label": "No Faktur"
+  },
+  {
+   "fieldname": "tanggal_faktur",
+   "fieldtype": "Date",
+   "label": "Tanggal Faktur"
+  },
+  {
+   "fieldname": "tanggal_terima_faktur",
+   "fieldtype": "Date",
+   "label": "Tanggal Terima Faktur"
+  },
+  {
+   "fieldname": "tanggal_serah_faktur",
+   "fieldtype": "Date",
+   "label": "Tanggal Serah Faktur"
+  },
+  {
+   "fieldname": "detail_stnk_dan_bpkb_section",
+   "fieldtype": "Section Break",
+   "label": "Detail STNK dan BPKB"
+  },
+  {
+   "fieldname": "stnk_column",
+   "fieldtype": "Column Break",
+   "label": "STNK"
+  },
+  {
+   "fieldname": "no_stnk",
+   "fieldtype": "Data",
+   "label": "No STNK"
+  },
+  {
+   "fieldname": "no_notice_stnk",
+   "fieldtype": "Data",
+   "label": "No Notice STNK"
+  },
+  {
+   "fieldname": "tanggal_terima_stnk",
+   "fieldtype": "Date",
+   "label": "Tanggal Terima STNK"
+  },
+  {
+   "fieldname": "tanggal_serah_stnk",
+   "fieldtype": "Date",
+   "label": "Tanggal Serah STNK"
+  },
+  {
+   "fieldname": "no_plat",
+   "fieldtype": "Data",
+   "label": "No Plat"
+  },
+  {
+   "fieldname": "tanggal_terima_plat",
+   "fieldtype": "Date",
+   "label": "Tanggal Terima Plat"
+  },
+  {
+   "fieldname": "tanggal_serah_plat",
+   "fieldtype": "Date",
+   "label": "Tanggal Serah Plat"
+  },
+  {
+   "fieldname": "bpkb_column",
+   "fieldtype": "Column Break",
+   "label": "BPKB"
+  },
+  {
+   "fieldname": "no_bpkb",
+   "fieldtype": "Data",
+   "label": "No BPKB"
+  },
+  {
+   "fieldname": "tanggal_terima_bpkb",
+   "fieldtype": "Date",
+   "label": "Tanggal Terima BPKB"
+  },
+  {
+   "fieldname": "tanggal_serah_bpkb",
+   "fieldtype": "Date",
+   "label": "Tanggal Serah BPKB"
+  },
+  {
+   "fieldname": "keterangan_proses_skb",
+   "fieldtype": "Data",
+   "label": "Keterangan Proses SKB"
+  },
+  {
+   "fieldname": "biaya_stnk",
+   "fieldtype": "Currency",
+   "label": "Biaya STNK",
+   "read_only": 1
+  },
+  {
+   "fieldname": "biaya_bpkb",
+   "fieldtype": "Currency",
+   "label": "Biaya BPKB",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "serial_no.sales_invoice",
+   "fieldname": "sales_invoice_penjualan_motor",
+   "fieldtype": "Link",
+   "label": "Sales Invoice Penjualan Motor",
+   "options": "Sales Invoice Penjualan Motor"
+  },
+  {
+   "fetch_from": "serial_no.item_code",
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-05-23 11:39:52.782337",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "SKB",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

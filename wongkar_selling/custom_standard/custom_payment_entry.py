@@ -2087,3 +2087,36 @@ def add_tanggalcair(self,method):
 				frappe.msgprint(self.posting_date+i.no_sinv)
 				frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_cair = '{}' where name='{}' """.format(self.posting_date,i.no_sinv),debug=1)
 				frappe.db.commit()
+
+@frappe.whitelist()
+def make_sipm(name_pe):
+	cek = frappe.get_value("Sales Invoice Advance",{"reference_name": name_pe,"docstatus": ["!=",2]}, "parent")
+	pemilik = frappe.get_doc("Payment Entry",name_pe).pemilik
+	party = frappe.get_doc("Payment Entry",name_pe).party
+	unallocated_amount = frappe.get_doc("Payment Entry",name_pe).unallocated_amount
+	territory = frappe.get_doc("Customer",pemilik).territory
+	customer_group = frappe.get_doc("Customer",pemilik).customer_group
+	debit_to = frappe.get_doc("Party Account",{"parent":customer_group}).account
+
+	if pemilik == party:
+		cara_bayar = "Cash"
+	else:
+		cara_bayar = "Credit"
+
+	if not cek:
+		target_doc = frappe.new_doc("Sales Invoice Penjualan Motor")
+		target_doc.pemilik = pemilik
+		target_doc.customer = party
+		target_doc.cara_bayar = cara_bayar
+		target_doc.territory_real = territory
+		target_doc.territory_biaya = territory
+		target_doc.debit_to = debit_to
+		row = target_doc.append('advances', {})
+		row.reference_type = "Payment Entry"
+		row.reference_name = name_pe
+		row.advance_amount = unallocated_amount
+		row.allocated_amount = unallocated_amount
+		return target_doc.as_dict()
+	else:
+		frappe.throw(_(' Sudah ada di {0} !').format(frappe.utils.get_link_to_form('Sales Invoice Penjualan Motor', cek)))
+

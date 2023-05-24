@@ -68,7 +68,16 @@ def get_data(filters):
 		sipm.tanggal_po,
 		sipm.no_po_leasing,
 		i.warna,
-		sipm.nama_penjualan
+		sipm.nama_penjualan,
+		sipm.foto_gesekan,
+		sipm.foto_gesekan_no_rangka,
+		sipm.po_attch,
+		c.foto_ktp,
+		c.foto_kk,
+		sipm.foto_invoice,
+		sipm.foto_surat_jalan,
+		sipm.foto_kwitansi_uang_muka,
+		sipm.foto_kwitansi_sub
 		from `tabSales Invoice Penjualan Motor` sipm 
 		join `tabCustomer` c on c.name = sipm.pemilik
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
@@ -131,7 +140,8 @@ def get_data(filters):
 		# grosdp = i[28]+ahm+ap+dea
 
 		
-		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47]])
+		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
+			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56]])
 		
 
 	# output_tes = output
@@ -167,6 +177,16 @@ def get_data(filters):
 		ket_cair = 'N'
 		d_caird = 0
 		d_bpkb = 0
+		foto_nosin = ""
+		foto_rangka = ""
+		foto_po = ""
+		foto_ktp = ""
+		foto_kk = ""
+		foto_inv = ""
+		foto_sj = ""
+		foto_kw_um = ""
+		foto_kw_sub = ""
+
 		if data_stnk:
 			stnk=data_stnk[0][0]
 		if data_dealer:
@@ -178,6 +198,34 @@ def get_data(filters):
 			d_caird=cair_disc[0][0]
 		if data_bpkb:
 			d_bpkb=data_bpkb[0][0]
+		if t[36]:
+			foto_nosin = "<a href='"+frappe.utils.get_url()+t[36]+"'>"+frappe.utils.get_url()+t[36]+"</a>"
+		if t[37]:
+			foto_rangka = "<a href='"+frappe.utils.get_url()+t[37]+"'>"+frappe.utils.get_url()+t[37]+"</a>"
+		if t[38]:
+			foto_po = "<a href='"+frappe.utils.get_url()+t[38]+"'>"+frappe.utils.get_url()+t[38]+"</a>"
+		if t[39]:
+			foto_ktp = "<a href='"+frappe.utils.get_url()+t[39]+"'>"+frappe.utils.get_url()+t[39]+"</a>"
+		if t[40]:
+			foto_kk = "<a href='"+frappe.utils.get_url()+t[40]+"'>"+frappe.utils.get_url()+t[40]+"</a>"
+		if t[41]:
+			foto_inv = "<a href='"+frappe.utils.get_url()+t[41]+"'>"+frappe.utils.get_url()+t[41]+"</a>"
+		if t[42]:
+			foto_sj = "<a href='"+frappe.utils.get_url()+t[42]+"'>"+frappe.utils.get_url()+t[42]+"</a>"
+		if t[43]:
+			foto_kw_um = "<a href='"+frappe.utils.get_url()+t[43]+"'>"+frappe.utils.get_url()+t[43]+"</a>"
+		if t[44]:
+			foto_kw_sub = "<a href='"+frappe.utils.get_url()+t[44]+"'>"+frappe.utils.get_url()+t[44]+"</a>"
+		
+		if t[26] == "Cash":
+			otr = t[24] - t[27]
+			piutang_leasing = 0
+		else:
+			otr = t[24]
+			piutang_leasing = t[24]-(dp_gross)+t[29]+t[31]
+
+
+		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]
 		
 		tampil.append([
 			t[0],
@@ -205,9 +253,9 @@ def get_data(filters):
 			t[21],
 			t[22],
 			t[23],#no rangka
-			t[24],#otr
-			t[25],
-			t[26],
+			otr,#otr [24]
+			t[25],# namajual
+			t[26],# cara bayar
 			t[27],#potongjual nominal diskon
 			t[28],#dpmurni
 			t[32], # beban_ahm
@@ -215,14 +263,14 @@ def get_data(filters):
 			t[34],#beban_de
 			t[29], # beban leasing
 			0,#cashback d_dealer
-			t[28]+t[32]+t[33]+t[34]+t[29],#gross dp data[con][36] t[28]+t[32]+t[33]+t[34]
+			dp_gross,#gross dp data[con][36] t[28]+t[32]+t[33]+t[34]
 			t[29], # tambahn leasing t[30]
 			t[31], # tambah lain d_dealer
-			"",# ket tambahn
-			t[24]-(t[28]+t[32]+t[33]+t[34]+t[29])+t[29]+t[31],#piutang leasing data[con][28]
+			"",# ket tambahn 
+			piutang_leasing,#piutang leasing data[con][28] t[24]-(dp_gross)+t[29]+t[31]
 			d_cair,# cair
 			d_caird,
-			(t[24]-(t[28]+t[32]+t[33]+t[34]+t[29])+t[29]+t[31])-d_cair-d_caird,# selisih cair d_cair-d_caird
+			d_cair+d_caird-(t[24]-(dp_gross)+t[29]+t[31]),# selisih cair d_cair-d_caird (t[24]-(dp_gross)+t[29]+t[31])-d_cair-d_caird
 			ket_cair,
 			data[con][29],
 			data[con][37],#tt
@@ -240,7 +288,16 @@ def get_data(filters):
 			data[con][32],
 			data[con][31],
 			stnk,#stnk
-			d_bpkb
+			d_bpkb,
+			foto_nosin,
+			foto_rangka,
+			foto_po,
+			foto_ktp,
+			foto_kk,
+			foto_inv,
+			foto_sj,
+			foto_kw_um,
+			foto_kw_sub
 			])
 		con = con + 1
 
@@ -618,6 +675,60 @@ def get_columns(filters):
 			"label": _("Biaya SKB"),
 			"fieldname": "biaya_skb",
 			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Foto Gesekan No Mesin"),
+			"fieldname": "foto_nosin",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto Gesekan No Rangka"),
+			"fieldname": "foto_rangka",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto PO Attch"),
+			"fieldname": "foto_po",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto KTP"),
+			"fieldname": "foto_ktp",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto KK"),
+			"fieldname": "foto_kk",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto Invoice"),
+			"fieldname": "foto_inv",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto Surat Jalan"),
+			"fieldname": "foto_sj",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto Kwitansi Uang Muka"),
+			"fieldname": "foto_kw_um",
+			"fieldtype": "HTML",
+			"width": 100
+		},
+		{
+			"label": _("Foto Kwitansi Sub"),
+			"fieldname": "foto_kw_sub",
+			"fieldtype": "HTML",
 			"width": 100
 		},
 		# {

@@ -22,7 +22,7 @@ def get_data(filters):
 		sipm.territory_real,
 		sipm.cost_center,
 		sipm.posting_date,
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sipm.`nama_pemilik`),
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.nama_pemilik !="",sn.`nama_pemilik`,sipm.`nama_pemilik`),
 		sipm.item_code,
 		i.item_name,
 		sipm.no_rangka,
@@ -46,12 +46,17 @@ def get_data(filters):
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
 		sn.nama_pemilik,
 		i.tahun_rakitan, # tahun_rakit
-		i.warna
+		i.warna,
+		c.alamat,
+		c.no_hp,
+		(SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="STNK"),
+		(SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="BPKB")
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
 		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
 		join `tabItem` i on i.name = sipm.item_code
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
+		join `tabCustomer` c on c.name = sipm.pemilik
 		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
 
 	output = []
@@ -79,7 +84,9 @@ def get_data(filters):
 			i[3],
 			i[4],
 			i[5],
-			i[6],
+			i[6],#konsumen
+			i[31],
+			i[32],
 			i[28],#skb
 			kt[0],
 			nt[0],
@@ -88,7 +95,10 @@ def get_data(filters):
 			nr[0],
 			nr[1],
 			i[10],
-			i[11],
+			i[11],#nama_jual
+			i[33],
+			i[34],
+			i[33]+i[34],
 			i[12],
 			i[13],
 			i[14],
@@ -160,6 +170,18 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Alamat"),
+			"fieldname": "alamat",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("No HP"),
+			"fieldname": "no_hp",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
 			"label": _("Nama SKB"),
 			"fieldname": "name_skb",
 			"fieldtype": "Data",
@@ -211,6 +233,24 @@ def get_columns(filters):
 			"label": _("NamaJual"),
 			"fieldname": "namajual",
 			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("Biaya STNK"),
+			"fieldname": "biaya_stnk",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Biaya SKB"),
+			"fieldname": "biaya_skb",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Tot Biaya SKB"),
+			"fieldname": "tot_skb",
+			"fieldtype": "Currency",
 			"width": 100
 		},
 		{
