@@ -15,7 +15,7 @@ jenv = {
     "filters": [
         "number2word:wongkar_selling.wongkar_selling.jinja.toTerbilang",
         "outhari:wongkar_selling.wongkar_selling.jinja.hari",
-        "outtgl:wongkar_selling.wongkar_selling.jinja.tgl"
+        # "outtgl:wongkar_selling.wongkar_selling.jinja.tgl"
     ]
 }
 

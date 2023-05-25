@@ -91,7 +91,7 @@ frappe.ui.form.on('Payment Entry', {
 	},
 	refresh(frm) {
 		// your code here
-		if(cur_frm.doc.docstatus == 1){
+		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.pemilik){
 			frm.add_custom_button(__("Make SIPM"), function() {
 		        // When this button is clicked, do this
 		        frappe.xcall("wongkar_selling.custom_standard.custom_payment_entry.make_sipm",{

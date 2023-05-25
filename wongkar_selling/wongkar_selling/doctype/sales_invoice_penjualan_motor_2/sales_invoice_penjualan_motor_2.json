@@ -2317,7 +2317,6 @@
   }
  ],
  "icon": "fa fa-file-text",
- "in_create": 1,
  "is_submittable": 1,
  "links": [
   {
@@ -2326,7 +2325,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-23 12:39:57.167204",
+ "modified": "2023-05-25 09:05:28.924993",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor 2",

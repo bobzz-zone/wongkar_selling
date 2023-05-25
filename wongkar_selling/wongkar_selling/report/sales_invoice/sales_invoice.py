@@ -217,6 +217,8 @@ def get_data(filters):
 		if t[44]:
 			foto_kw_sub = "<a href='"+frappe.utils.get_url()+t[44]+"'>"+frappe.utils.get_url()+t[44]+"</a>"
 		
+		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]
+
 		if t[26] == "Cash":
 			otr = t[24] - t[27]
 			piutang_leasing = 0
@@ -225,7 +227,7 @@ def get_data(filters):
 			piutang_leasing = t[24]-(dp_gross)+t[29]+t[31]
 
 
-		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]
+	
 		
 		tampil.append([
 			t[0],
