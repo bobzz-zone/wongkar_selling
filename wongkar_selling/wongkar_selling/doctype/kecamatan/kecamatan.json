@@ -33,7 +33,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-22 09:21:56.441331",
+ "modified": "2023-05-27 11:08:50.197317",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Kecamatan",
@@ -53,6 +53,5 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+ "sort_order": "DESC"
 }

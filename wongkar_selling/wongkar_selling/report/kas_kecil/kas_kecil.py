@@ -51,9 +51,11 @@ def get_data(filters):
 		ecd.expense_type,
 		ecd.description,
 		ecd.amount,
-		ec.status
+		ec.status,
+		cc.parent_cost_center
 		from `tabExpense Claim` ec 
 		left join `tabExpense Claim Detail` ecd on ecd.parent = ec.name
+		left join `tabCost Center` cc on cc.name = ec.cost_center
 		where ec.docstatus = 1 and ecd.expense_date like "{}%" order by ecd.expense_date asc """.format(gabung),as_list = 1,debug=1)
 	
 
@@ -68,8 +70,8 @@ def get_data(filters):
 				k=0
 
 			tampil.append([
+				i[6],
 				i[0],
-				"",
 				i[1],
 				i[2],
 				i[3],
@@ -86,14 +88,16 @@ def get_columns(filters):
 		{
 			"label": _("Cab"),
 			"fieldname": "cab",
-			"fieldtype": "Data",
+			"fieldtype": "Link",
+			"options": "Cost Center",
 			"width": 200
 		},
 		{
 			"label": _("Area"),
 			"fieldname": "area",
-			"fieldtype": "Data",
-			"width": 100
+			"fieldtype": "Link",
+			"options": "Cost Center",
+			"width": 200
 		},
 		{
 			"label": _("Tgl Transaksi"),

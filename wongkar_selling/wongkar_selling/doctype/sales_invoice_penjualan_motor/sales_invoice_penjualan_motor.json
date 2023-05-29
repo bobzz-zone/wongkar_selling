@@ -85,6 +85,7 @@
   "diskon",
   "nominal_diskon",
   "harga",
+  "otr",
   "cb_sinvm0",
   "no_po_leasing",
   "po_attch",
@@ -2326,7 +2327,7 @@
    "fieldname": "nama_penjualan",
    "fieldtype": "Select",
    "label": "Nama Penjualan",
-   "options": "\nCS\nMarketing\nMediator\nTitip Jual"
+   "options": "\nCS\nCRM\nMarketing\nMediator\nTitip Jual"
   },
   {
    "allow_on_submit": 1,
@@ -2349,6 +2350,13 @@
    "fieldname": "foto_kwitansi_sub",
    "fieldtype": "Attach Image",
    "label": "Foto Kwitansi Sub"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == \"Cash\"",
+   "fieldname": "otr",
+   "fieldtype": "Currency",
+   "label": "OTR",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
@@ -2360,7 +2368,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-22 13:48:41.250797",
+ "modified": "2023-05-29 09:34:00.041703",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
