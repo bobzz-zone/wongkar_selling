@@ -915,6 +915,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
 		if not self.harga:
 			self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
+			self.otr = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
 
 		# reset semua table
 		self.tabel_biaya_motor = []

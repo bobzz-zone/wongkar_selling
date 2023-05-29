@@ -28,23 +28,23 @@ def get_data(filters):
 		sipm.no_rangka,
 		sipm.harga,
 		sipm.customer_name,
-		sn.tanggal_faktur,
-		sn.tanggal_terima_faktur,
-		sn.no_faktur,
-		sn.tanggal_serah_faktur,
-		sn.tanggal_terima_stnk,
-		sn.no_stnk,
-		sn.no_notice_stnk,
-		sn.tanggal_serah_stnk,
-		sn.tanggal_terima_plat,
-		sn.no_plat,
-		sn.tgl_serah_plat,
-		sn.tgl_terima_bpkb,
-		sn.no_bpkb,
-		sn.tgl_serah_bpkb,
-		sn.keterangan_proses_skb,
+		skb.tanggal_faktur,
+		skb.tanggal_terima_faktur,
+		skb.no_faktur,
+		skb.tanggal_serah_faktur,
+		skb.tanggal_terima_stnk,
+		skb.no_stnk,
+		skb.no_notice_stnk,
+		skb.tanggal_serah_stnk,
+		skb.tanggal_terima_plat,
+		skb.no_plat,
+		skb.tanggal_serah_plat,
+		skb.tanggal_terima_bpkb,
+		skb.no_bpkb,
+		skb.tanggal_serah_bpkb,
+		skb.keterangan_proses_skb,
 		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
-		sn.nama_pemilik,
+		skb.nama_pemilik,
 		i.tahun_rakitan, # tahun_rakit
 		i.warna,
 		c.alamat,
@@ -57,6 +57,7 @@ def get_data(filters):
 		join `tabItem` i on i.name = sipm.item_code
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabCustomer` c on c.name = sipm.pemilik
+		left join `tabSKB` skb on skb.serial_no = sn.serial_no
 		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
 
 	output = []
@@ -80,7 +81,7 @@ def get_data(filters):
 			i[0],
 			i[1],
 			i[27],
-			i[4],
+			i[2],# id jual i[4]
 			i[3],
 			i[4],
 			i[5],

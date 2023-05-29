@@ -58,9 +58,12 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 				make_payment_entry, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
-		if (cur_frm.doc.docstatus == 1 && (cur_frm.doc.outstanding_amount_stnk!=0 || cur_frm.doc.outstanding_amount_bpkb!=0 ) && cur_frm.doc.type == "STNK dan BPKB") {
+		if (cur_frm.doc.docstatus == 1 && (cur_frm.doc.outstanding_amount_stnk!=0 || cur_frm.doc.outstanding_amount_bpkb!=0 ) && cur_frm.doc.type == "STNK dan BPKB" && cur_frm.doc.outstanding_amount_stnk > 0) {
 			cur_frm.add_custom_button(__('Payment STNK'),
 				make_payment_entry_stnk, __('Create'));
+			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
+		}
+		if (cur_frm.doc.docstatus == 1 && (cur_frm.doc.outstanding_amount_stnk!=0 || cur_frm.doc.outstanding_amount_bpkb!=0 ) && cur_frm.doc.type == "STNK dan BPKB"  && cur_frm.doc.outstanding_amount_bpkb > 0) {
 			cur_frm.add_custom_button(__('Payment BPKB'),
 				make_payment_entry_bpkb, __('Create'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));

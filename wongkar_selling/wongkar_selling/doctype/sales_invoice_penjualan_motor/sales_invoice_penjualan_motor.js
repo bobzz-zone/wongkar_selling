@@ -2354,9 +2354,11 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "no_rangka", function(frm) {
 						hitung_disc = r.message[0].price_list_rate - cur_frm.doc.nominal_diskon
 						console.log(hitung_disc,"hitung_disc")
 						cur_frm.set_value("harga",hitung_disc)
+						cur_frm.set_value("otr",r.message[0].price_list_rate)
 		    		}
 		    		if(cur_frm.doc.diskon==0){
 		    			cur_frm.set_value("harga", r.message[0].price_list_rate);
+		    			cur_frm.set_value("otr",r.message[0].price_list_rate)
 			        	//cur_frm.refresh_fields("harga")
 		    		}
 		    	}else{

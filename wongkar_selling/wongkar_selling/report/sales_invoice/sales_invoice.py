@@ -217,10 +217,10 @@ def get_data(filters):
 		if t[44]:
 			foto_kw_sub = "<a href='"+frappe.utils.get_url()+t[44]+"'>"+frappe.utils.get_url()+t[44]+"</a>"
 		
-		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]
-
+		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]+ t[27]
+		# p_gross = 
 		if t[26] == "Cash":
-			otr = t[24] - t[27]
+			otr = t[24] + t[27]
 			piutang_leasing = 0
 		else:
 			otr = t[24]
@@ -233,7 +233,7 @@ def get_data(filters):
 			t[0],
 			t[1],
 			t[2],
-			t[3],
+			t[3],# id jual
 			t[4],
 			t[5],
 			t[6],
@@ -259,7 +259,7 @@ def get_data(filters):
 			t[25],# namajual
 			t[26],# cara bayar
 			t[27],#potongjual nominal diskon
-			t[28],#dpmurni
+			otr - t[27], #dpmurni t[28]
 			t[32], # beban_ahm
 			t[33],#beban_md
 			t[34],#beban_de
@@ -279,7 +279,7 @@ def get_data(filters):
 			data[con][38],#tc
 			data[con][43],
 			data[con][39],#hc
-			t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31],#piutang Konsumen data[con][28]
+			piutang_leasing,#piutang Konsumen data[con][28] t[27] t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31]
 			data[con][44],
 			data[con][45],
 			# "SALES LAPANGAN",
