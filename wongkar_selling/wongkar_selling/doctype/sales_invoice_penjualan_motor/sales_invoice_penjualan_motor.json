@@ -2326,7 +2326,7 @@
    "fieldname": "nama_penjualan",
    "fieldtype": "Select",
    "label": "Nama Penjualan",
-   "options": "\nCS\nMarketing\nMediator\nTitip Jual"
+   "options": "\nCS\nCRM\nMarketing\nMediator\nTitip Jual"
   },
   {
    "allow_on_submit": 1,
@@ -2360,7 +2360,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-22 13:48:41.250797",
+ "modified": "2023-05-29 09:30:16.113531",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

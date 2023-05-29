@@ -133,7 +133,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-02-16 09:10:19.436579",
+ "modified": "2023-05-28 22:04:05.517261",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",
@@ -154,6 +154,5 @@
  ],
  "search_fields": "customer",
  "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+ "sort_order": "DESC"
 }
