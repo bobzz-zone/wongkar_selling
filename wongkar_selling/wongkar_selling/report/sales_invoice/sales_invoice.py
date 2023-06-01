@@ -259,7 +259,7 @@ def get_data(filters):
 			t[25],# namajual
 			t[26],# cara bayar
 			t[27],#potongjual nominal diskon
-			otr - t[27], #dpmurni t[28]
+			t[28], #dpmurni t[28] otr - t[27]
 			t[32], # beban_ahm
 			t[33],#beban_md
 			t[34],#beban_de

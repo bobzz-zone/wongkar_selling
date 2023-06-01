@@ -99,10 +99,29 @@ class TagihanDiscount(Document):
 
 		gl_entries = []
 		self.make_gl_credit(gl_entries)
+		self.make_tax_gl_entries(gl_entries)
 		self.make_gl_debit(gl_entries)
 		# return gl_entries
 
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+
+
+	def make_tax_gl_entries(self, gl_entries):
+		
+		for d in self.get('daftar_tagihan'):
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
+			hitung_tax = d.nilai / 1.11
+			net = d.nilai - hitung_tax
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.tax_account,
+					"against": self.customer,
+					"credit": net,
+					"credit_in_account_currency": net,
+					"cost_center": cost_center,
+					# "remarks": "coba Lutfi pajak!"
+				}, item=None)
+			)
 
 	def make_gl_credit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_credit")
@@ -112,15 +131,18 @@ class TagihanDiscount(Document):
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		for d in self.get('daftar_tagihan'):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
+			against_income_account = set_against_income_account(d.no_sinv)
+			hitung_tax = d.nilai / 1.11
+			net = d.nilai - hitung_tax
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": account,
-					"party_type": "Customer",
-					"party": self.customer,
+					"account": self.coa_tagihan_discount,
+					# "party_type": "Customer",
+					# "party": self.customer,
 					# "due_date": self.due_date,
-					"against": self.coa_tagihan_discount,
-					"credit": d.nilai,
-					"credit_in_account_currency": d.nilai,
+					"against": self.customer,
+					"credit": hitung_tax,
+					"credit_in_account_currency": hitung_tax,
 					"against_voucher": d.no_sinv,
 					"against_voucher_type": "Sales Invoice Penjualan Motor",
 					"cost_center": cost_center
@@ -136,7 +158,7 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabDaftar Tagihan` cd
+		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center,sinv.debit_to FROM `tabDaftar Tagihan` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
 		
 		for d in data:
@@ -144,11 +166,11 @@ class TagihanDiscount(Document):
 			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": self.coa_tagihan_discount,
+					"account": d.debit_to,
 					"party_type": "Customer",
 					"party": self.customer,
 					# "due_date": self.due_date,
-					"against": self.customer,
+					"against": self.coa_tagihan_discount,
 					"debit": d.nilai,
 					"debit_in_account_currency": d.nilai,
 					# "against_voucher": d.no_sinv,
@@ -301,5 +323,18 @@ def set_balance_in_account_currency(gl_dict, account_currency=None, conversion_r
 	if flt(gl_dict.credit) and not flt(gl_dict.credit_in_account_currency):
 		gl_dict.credit_in_account_currency = gl_dict.credit if account_currency == company_currency \
 			else flt(gl_dict.credit / conversion_rate, 2)
+
+def set_against_income_account(name):
+	"""Set against account for debit to account"""
+	against_acc = []
+	data = frappe.db.sql(""" SELECT * from `tabSales Invoice Penjualan Motor Item` sipm where parent = '{}'  """.format(name),as_dict=1) 
+
+	for d in data:
+		if d['income_account'] and d['income_account'] not in against_acc:
+			against_acc.append(d['income_account'])
+
+	against_income_account = ','.join(against_acc)
+
+	return against_income_account
 
 

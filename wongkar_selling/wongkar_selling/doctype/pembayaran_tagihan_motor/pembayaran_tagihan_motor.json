@@ -23,6 +23,8 @@
   "coa_biaya_motor",
   "coa_biaya_motor_stnk",
   "coa_biaya_motor_bpkb",
+  "column_break_18",
+  "note",
   "section_break_16",
   "grand_total",
   "outstanding_amount",
@@ -172,6 +174,7 @@
    "read_only": 1
   },
   {
+   "default": "21.0105.01.00.00.002 - Hutang Pihak ke Tiga Belum di Tagih - STNK - HND",
    "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
    "fieldname": "coa_biaya_motor_stnk",
    "fieldtype": "Link",
@@ -180,6 +183,7 @@
    "options": "Account"
   },
   {
+   "default": "21.0105.01.00.00.001 - Hutang Pihak ke Tiga Belum di Tagih - BPKB - HND",
    "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
    "fieldname": "coa_biaya_motor_bpkb",
    "fieldtype": "Link",
@@ -260,12 +264,21 @@
    "hidden": 1,
    "label": "tagihan_bpkb",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Text",
+   "label": "Note"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-28 09:44:21.326662",
+ "modified": "2023-05-29 10:04:59.002659",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Tagihan Motor",

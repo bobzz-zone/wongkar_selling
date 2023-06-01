@@ -16,6 +16,7 @@
   "type",
   "territory",
   "coa_tagihan_discount",
+  "tax_account",
   "grand_total",
   "outstanding_amount",
   "daftar_tagihan",
@@ -75,7 +76,7 @@
   {
    "fieldname": "coa_tagihan_discount",
    "fieldtype": "Link",
-   "label": "COA Tagihan Discount",
+   "label": "COA Pendapatan Tagihan Discount",
    "options": "Account",
    "reqd": 1
   },
@@ -143,12 +144,19 @@
    "hidden": 1,
    "label": "advance_paid",
    "read_only": 1
+  },
+  {
+   "fieldname": "tax_account",
+   "fieldtype": "Link",
+   "label": "Tax Account",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-16 11:34:23.927823",
+ "modified": "2023-05-30 14:55:17.683852",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount",

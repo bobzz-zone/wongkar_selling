@@ -4,6 +4,14 @@ frappe.ui.form.on('Customer', {
 		// cur_frm.add_custom_button(__("Sync"), function(){
   //           sync_document();
   //       });
+
+  cur_frm.set_query("kelurahan_2", function() {
+         return {
+             filters: {
+                "parent": cur_frm.doc.kecamatan2
+             }
+         }
+    });
 	}
 })
 

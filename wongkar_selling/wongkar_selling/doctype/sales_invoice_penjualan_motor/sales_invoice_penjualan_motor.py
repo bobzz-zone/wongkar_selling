@@ -54,6 +54,10 @@ form_grid_templates = {
 }
 
 class SalesInvoicePenjualanMotor(SellingController):
+	def onload(self):
+		# frappe.msgprint("asas")
+		self.set_status()
+
 	def cek_rdl(self):
 		# if len(self.items) > 1 or self.from_group:
 		if self.nama_promo and self.cara_bayar=="Credit":
@@ -928,6 +932,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		total_biaya = 0
 		total_discount = 0
 		total_discount_leasing = 0
+		total_biaya_tanpa_dealer = 0
 		# generate tabel biaya
 		# frappe.msgprint(str(self.posting_date.date()))
 		print(self.posting_date)
@@ -943,6 +948,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 							"coa" : row.coa
 						})
 					total_biaya += row.amount
+					if row.type in ['STNK','BPKB']:
+						total_biaya_tanpa_dealer += row.amount
 
 		# generate tabel discount
 		# list_table_discount = frappe.db.get_list('Rule',filters={ 'item_code': self.item_code, 'territory' : self.territory_real, 'category_discount': self.nama_diskon , 'disable': 0 }, fields=['*'])
@@ -996,7 +1003,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 		ppn_div = (100+ppn_rate)/100
 		print(ppn_div)
 		# cara mencari grand total
-		total2 = ( self.harga - self.total_biaya ) / ppn_div
+		
+		# total2 = ( self.harga - self.total_biaya ) / ppn_div
+		total2 = ( self.harga - total_biaya_tanpa_dealer ) / ppn_div
+		
 		print(total2)
 		hasil2 = self.harga - total2
 		akhir2 = self.harga - hasil2
@@ -1900,7 +1910,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 		self.make_write_off_gl_entry(gl_entries)
 		self.make_gle_for_rounding_adjustment(gl_entries)
-
+		print(gl_entries , " gl_entries")
 		return gl_entries
 
 	def make_cogs_entry_credit(self, gl_entries):
@@ -1987,16 +1997,18 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 	# diskon biasa
 	def make_disc_gl_entry_custom(self, gl_entries):
+		tax = (100+ self.taxes[0].rate) / 100
 		for d in self.get('table_discount'):
+			hitung_tax = (d.nominal) / tax
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": d.coa_receivable,
-					"party_type": "Customer",
-					"party": d.customer,
+					# "party_type": "Customer",
+					# "party": d.customer,
 					"due_date": self.due_date,
 					"against": self.against_income_account,
-					"debit": d.nominal,
-					"debit_in_account_currency": d.nominal,
+					"debit": hitung_tax,
+					"debit_in_account_currency": hitung_tax,
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
@@ -2007,16 +2019,18 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 	# diskon leasing
 	def make_disc_gl_entry_custom_leasing(self, gl_entries):
+		tax = (100+ self.taxes[0].rate) / 100
 		for d in self.get('table_discount_leasing'):
+			hitung_tax = (d.nominal) / tax
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": d.coa,
-					"party_type": "Customer",
-					"party": d.nama_leasing,
+					# "party_type": "Customer",
+					# "party": d.nama_leasing,
 					"due_date": self.due_date,
 					"against": self.against_income_account,
-					"debit": d.nominal,
-					"debit_in_account_currency": d.nominal,
+					"debit": hitung_tax,
+					"debit_in_account_currency": hitung_tax,
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,
@@ -2113,6 +2127,27 @@ class SalesInvoicePenjualanMotor(SellingController):
 		)
 
 	def make_tax_gl_entries(self, gl_entries):
+		tax = (100+ self.taxes[0].rate) / 100
+		nominal_diskon = 0
+		nominal_diskon_leasing = 0
+		total_net_d = 0
+		total_net_dl = 0
+		for d in self.table_discount:
+			hitung_tax_d = (d.nominal) / tax
+			net_d = (d.nominal) - hitung_tax_d
+			total_net_d = total_net_d + net_d
+
+		for dl in self.table_discount_leasing:
+			hitung_tax_dl = (dl.nominal) / tax
+			net_dl = (dl.nominal) - hitung_tax_dl
+			total_net_dl = total_net_dl + net_dl
+
+		print(total_net_d, " total_net_d")
+		print(total_net_dl, " total_net_dl")  
+		net_total = total_net_d + total_net_dl 
+
+		print(net_total, " net_total")
+
 		for tax in self.get("taxes"):
 			if flt(tax.base_tax_amount_after_discount_amount):
 				account_currency = get_account_currency(tax.account_head)
@@ -2121,10 +2156,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 						"account": tax.account_head,
 						"against": self.customer,
 						"credit": flt(tax.base_tax_amount_after_discount_amount,
-							tax.precision("tax_amount_after_discount_amount")),
+							tax.precision("tax_amount_after_discount_amount"))-net_total,
 						"credit_in_account_currency": (flt(tax.base_tax_amount_after_discount_amount,
-							tax.precision("base_tax_amount_after_discount_amount")) if account_currency==self.company_currency else
-							flt(tax.tax_amount_after_discount_amount, tax.precision("tax_amount_after_discount_amount"))),
+							tax.precision("base_tax_amount_after_discount_amount"))-net_total  if account_currency==self.company_currency else
+							flt(tax.tax_amount_after_discount_amount, tax.precision("tax_amount_after_discount_amount"))-net_total),
 						"cost_center": tax.cost_center,
 						# "remarks": "coba Lutfi pajak!"
 					}, account_currency, item=tax)

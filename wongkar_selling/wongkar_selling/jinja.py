@@ -21,3 +21,10 @@ def tgl(name):
   today = date.today()
 
   return today.strftime("%d %B %Y")
+
+@frappe.whitelist()
+def cek_pinv(name):
+  if frappe.db.exists("Purchase Invoice Item",{"purchase_receipt":name}):
+    return True
+  else:
+    return False

@@ -42,9 +42,9 @@ def get_invd(customer,date_from,date_to):
 		IF(sn.pemilik or sn.pemilik !="",sn.`pemilik`,si.`pemilik`) as pemilik,
 		IF(sn.nama_pemilik or sn.nama_pemilik!="",sn.`nama_pemilik`,si.`nama_pemilik`) as nama_pemilik
 		FROM `tabSales Invoice Penjualan Motor` si 
-		left join `tabTable Discount` td on td.parent = si.name where td.customer = '{}'
+		left join `tabTable Discount` td on td.parent = si.name 
 		left join `tabSerial No` sn on sn.name = si.no_rangka 
-		and td.tertagih = 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1)
+		where td.customer = '{}' and td.tertagih = 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1)
 
 	return data
 
@@ -171,7 +171,7 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 	return data
 
 @frappe.whitelist()
-def get_tagihan(doc_type,tipe_pembayaran,data):
+def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 	tes = json.loads(data)
 	# frappe.msgprint(str(tes)+" tes")
 	# for i in tes:
@@ -179,6 +179,26 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 	tmp = []
 	# doc = frappe.get_doc("Payment Entry",dt)
 	# Pembayaran Tagihan Motor
+	# paid_from = frappe.get_doc("Payment Entry",name_pe).paid_from
+	payment_type = frappe.get_doc("Payment Entry",name_pe).payment_type
+	# frappe.msgprint(str(tes)+ " tes")
+	# frappe.msgprint(tes[0]['reference_doctype']+tes[0]['docname']+"weee")
+	if tes[0]['reference_doctype'] == 'Tagihan Discount Leasing':
+		cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
+		# frappe.msgprint(str(cek.daftar_tagihan_leasing[0].no_invoice)+ " cek")
+		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan_leasing[0].no_invoice).debit_to
+		coa_tagihan_sipm = frappe.get_doc('Tagihan Discount Leasing',tes[0]['docname']).coa_tagihan_sipm
+		if coa_tagihan_sipm != paid_from:
+			frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+
+	if tes[0]['reference_doctype'] == 'Tagihan Discount':
+		cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
+		# frappe.msgprint(str(cek.daftar_tagihan[0].no_sinv)+ " cek")
+		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan[0].no_sinv).debit_to
+		if cek_debit_to != paid_from:
+			frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+
+
 	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
@@ -253,7 +273,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data):
 			tmp.append(data)
 
 	# Tagihan Discount
-	elif doc_type == "Tagihan Discount" and tipe_pembayaran == "Pembayaran Diskon":
+	elif doc_type == "Tagihan Discount" and tipe_pembayaran == "Pembayaran Diskon" :
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
 				pemilik,

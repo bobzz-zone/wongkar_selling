@@ -14,26 +14,34 @@ def execute(filters=None):
 	return get_columns(filters), get_data(filters)
 
 def get_data(filters):
+	kondisi = ""
+	if filters.get("area"):
+		kondisi = " and ec.cost_center = '{}' ".format(filters.get("area"))
+
 	data = frappe.db.sql(""" SELECT 
 		sipm.set_warehouse,
 		sipm.posting_date,
 		sipm.nama_pemilik,
 		sipm.cara_bayar,
 		tl.outstanding_sipm,
-		datediff(if(tl.outstanding_sipm<0 and sipm.tanggal_cair,sipm.tanggal_cair,current_date()),sipm.posting_date )
+		datediff(if(tl.outstanding_sipm<0 and sipm.tanggal_cair,sipm.tanggal_cair,current_date()),sipm.posting_date ),
+		sipm.total_advance,
+		sipm.cost_center
 		FROM `tabSales Invoice Penjualan Motor` sipm
-		JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
-		where tl.docstatus = 1 and sipm.docstatus = 1 and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1)
+		left JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
+		where tl.docstatus = 1 {} or sipm.docstatus = 1 and sipm.posting_date between '{}' and '{}' 
+		group by sipm.name order by sipm.posting_date asc """.format(kondisi,filters.get('from_date'),filters.get('to_date')),as_list = 1,debug=1)
 	
 	tampil = []
 	if data:
 		for i in data:
 			tampil.append([
-				i[0],
+				# i[0],
+				i[7],
 				i[1],
 				i[2],
 				i[3],
-				i[4],
+				i[6],# jumlah
 				i[5]
 			])
 
@@ -41,10 +49,17 @@ def get_data(filters):
 
 def get_columns(filters):
 	columns = [
+		# {
+		# 	"label": _("Pos"),
+		# 	"fieldname": "pos",
+		# 	"fieldtype": "Data",
+		# 	"width": 200
+		# },
 		{
-			"label": _("Pos"),
-			"fieldname": "pos",
-			"fieldtype": "Data",
+			"label": _("Area"),
+			"fieldname": "area",
+			"fieldtype": "Link",
+			"options": "Cost Center",
 			"width": 200
 		},
 		{

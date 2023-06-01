@@ -289,7 +289,9 @@ frappe.ui.form.on('Payment Entry', {
 			args: {
 				"doc_type": cur_frm.doc.doc_type,
 				"tipe_pembayaran": cur_frm.doc.tipe_pembayaran,
-				"data": cur_frm.doc.list_doc_name
+				"data": cur_frm.doc.list_doc_name,
+				"name_pe": cur_frm.doc.name,
+				"paid_from": cur_frm.doc.paid_from
 				// "dn": cur_frm.doc.name
 			},
 			callback: function(r) {

@@ -17,6 +17,8 @@
   "name_leasing",
   "nama_promo",
   "territory",
+  "coa_pendapatan_leasing",
+  "tax_account",
   "coa_tagihan_discount_leasing",
   "coa_tagihan_sipm",
   "section_break_12",
@@ -98,10 +100,11 @@
   {
    "fieldname": "coa_tagihan_discount_leasing",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "COA Tagihan Discount Leasing",
    "options": "Account",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fetch_from": "leasing.leasing",
@@ -200,12 +203,26 @@
    "hidden": 1,
    "label": "advance_paid",
    "read_only": 1
+  },
+  {
+   "fieldname": "coa_pendapatan_leasing",
+   "fieldtype": "Link",
+   "label": "COA Pendapatan Leasing",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tax_account",
+   "fieldtype": "Link",
+   "label": "Tax Account",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-28 09:43:32.909695",
+ "modified": "2023-06-01 19:20:01.021429",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount Leasing",

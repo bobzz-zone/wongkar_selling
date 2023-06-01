@@ -126,7 +126,7 @@ var show_general_ledger= function() {
 				voucher_no: cur_frm.doc.name,
 				from_date: cur_frm.doc.date,
 				to_date: moment(cur_frm.doc.modified).format('YYYY-MM-DD'),
-				company: "DAS",
+				company: "IFMI Group",
 				group_by: "",
 				show_cancelled_entries: cur_frm.doc.docstatus === 2
 			};

@@ -2401,6 +2401,10 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 				console.log(r.message,"get_biaya")
 			    cur_frm.clear_table("tabel_biaya_motor");
 	        	cur_frm.refresh_field("tabel_biaya_motor");
+				var ppn_rate = cur_frm.doc.taxes[0]['rate']
+				var ppn_div = (100+ppn_rate)/100
+				var total_biaya_tanpa_dealer = 0 
+				    
 				if(r.message.length > 0){
 					for (let i = 0; i < r.message.length; i++) {
 						var child_b = cur_frm.add_child("tabel_biaya_motor");
@@ -2414,17 +2418,18 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 
 					let sum = 0;
 					let sum2 = 0;
-				
+
 					for (let z = 0; z < cur_frm.doc.tabel_biaya_motor.length; z++) {
 						sum += cur_frm.doc.tabel_biaya_motor[z].amount;
+						if(cur_frm.doc.tabel_biaya_motor[z].type == "STNK" || cur_frm.doc.tabel_biaya_motor[z].type == "BPKB"){
+							total_biaya_tanpa_dealer += cur_frm.doc.tabel_biaya_motor[z].amount;
+						}
 					}
 					cur_frm.set_value("total_biaya",sum)
 					
 					console.log(sum,"sum")
 					console.log(cur_frm.doc.taxes,"cur_frm.doc.taxes")
-					var ppn_rate = cur_frm.doc.taxes[0]['rate']
-					var ppn_div = (100+ppn_rate)/100
-				    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / ppn_div;
+					var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer) / ppn_div;
 					var hasil = cur_frm.doc.harga - total;
 					var akhir = cur_frm.doc.harga - hasil;
 					console.log(total,"total")
@@ -2452,9 +2457,7 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 				}else{
 					cur_frm.set_value("total_biaya",0)
 					console.log(cur_frm.doc.harga,"harga")
-				    var ppn_rate = cur_frm.doc.taxes[0]['rate']
-					var ppn_div = (100+ppn_rate)/100
-				    var total = (cur_frm.doc.harga - cur_frm.doc.total_biaya) / ppn_div;
+				    var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer) / ppn_div;
 					var hasil2 = cur_frm.doc.harga - total;
 					var akhir2 = cur_frm.doc.harga - hasil2;
 					console.log(total,"total2")

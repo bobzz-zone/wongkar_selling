@@ -8,7 +8,8 @@
  "field_order": [
   "provinsi",
   "kota",
-  "kecamatan"
+  "kecamatan",
+  "kelurahan"
  ],
  "fields": [
   {
@@ -29,11 +30,17 @@
    "in_list_view": 1,
    "label": "Kecamatan",
    "unique": 1
+  },
+  {
+   "fieldname": "kelurahan",
+   "fieldtype": "Table",
+   "label": "Kelurahan",
+   "options": "Kelurahan"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-27 11:08:50.197317",
+ "modified": "2023-05-29 10:18:00.853793",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Kecamatan",

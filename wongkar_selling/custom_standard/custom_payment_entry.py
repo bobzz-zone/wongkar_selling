@@ -1228,9 +1228,11 @@ def set_party_account(dt, dn, doc, party_type):
 	elif dt == "Gratuity":
 		party_account = doc.payable_account
 	elif dt == "Tagihan Discount":
-		party_account = doc.coa_tagihan_discount
+		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan[0].no_sinv).debit_to
+		party_account = debit_to
 	elif dt == "Tagihan Discount Leasing":
-		party_account = doc.coa_tagihan_discount_leasing
+		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan_leasing[0].no_invoice).debit_to
+		party_account = doc.coa_tagihan_sipm
 	elif dt == "Pembayaran Credit Motor":
 		party_account = doc.coa_credit_motor
 	elif dt == "Pembayaran Tagihan Motor" and doc.type == "Diskon Dealer":
@@ -1669,7 +1671,7 @@ def get_negative_outstanding_invoices(party_type, party, party_account,
 
 
 def get_terbayarkan_multi(doc,method):
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 		if doc.doc_type:
 			if doc.tipe_pembayaran == "Pembayaran STNK":
 				for i in doc.references:
@@ -1752,7 +1754,7 @@ def get_terbayarkan_multi(doc,method):
 
 def get_terbayarkan_multi_cancel(doc,method):
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 		if doc.doc_type:
 			if doc.tipe_pembayaran == "Pembayaran STNK":
 				for i in doc.references:
@@ -1824,7 +1826,7 @@ def get_terbayarkan_multi_cancel(doc,method):
 
 def get_terbayarkan(doc,method):
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 		if doc.tagihan == 1 and not doc.doc_type:
 			# frappe.throw(doc.references[0].reference_name)
 			if doc.references[0].reference_doctype == "Tagihan Discount":
@@ -1949,7 +1951,7 @@ def get_terbayarkan(doc,method):
 				frappe.db.commit()
 
 def get_terbayarkan_cancel(doc,method):
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
 		if doc.tagihan == 1 and not doc.doc_type:
 			# frappe.throw(doc.references[0].reference_name)
@@ -2082,7 +2084,7 @@ def get_terbayarkan_cancel(doc,method):
 				# td_doc.save()
 
 def add_tanggalcair(self,method):
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
 		if self.tagihan_diskon_l or self.tipe_pembayaran == "Pembayaran Diskon Leasing":
 			for i in self.tagihan_payment_table:

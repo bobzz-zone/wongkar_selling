@@ -52,7 +52,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		# if doctype == 'Customer' and frappe.local.site in ['honda.digitalasiasolusindo.com','hondapjk.digitalasiasolusindo.com']:
-		if doctype == 'Customer' and frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com"]:
+		if doctype == 'Customer' and frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
 			search_widget(doctype, txt, 'wongkar_selling.custom_standard.custom_query.custom_get_customer_list',
 				searchfield, start, page_length, filters)
 		else:

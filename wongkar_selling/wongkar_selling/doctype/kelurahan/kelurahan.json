@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "creation": "2023-05-29 10:16:48.736940",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kelurahan"
+ ],
+ "fields": [
+  {
+   "fieldname": "kelurahan",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kelurahan"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-05-29 11:23:16.729645",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Kelurahan",
+ "owner": "Administrator",
+ "permissions": [],
+ "search_fields": "kelurahan",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

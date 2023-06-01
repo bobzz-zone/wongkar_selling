@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Piutang Konsumen Area"] = {
+frappe.query_reports["Status Tagihan Leasing"] = {
 	"filters": [
 		{
 			"fieldname":"from_date",
@@ -17,14 +17,6 @@ frappe.query_reports["Piutang Konsumen Area"] = {
 			"fieldtype": "Date",
 			"reqd": 1,
 			"width": "60px",
-		},
-		{
-			"fieldname":"area",
-			"label": __("Area"),
-			"fieldtype": "Link",
-			"options": "Cost Center",
-			// "reqd": 1,
-			"width": "60px",
-		},
+		}
 	]
 };
