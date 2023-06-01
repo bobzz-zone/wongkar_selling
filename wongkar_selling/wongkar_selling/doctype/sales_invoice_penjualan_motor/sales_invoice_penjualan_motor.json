@@ -1766,7 +1766,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "\nDraft\nReturn\nCredit Note Issued\nSubmitted\nPaid\nUnpaid\nUnpaid and Discounted\nOverdue and Discounted\nOverdue\nCancelled\nInternal Transfer",
+   "options": "\nDraft\nReturn\nCredit Note Issued\nSubmitted\nPaid\nBilled\nUnpaid\nUnpaid and Discounted\nOverdue and Discounted\nOverdue\nCancelled\nInternal Transfer",
    "print_hide": 1,
    "read_only": 1
   },
@@ -2368,7 +2368,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-05-29 09:34:00.041703",
+ "modified": "2023-06-01 23:19:36.803211",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
@@ -2432,6 +2432,5 @@
  "sort_order": "DESC",
  "timeline_field": "customer",
  "title_field": "title",
- "track_changes": 1,
- "track_seen": 1
+ "track_changes": 1
 }

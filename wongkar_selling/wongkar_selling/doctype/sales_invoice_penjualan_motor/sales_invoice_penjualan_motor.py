@@ -2832,7 +2832,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 				if self.is_return == 1:
 					self.status = "Return"
 				if outstanding_amount<=0:
-					self.status = "Paid"
+					if self.customer_group=="Leasing":
+						self.status="Billed"
+					else:
+						self.status = "Paid"
 				# else:
 				# 	self.status = "Submitted coba"
 			else:
