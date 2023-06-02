@@ -63,17 +63,20 @@ def get_data(filters):
 		from `tabExpense Claim` ec 
 		left join `tabExpense Claim Detail` ecd on ecd.parent = ec.name
 		left join `tabCost Center` cc on cc.name = ec.cost_center
-		where ec.docstatus = 1 {} and ecd.expense_date between '{}' and '{}' order by ecd.expense_date asc """.format(kondisi,from_date,to_date),as_list = 1,debug=1)
+		where ec.docstatus = 1 and ecd.expense_date between '{}' and '{}' 
+		and ec.cost_center = '{}' order by ecd.expense_date asc """.format(from_date,to_date,filters.get("area")),as_list = 1,debug=1)
 
+	# 11.0104.01.00.00.001 - Petty Cash - CITY1 - HND
+	
 	saldo_awal = frappe.db.sql(""" SELECT sum(debit)-sum(credit) as debit 
-		from `tabGL Entry` gl where gl.account = '11.0104.01.00.00.001 - Petty Cash - CITY1 - HND' 
+		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.posting_date < '{}' 
-		and gl.voucher_type = "Journal Entry" """.format(from_date))
+		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date))
 
 	cek_je = frappe.db.sql(""" SELECT posting_date,remarks,debit
-		from `tabGL Entry` gl where gl.account = '11.0104.01.00.00.001 - Petty Cash - CITY1 - HND' 
+		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.debit > 0 
-		and gl.voucher_type = "Journal Entry" and gl.posting_date between '{}' and '{}' """.format(from_date,to_date))
+		and gl.voucher_type = "Journal Entry" and gl.posting_date between '{}' and '{}' """.format(filters.get("akun"),from_date,to_date))
 	
 	# frappe.msgprint(str(cek_je)+ " cek_je")
 
@@ -126,7 +129,7 @@ def get_data(filters):
 	debet = 0 
 	kredit = 0
 	con = 1
-	frappe.msgprint(str(len(sort))+' len sort')
+	# frappe.msgprint(str(len(sort))+' len sort')
 	# for s in sort:
 	# 	# frappe.msgprint(str(sort[conter][8])+"wkwkwk")
 	# 	# sort[conter][8] = 9999

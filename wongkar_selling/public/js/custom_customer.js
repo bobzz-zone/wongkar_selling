@@ -12,7 +12,15 @@ frappe.ui.form.on('Customer', {
              }
          }
     });
-	}
+	},
+    nama_kecamatan(frm){
+        // cur_frm.set_value("kecamatan2","")
+        cur_frm.set_value("kelurahan_2","")
+        cur_frm.set_value("nama_kelurahan","")
+         // cur_frm.refresh_fields("kecamatan2")
+        cur_frm.refresh_fields("nama_kelurahan")
+        cur_frm.refresh_fields("kelurahan_2")
+    }
 })
 
 function sync_document(){

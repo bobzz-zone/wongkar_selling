@@ -102,6 +102,8 @@ def rem_sinv(self,method):
 		where sipm.docstatus = 1  and sle.voucher_type = "Stock Entry" and se.stock_entry_type = 'Repack' and sn.name = '{0}' """.format(self.name),as_dict=1)
 
 	asal_jual = ''
+	asal_beli= ''
+	tanggal_beli = ''
 	if data:
 		if 'BJM' in data[0]['cc_jual']:
 			asal_jual = 'BJM'
@@ -147,8 +149,8 @@ def rem_sinv(self,method):
 
 		tanggal_beli = data_repack[0]['tanggal_beli']
 
-
-	frappe.db.sql(""" UPDATE `tabSerial No` set asal_beli='{}',asal_jual='{}',tanggal_beli='{}' where name = '{}' """.format(asal_beli,asal_jual,tanggal_beli,self.name))
+	if tanggal_beli != "":
+		frappe.db.sql(""" UPDATE `tabSerial No` set asal_beli='{}',asal_jual='{}',tanggal_beli='{}' where name = '{}' """.format(asal_beli,asal_jual,tanggal_beli,self.name))
 	print(self.name)
 
 	print(str(data)+' data')

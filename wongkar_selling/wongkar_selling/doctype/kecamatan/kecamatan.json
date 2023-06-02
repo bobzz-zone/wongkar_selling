@@ -1,6 +1,7 @@
 {
  "actions": [],
- "autoname": "field:kecamatan",
+ "allow_import": 1,
+ "autoname": "KEC-.#####",
  "creation": "2023-05-22 09:21:31.651128",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -40,7 +41,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-29 10:18:00.853793",
+ "modified": "2023-06-02 16:19:55.872216",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Kecamatan",
@@ -59,6 +60,7 @@
    "write": 1
   }
  ],
+ "search_fields": "kecamatan",
  "sort_field": "modified",
  "sort_order": "DESC"
 }

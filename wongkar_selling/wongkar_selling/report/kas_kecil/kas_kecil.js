@@ -53,7 +53,15 @@ frappe.query_reports["Kas Kecil"] = {
 			"label": __("Area"),
 			"fieldtype": "Link",
 			"options": "Cost Center",
-			// "reqd": 1,
+			"reqd": 1,
+			"width": "60px",
+		},
+		{
+			"fieldname":"akun",
+			"label": __("Akun"),
+			"fieldtype": "Link",
+			"options": "Account",
+			"reqd": 1,
 			"width": "60px",
 		},
 	]
