@@ -58,7 +58,7 @@ def get_data(filters):
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabCustomer` c on c.name = sipm.pemilik
 		left join `tabSKB` skb on skb.serial_no = sn.serial_no
-		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
+		where sipm.docstatus = 1  and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type="Stock Entry") and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
 
 	output = []
 
