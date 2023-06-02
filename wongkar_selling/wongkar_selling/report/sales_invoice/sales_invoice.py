@@ -86,7 +86,7 @@ def get_data(filters):
 		join `tabUser` u on u.name = sipm.owner
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.parent = sipm.name
-		where sipm.docstatus = 1 and sle.voucher_type = "Purchase Receipt" and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1)
+		where sipm.docstatus = 1 and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type = "Stock Entry") and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1,debug=1)
 
 	
 	output = []

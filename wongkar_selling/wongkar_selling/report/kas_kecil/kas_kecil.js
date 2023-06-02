@@ -55,6 +55,12 @@ frappe.query_reports["Kas Kecil"] = {
 			"options": "Cost Center",
 			"reqd": 1,
 			"width": "60px",
+			"get_query": function() {
+				// const company = frappe.query_report.get_filter_value('company');
+				return {
+					filters: { 'is_group': 0 }
+				}
+			}
 		},
 		{
 			"fieldname":"akun",
