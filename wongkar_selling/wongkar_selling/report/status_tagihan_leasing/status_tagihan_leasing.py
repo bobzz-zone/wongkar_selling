@@ -27,7 +27,8 @@ def get_data(filters):
 		tdl.date,
 		if(tdl.date is not null,"Belum Realisasi","Belum Tagih"),
 		IF(sipm.tanggal_tagih,DATEDIFF(tdl.date, sipm.posting_date),0),
-		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0)
+		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0),
+		sipm.set_warehouse
 		FROM `tabSales Invoice Penjualan Motor` sipm
 		left JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
 		left join `tabTagihan Discount Leasing` tdl on tdl.name = tl.parent
@@ -40,6 +41,7 @@ def get_data(filters):
 			tampil.append([
 				i[0],
 				i[1],
+				i[9],
 				i[2],
 				i[3],
 				i[4],
@@ -55,7 +57,7 @@ def get_columns(filters):
 	columns = [
 		{
 			"label": _("Leasing"),
-			"fieldname": "pos",
+			"fieldname": "leasing",
 			"fieldtype": "Data",
 			"width": 200
 		},
@@ -64,6 +66,13 @@ def get_columns(filters):
 			"fieldname": "area",
 			"fieldtype": "Link",
 			"options": "Cost Center",
+			"width": 200
+		},
+		{
+			"label": _("Cab Id Jual"),
+			"fieldname": "cab",
+			"fieldtype": "Link",
+			"options": "Warehouse",
 			"width": 200
 		},
 		{

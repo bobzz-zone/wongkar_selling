@@ -77,7 +77,8 @@ def get_data(filters):
 		sipm.foto_invoice,
 		sipm.foto_surat_jalan,
 		sipm.foto_kwitansi_uang_muka,
-		sipm.foto_kwitansi_sub
+		sipm.foto_kwitansi_sub,
+		sipm.set_warehouse
 		from `tabSales Invoice Penjualan Motor` sipm 
 		join `tabCustomer` c on c.name = sipm.pemilik
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
@@ -141,7 +142,7 @@ def get_data(filters):
 
 		
 		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
-			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56]])
+			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57]])
 		
 
 	# output_tes = output
@@ -226,15 +227,19 @@ def get_data(filters):
 			otr = t[24]
 			piutang_leasing = t[24]-(dp_gross)+t[29]+t[31]
 
-
+		a_unit = ''
+		if t[3]:
+			a_unit = t[3]
+		else:
+			a_unit = t[4]
 	
 		
 		tampil.append([
 			t[0],
 			t[1],
-			t[2],
-			t[3],# id jual
-			t[4],
+			a_unit,
+			t[45],# id jual t[3]
+			t[4],# 
 			t[5],
 			t[6],
 			t[7],
