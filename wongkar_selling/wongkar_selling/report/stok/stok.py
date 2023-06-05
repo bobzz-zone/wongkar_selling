@@ -77,9 +77,9 @@ def get_data(filters):
 			i[1],
 			i[2],
 			i[22],# sumber "MD"
-			asal_beli,#asal_beli
+			i[20],#asal_beli
 			i[20],# cabang
-			i[3],#pos
+			i[9],#pos i[3]
 			i[20],# wh
 			i[4], # kt[0] kode tipe
 			nt[0],
