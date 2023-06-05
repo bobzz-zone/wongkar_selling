@@ -27,7 +27,7 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
 						frappe.model.set_value(child.doctype, child.name, "date", data.message[i].posting_date);
 						frappe.model.set_value(child.doctype, child.name, "payment_entry", data.message[i].name);
 						frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].customer_name);
-						frappe.model.set_value(child.doctype, child.name, "total_allocated_amount", data.message[i].total_allocated_amount);
+						frappe.model.set_value(child.doctype, child.name, "total_allocated_amount", data.message[i].paid_amount);
 					}
 					cur_frm.refresh_field("list_payment_entry");
              	}

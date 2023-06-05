@@ -53,10 +53,10 @@ class PaymentEntryInternalTransfer(Document):
 @frappe.whitelist()
 def get_pe(name_pe,paid_from,from_date,to_date):
 	# data_pe = frappe.get_doc("Payment Entry Internal Transfer",name_pe)
-	data = frappe.db.sql(""" SELECT pe.name,pe.total_allocated_amount,pe.posting_date,c.customer_name
+	data = frappe.db.sql(""" SELECT pe.name,pe.paid_amount,pe.posting_date,c.customer_name
 		from `tabPayment Entry` pe 
 		left join `tabCustomer` c on c.name = pe.pemilik
 		where pe.mode_of_payment like 'Cash%' and pe.paid_to = '{}' and 
-		pe.docstatus = 1 and pe.internal_transfer = 0 and pe.total_allocated_amount > 0 and pe.posting_date between '{}' and '{}' order by pe.posting_date asc """.format(paid_from,from_date,to_date),as_dict=1,debug=1)
+		pe.docstatus = 1 and pe.internal_transfer = 0 and pe.posting_date between '{}' and '{}' order by pe.posting_date asc """.format(paid_from,from_date,to_date),as_dict=1,debug=1)
 
 	return data
