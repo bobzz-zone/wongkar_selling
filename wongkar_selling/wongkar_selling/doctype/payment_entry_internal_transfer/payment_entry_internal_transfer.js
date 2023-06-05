@@ -12,7 +12,7 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
              method: "wongkar_selling.wongkar_selling.doctype.payment_entry_internal_transfer.payment_entry_internal_transfer.get_pe",
              args: {
                name_pe : cur_frm.doc.name,
-               paid_to: cur_frm.doc.account_paid_to,
+               paid_from: cur_frm.doc.account_paid_from,
                from_date: cur_frm.doc.from_date,
                to_date: cur_frm.doc.to_date
              },

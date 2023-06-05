@@ -41,11 +41,11 @@ def get_data(filters):
 		(SELECT cost_center from `tabStock Entry Detail` where parent=se.name Limit 1),
 		pr.supplier
 		FROM `tabSerial No` sn 
-		join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
+		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabItem` i on i.name = sn.item_code
 		left join `tabStock Entry` se on se.name = sle.voucher_no
-		where sn.status = "Active" and (sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry') group by sn.name """,as_list=1)
+		where sn.status = "Active" and (sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry') group by sn.name """,as_list=1,debug=1)
 
 	output =[]
 

@@ -68,15 +68,15 @@ def get_data(filters):
 
 	# 11.0104.01.00.00.001 - Petty Cash - CITY1 - HND
 	
-	saldo_awal = frappe.db.sql(""" SELECT sum(debit)-sum(credit) as debit 
+	saldo_awal = frappe.db.sql(""" SELECT IFNULL(0,sum(debit)-sum(credit)) as debit 
 		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.posting_date < '{}' 
-		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date))
+		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date),debug=1)
 
 	cek_je = frappe.db.sql(""" SELECT posting_date,remarks,debit
 		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.debit > 0 
-		and gl.voucher_type = "Journal Entry" and gl.posting_date between '{}' and '{}' """.format(filters.get("akun"),from_date,to_date))
+		and gl.voucher_type = "Journal Entry" and gl.posting_date between '{}' and '{}' """.format(filters.get("akun"),from_date,to_date),debug=1)
 	
 	# frappe.msgprint(str(cek_je)+ " cek_je")
 
@@ -163,6 +163,8 @@ def get_data(filters):
 			""
 		]
 		)
+
+	# frappe.msgprint(str(sort)+" sort")
 	return sort
 
 def get_columns(filters):

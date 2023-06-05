@@ -2342,11 +2342,13 @@
    "label": "Foto Surat Jalan"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "foto_kwitansi_uang_muka",
    "fieldtype": "Attach Image",
    "label": "Foto Kwitansi Uang Muka"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "foto_kwitansi_sub",
    "fieldtype": "Attach Image",
    "label": "Foto Kwitansi Sub"
@@ -2368,7 +2370,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-06-03 13:51:19.222752",
+ "modified": "2023-06-05 11:29:49.732220",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
