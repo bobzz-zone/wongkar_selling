@@ -12,7 +12,7 @@ def execute(filters=None):
 	#dapatkan data salesinvoice yang related
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,sn.name,i.item_group,sipm.item_code,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_group,sipm.item_code,
 			sum(if(a.root_type !="Liability", gl.credit,0)) as "sales",sum(if(a.root_type !="Liability", gl.debit,0)) as "cogs" , sum(if(a.root_type !="Liability", gl.credit-gl.debit,0)) as "profit",
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
