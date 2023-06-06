@@ -2,8 +2,10 @@ import frappe
 
 def isi_nosin(self,method):
 	split = self.name.split("--")
-	self.no_rangka = split[0]
-	self.no_mesin = split[1]
+	self.no_rangka = split[1]
+	self.no_mesin = split[0]
+	frappe.db.sql(""" UPDATE `tabSerial No` set no_rangka='{}',no_mesin = '{}' where name = '{}' """.format(split[1],split[0],self.name))
+	frappe.db.commit()
 
 def rem_sinv(self,method):
 	# doc = frappe.get_doc("Serial No",self.name)

@@ -206,7 +206,10 @@ doc_events = {
 	},
 	"Serial No":{
 		"onload": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
-		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin"
+		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
+		"after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
+		"on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
+		"onload": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin"
 	}
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
