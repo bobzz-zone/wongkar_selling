@@ -5,14 +5,14 @@ import frappe
 from frappe.utils import flt
 def execute(filters=None):
 	columns, data = [], []
-	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","No Mesin:Data:150","Nama Type:Data:150","Item:Link/Item:150","Harga Jual:Currency:150",
+	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","Harga Jual:Currency:150",
 		"COGS:Currency:150","Gross Profit:Currency:150","Cost STNK:Currency:150","Cost BPKB:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 #	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","Item:Link/Item:150","Harga Jual:Currency:150",
 #               "COGS:Currency:150","Gross Profit:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 	#dapatkan data salesinvoice yang related
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,sn.no_mesin,i.item_group,sipm.item_code,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,sn.name,i.item_group,sipm.item_code,
 			sum(if(a.root_type !="Liability", gl.credit,0)) as "sales",sum(if(a.root_type !="Liability", gl.debit,0)) as "cogs" , sum(if(a.root_type !="Liability", gl.credit-gl.debit,0)) as "profit",
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
