@@ -129,18 +129,22 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		for d in self.get('daftar_tagihan'):
+		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable FROM `tabDaftar Tagihan` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
+			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
+
+		for d in data:
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
 			against_income_account = set_against_income_account(d.no_sinv)
 			hitung_tax = d.nilai / 1.11
 			net = d.nilai - hitung_tax
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": self.coa_tagihan_discount,
+					"account": d.coa_receivable,
 					# "party_type": "Customer",
 					# "party": self.customer,
 					# "due_date": self.due_date,
-					"against": self.customer,
+					"against": self.coa_tagihan_discount,
 					"credit": hitung_tax,
 					"credit_in_account_currency": hitung_tax,
 					"against_voucher": d.no_sinv,
@@ -158,19 +162,20 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center,sinv.debit_to FROM `tabDaftar Tagihan` cd
-			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable FROM `tabDaftar Tagihan` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
+			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
 		
 		for d in data:
 			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": d.debit_to,
+					"account": self.coa_tagihan_discount,
 					"party_type": "Customer",
 					"party": self.customer,
 					# "due_date": self.due_date,
-					"against": self.coa_tagihan_discount,
+					"against": d.coa_receivable,
 					"debit": d.nilai,
 					"debit_in_account_currency": d.nilai,
 					# "against_voucher": d.no_sinv,

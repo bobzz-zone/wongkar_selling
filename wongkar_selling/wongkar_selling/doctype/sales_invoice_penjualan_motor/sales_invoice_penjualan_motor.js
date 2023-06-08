@@ -1490,7 +1490,11 @@ var calculate_totals= function() {
 		adj = cur_frm.doc.adj_discount
 	}
 	var oa =0
-	oa = (cur_frm.doc.harga - td - tdl) + adj
+	
+	// perubahan jurnal 08-06-2023
+	//  oa = (cur_frm.doc.harga - td - tdl) + adj asli
+	oa = (cur_frm.doc.harga) + adj
+	
 	//console.log(oa)
 	//console.log(biaya)
 	//cur_frm.doc.items[0].rate=oa;

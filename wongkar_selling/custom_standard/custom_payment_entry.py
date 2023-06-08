@@ -409,7 +409,7 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 		frappe.throw(_("Can only make payment against unbilled {0}").format(dt))
 
 	party_type = set_party_type_custom(dt)
-	party_account = set_party_account(dt, dn, doc, party_type)
+	party_account = set_party_account_diskon_leasing(dt, dn, doc, party_type)
 	party_account_currency = set_party_account_currency(dt, party_account, doc)
 	payment_type = set_payment_type(dt, doc)
 	grand_total, outstanding_amount = set_grand_total_and_outstanding_amount(party_amount, dt, party_account_currency, doc)
@@ -1228,8 +1228,8 @@ def set_party_account(dt, dn, doc, party_type):
 	elif dt == "Gratuity":
 		party_account = doc.payable_account
 	elif dt == "Tagihan Discount":
-		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan[0].no_sinv).debit_to
-		party_account = debit_to
+		# debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan[0].no_sinv).debit_to
+		party_account = doc.coa_tagihan_discount
 	elif dt == "Tagihan Discount Leasing":
 		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan_leasing[0].no_invoice).debit_to
 		party_account = doc.coa_tagihan_sipm
@@ -1243,6 +1243,15 @@ def set_party_account(dt, dn, doc, party_type):
 		party_account = doc.coa_biaya_motor_bpkb
 	else:
 		party_account = get_party_account(party_type, doc.get(party_type.lower()), doc.company)
+	return party_account
+
+
+def set_party_account_diskon_leasing(dt, dn, doc, party_type):
+
+	if dt == "Tagihan Discount Leasing":
+		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan_leasing[0].no_invoice).debit_to
+		party_account = doc.coa_tagihan_discount_leasing
+	
 	return party_account
 
 def set_party_account_currency(dt, party_account, doc):

@@ -27,18 +27,19 @@ frappe.ui.form.on('Payment Entry', {
 	// 		cur_frm.set_df_property("doc_type", "options", ["Pembayaran Tagihan Motor"]);
 	// 	}
 	// },
-	doc_type(frm){
-		cur_frm.set_value("tipe_pembayaran","")
-		cur_frm.refresh_fields("tipe_pembayaran")
-		if(cur_frm.doc.doc_type == "Tagihan Discount Leasing"){
-			cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran Diskon Leasing","Pembayaran SIPM"]);
-		}else if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor"){
-			cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran STNK","Pembayaran BPKB","Pembayaran Diskon Dealer"]);
-		}else{
-			cur_frm.set_value("tipe_pembayaran","Pembayaran Diskon")
-		}
+	// doc_type(frm){
+	// 	console.log("xxxx")
+	// 	cur_frm.set_value("tipe_pembayaran","")
+	// 	cur_frm.refresh_fields("tipe_pembayaran")
+	// 	if(cur_frm.doc.doc_type == "Tagihan Discount Leasing"){
+	// 		cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran Diskon Leasing","Pembayaran SIPM"]);
+	// 	}else if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor"){
+	// 		cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran STNK","Pembayaran BPKB","Pembayaran Diskon Dealer"]);
+	// 	}else{
+	// 		cur_frm.set_value("tipe_pembayaran","Pembayaran Diskon")
+	// 	}
 		
-	},
+	// },
 	after_save(frm){
 		
 		
@@ -91,6 +92,7 @@ frappe.ui.form.on('Payment Entry', {
 	},
 	refresh(frm) {
 		// your code here
+		frappe.msgprint("asasas")
 		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.pemilik){
 			frm.add_custom_button(__("Make SIPM"), function() {
 		        // When this button is clicked, do this
@@ -139,7 +141,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['outstanding_amount_stnk', '>',0],
-		                ['supplier_stnk','=',cur_frm.doc.party]
+		                ['supplier_stnk','=',cur_frm.doc.party],
+		                ['coa_biaya_motor_stnk','=',cur_frm.doc.paid_to]
 		            ]
 		        }
 	        }
@@ -162,7 +165,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['outstanding_amount_bpkb', '>',0],
-		                ['supplier_bpkb','=',cur_frm.doc.party]
+		                ['supplier_bpkb','=',cur_frm.doc.party],
+		                ['coa_biaya_motor_bpkb','=',cur_frm.doc.paid_to]
 		            ]
 		        }
 	        }
@@ -185,7 +189,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['outstanding_amount', '>',0],
-		                ['supplier','=',cur_frm.doc.party]
+		                ['supplier','=',cur_frm.doc.party],
+		                ['coa_biaya_motor','=',cur_frm.doc.paid_to]
 		            ]
 		        }
 	        }
@@ -208,7 +213,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['outstanding_amount', '>',0],
-		                ['customer','=',cur_frm.doc.party]
+		                ['customer','=',cur_frm.doc.party],
+		                ['coa_tagihan_discount_leasing','=',cur_frm.doc.paid_from]
 		            ]
 		        }
 	        }
@@ -231,7 +237,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['total_outstanding_tagihan_sipm', '>',0],
-		                ['customer','=',cur_frm.doc.party]
+		                ['customer','=',cur_frm.doc.party],
+		                ['coa_tagihan_sipm','=',cur_frm.doc.paid_from]
 		            ]
 		        }
 	        }
@@ -254,7 +261,8 @@ frappe.ui.form.on('Payment Entry', {
 		                ["name","NOT IN",child_names],
 		                ['docstatus', '=', 1],
 		                ['outstanding_amount', '>',0],
-		                ['customer','=',cur_frm.doc.party]
+		                ['customer','=',cur_frm.doc.party],
+		                ['coa_tagihan_discount','=',cur_frm.doc.paid_from]
 		            ]
 		        }
 	        }
@@ -326,12 +334,27 @@ frappe.ui.form.on('Payment Entry', {
 		cur_frm.refresh_fields("doc_type")
 	},
 	doc_type(frm){
+		console.log("kjanjksabdijsabdfui")
+		cur_frm.set_value("tipe_pembayaran","")
+		cur_frm.refresh_fields("tipe_pembayaran")
 		if(!cur_frm.doc.doc_type){
 			cur_frm.set_value("tipe_pembayaran","")
 			cur_frm.clear_table("list_doc_name")
 			cur_frm.refresh_fields("tipe_pembayaran")
 			cur_frm.refresh_fields("list_doc_name")
+		}else{
+			
+			if(cur_frm.doc.doc_type == "Tagihan Discount Leasing"){
+				cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran Diskon Leasing","Pembayaran SIPM"]);
+			}else if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor"){
+				cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran STNK","Pembayaran BPKB","Pembayaran Diskon Dealer"]);
+			}else if(cur_frm.doc.doc_type == 'Tagihan Discount'){
+				cur_frm.set_df_property("tipe_pembayaran", "options", ["Pembayaran Diskon"]);
+				cur_frm.set_value("tipe_pembayaran","Pembayaran Diskon")
+			}
+			
 		}
+		
 	}
 })
 

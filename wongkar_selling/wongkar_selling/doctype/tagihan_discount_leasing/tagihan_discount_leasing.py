@@ -137,144 +137,148 @@ class TagihanDiscountLeasing(Document):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 			total = [0]
 			debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",d.no_invoice).debit_to
-			# for d2 in account:
+			for d2 in account:
 			# print( d2.name, d2.parent, ' d2')
 			# total.append(d2.nominal)
 			# print(sum(total), " total")
-			hitung_tax = (d.nilai) / 1.11
-			net = (d.nilai) - hitung_tax
-			gl_entries.append(
-				self.get_gl_dict({
-					"account": self.coa_pendapatan_leasing,
-					# "party_type": "Customer",
-					# "party": self.customer,
-					# "due_date": self.due_date,
-					"against": self.customer,
-					"credit": hitung_tax,
-					"credit_in_account_currency": hitung_tax,
-					# "against_voucher": d.no_invoice,
-					# "against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": cost_center
-					# "project": self.project,
-					# "remarks": "coba Lutfi yyyyy!"
-				}, item=None)
-			)
+				hitung_tax = (d2.nominal) / 1.11
+				net = (d2.nominal) - hitung_tax
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": d2.coa,
+						# "party_type": "Customer",
+						# "party": self.customer,
+						# "due_date": self.due_date,
+						"against":  self.coa_tagihan_discount_leasing,
+						"credit": hitung_tax,
+						"credit_in_account_currency": hitung_tax,
+						# "against_voucher": d.no_invoice,
+						# "against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
+	
+
+		# print(gl_entries, ' d')
+
+		for ds in self.get('daftar_tagihan_leasing'):
+			print(ds.no_invoice, ' ds.no_invoice')
+			# cost_center = frappe.get_value("Company",{"name" : ds.no_invoice}, "round_off_cost_center")
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : ds.no_invoice}, "cost_center")
+			account = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : ds.no_invoice}, "debit_to")
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": debit_to,
+					"account": account,
 					"party_type": "Customer",
 					"party": self.customer,
 					# "due_date": self.due_date,
 					"against": self.coa_tagihan_sipm,
-					"credit": d.tagihan_sipm,
-					"credit_in_account_currency": d.tagihan_sipm,
-					"against_voucher": d.no_invoice,
+					"credit": ds.outstanding_sipm,
+					"credit_in_account_currency": ds.outstanding_sipm,
+					"against_voucher": ds.no_invoice,
 					"against_voucher_type": "Sales Invoice Penjualan Motor",
 					"cost_center": cost_center
 					# "project": self.project,
 					# "remarks": "coba Lutfi yyyyy!"
 				}, item=None)
 			)
+		# frappe.msgprint(str(gl_entries)+ " credit")
+		print(gl_entries, ' ds')
 
-		print(gl_entries, ' d')
-
-		# for ds in self.get('daftar_tagihan_leasing'):
-		# 	print(ds.no_invoice, ' ds.no_invoice')
-		# 	# cost_center = frappe.get_value("Company",{"name" : ds.no_invoice}, "round_off_cost_center")
-		# 	cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : ds.no_invoice}, "cost_center")
-		# 	account = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : ds.no_invoice}, "debit_to")
 		# 	gl_entries.append(
 		# 		self.get_gl_dict({
-		# 			"account": self.coa_pendapatan_leasing,
-		# 			# "party_type": "Customer",
-		# 			# "party": self.customer,
+		# 			"account": debit_to,
+		# 			"party_type": "Customer",
+		# 			"party": self.customer,
 		# 			# "due_date": self.due_date,
-		# 			"against": self.customer,
-		# 			"credit": ds.outstanding_sipm,
-		# 			"credit_in_account_currency": ds.outstanding_sipm,
-		# 			"against_voucher": ds.no_invoice,
+		# 			"against": self.coa_tagihan_sipm,
+		# 			"credit": d.tagihan_sipm,
+		# 			"credit_in_account_currency": d.tagihan_sipm,
+		# 			"against_voucher": d.no_invoice,
 		# 			"against_voucher_type": "Sales Invoice Penjualan Motor",
 		# 			"cost_center": cost_center
 		# 			# "project": self.project,
 		# 			# "remarks": "coba Lutfi yyyyy!"
 		# 		}, item=None)
 		# 	)
-		# # frappe.msgprint(str(gl_entries)+ " credit")
-		# print(gl_entries, ' ds')
 
 	def make_gl_debit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
 		account = frappe.get_list("Table Disc Leasing",{"parent" : self.leasing,'nama_leasing': self.customer},"*")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		data = frappe.db.sql(""" SELECT SUM(nilai) AS nilai,cost_center FROM `tabDaftar Tagihan Leasing` cd
-			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
+		data = frappe.db.sql(""" SELECT SUM(tdl.nominal) AS nilai,cost_center,tdl.coa FROM `tabDaftar Tagihan Leasing` cd
+			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` 
+			JOIN `tabTable Disc Leasing` tdl on tdl.parent = sinv.name
+			WHERE cd.parent = '{}' and tdl.nama_leasing = '{}' GROUP BY cost_center,tdl.nama_leasing """.format(self.name,self.customer),as_dict=1)
 
-		data_sipm = frappe.db.sql(""" SELECT SUM(outstanding_sipm) AS outstanding_sipm,cost_center FROM `tabDaftar Tagihan Leasing` cd
+		data_sipm = frappe.db.sql(""" SELECT SUM(outstanding_sipm) AS outstanding_sipm,cost_center,sinv.debit_to FROM `tabDaftar Tagihan Leasing` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
 
 		# frappe.msgprint(str(data_sipm)+"data_sipm")
 		
-		for i in self.daftar_tagihan_leasing:
-			debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",i.no_invoice).debit_to
-			cost_center = frappe.get_doc("Sales Invoice Penjualan Motor",i.no_invoice).cost_center
-			gl_entries.append(
-				self.get_gl_dict({
-					"account": self.coa_tagihan_sipm,
-					"party_type": "Customer",
-					"party": self.customer,
-					# "due_date": self.due_date,
-					"against": self.coa_pendapatan_leasing,
-					"debit": i.tagihan_sipm + i.nilai,
-					"debit_in_account_currency": i.tagihan_sipm+ i.nilai,
-					# "against_voucher": d.no_sinv,
-					# "against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": cost_center
-					# "project": self.project,
-					# "remarks": "coba Lutfi yyyyy!"
-				}, item=None)
-			)
-
-		# for d in data:
-		# 	# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		# 	# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
-		# 	gl_entries.append(
-		# 		self.get_gl_dict({
-		# 			"account": self.coa_tagihan_discount_leasing,
-		# 			"party_type": "Customer",
-		# 			"party": self.customer,
-		# 			# "due_date": self.due_date,
-		# 			"against": self.coa_pendapatan_leasing,
-		# 			"debit": d.nilai,
-		# 			"debit_in_account_currency": d.nilai,
-		# 			# "against_voucher": d.no_sinv,
-		# 			# "against_voucher_type": "Sales Invoice Penjualan Motor",
-		# 			"cost_center": d.cost_center
-		# 			# "project": self.project,
-		# 			# "remarks": "coba Lutfi yyyyy!"
-		# 		}, item=None)
-		# 	)
-
-		# for ds in data_sipm:
-		# 	# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		# 	# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+		# for i in self.daftar_tagihan_leasing:
+		# 	debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",i.no_invoice).debit_to
+		# 	cost_center = frappe.get_doc("Sales Invoice Penjualan Motor",i.no_invoice).cost_center
 		# 	gl_entries.append(
 		# 		self.get_gl_dict({
 		# 			"account": self.coa_tagihan_sipm,
 		# 			"party_type": "Customer",
 		# 			"party": self.customer,
 		# 			# "due_date": self.due_date,
-		# 			"against": self.customer,
-		# 			"debit": ds.outstanding_sipm,
-		# 			"debit_in_account_currency": ds.outstanding_sipm,
+		# 			"against": self.coa_pendapatan_leasing,
+		# 			"debit": i.tagihan_sipm + i.nilai,
+		# 			"debit_in_account_currency": i.tagihan_sipm+ i.nilai,
 		# 			# "against_voucher": d.no_sinv,
 		# 			# "against_voucher_type": "Sales Invoice Penjualan Motor",
-		# 			"cost_center": ds.cost_center
+		# 			"cost_center": cost_center
 		# 			# "project": self.project,
 		# 			# "remarks": "coba Lutfi yyyyy!"
 		# 		}, item=None)
 		# 	)
+
+		for d in data:
+			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.coa_tagihan_discount_leasing,
+					"party_type": "Customer",
+					"party": self.customer,
+					# "due_date": self.due_date,
+					"against": d.coa,
+					"debit": d.nilai,
+					"debit_in_account_currency": d.nilai,
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": d.cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
+
+		for ds in data_sipm:
+			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
+			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.coa_tagihan_sipm,
+					"party_type": "Customer",
+					"party": self.customer,
+					# "due_date": self.due_date,
+					"against": ds.debit_to,
+					"debit": ds.outstanding_sipm,
+					"debit_in_account_currency": ds.outstanding_sipm,
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
+					"cost_center": ds.cost_center
+					# "project": self.project,
+					# "remarks": "coba Lutfi yyyyy!"
+				}, item=None)
+			)
 		# frappe.msgprint(str(gl_entries)+ " debit")
 
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")

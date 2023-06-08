@@ -189,14 +189,16 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan_leasing[0].no_invoice).debit_to
 		coa_tagihan_sipm = frappe.get_doc('Tagihan Discount Leasing',tes[0]['docname']).coa_tagihan_sipm
 		if coa_tagihan_sipm != paid_from:
-			frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+			pass
+			# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
 
 	if tes[0]['reference_doctype'] == 'Tagihan Discount':
 		cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
 		# frappe.msgprint(str(cek.daftar_tagihan[0].no_sinv)+ " cek")
 		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan[0].no_sinv).debit_to
 		if cek_debit_to != paid_from:
-			frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+			pass
+			# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
 
 
 	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
