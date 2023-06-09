@@ -1056,8 +1056,11 @@ class SalesInvoicePenjualanMotor(SellingController):
 			self.taxes_and_charges = tax_template["name"]
 
 			tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
-			self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-			self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+
+			self.grand_total = (self.harga) + self.adj_discount
+			self.rounded_total = (self.harga) + self.adj_discount
 
 			# for row in tax.taxes:
 			# 	self.append("taxes",{
@@ -1104,10 +1107,17 @@ class SalesInvoicePenjualanMotor(SellingController):
 			else:
 				tot_adv = 0
 
-			self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-			self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-			self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-			self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
+			# self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.base_grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
+
+
+			# self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			# self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+			self.base_grand_total = (self.harga) + self.adj_discount
+			self.outstanding_amount = (self.harga) + self.adj_discount - tot_adv
+
 
 
 	def validate(self):
