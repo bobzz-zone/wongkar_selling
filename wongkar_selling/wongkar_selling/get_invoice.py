@@ -126,7 +126,7 @@ def get_rule(item_code,territory,posting_date,category_discount,from_group):
 def get_leasing(item_code,nama_promo,territory_real,posting_date,from_group):
 	if from_group:
 		item_group = frappe.get_doc("Item",item_code).item_group
-		data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount as amount,rdl.valid_from,rdl.valid_to,rdl.name  from `tabRule Discount Leasing` rdl 
+		data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount as amount,rdl.valid_from,rdl.valid_to,rdl.name,rdl.beban_dealer  from `tabRule Discount Leasing` rdl 
 			join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
 			where rdl.item_group='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' 
 			and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') 

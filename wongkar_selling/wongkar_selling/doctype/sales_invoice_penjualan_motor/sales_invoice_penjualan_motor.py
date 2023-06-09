@@ -974,7 +974,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		# generate table discount leasing
 		list_table_discount_leasing = get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date,self.from_group)
 		# get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
-
+		nominal_diskon = 0
 		if list_table_discount_leasing:
 			for row in list_table_discount_leasing:
 				self.append("table_discount_leasing",{
@@ -983,6 +983,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 						"nama_leasing":row.leasing
 					})
 				total_discount_leasing += row.amount
+				
+				self.nominal_diskon = row.beban_dealer
 
 		self.total_biaya = total_biaya
 

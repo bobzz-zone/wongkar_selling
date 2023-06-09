@@ -2234,14 +2234,13 @@
    "reqd": 1
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "diskon",
    "fieldtype": "Check",
    "label": "Diskon"
   },
   {
    "depends_on": "eval:doc.diskon",
-   "fetch_from": "nama_promo.beban_dealer",
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
    "label": "Nominal Diskon"
@@ -2369,7 +2368,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-06-07 22:19:24.251103",
+ "modified": "2023-06-09 13:30:26.922382",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

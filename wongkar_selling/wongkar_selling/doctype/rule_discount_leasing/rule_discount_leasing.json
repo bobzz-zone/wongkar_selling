@@ -17,6 +17,7 @@
   "customer_group",
   "territory",
   "table_discount_leasing",
+  "beban_dealer",
   "disable"
  ],
  "fields": [
@@ -103,11 +104,16 @@
    "label": "Item Code",
    "options": "Item",
    "read_only": 1
+  },
+  {
+   "fieldname": "beban_dealer",
+   "fieldtype": "Currency",
+   "label": "Beban Dealer"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-28 22:03:47.022348",
+ "modified": "2023-06-09 13:12:54.090660",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",
