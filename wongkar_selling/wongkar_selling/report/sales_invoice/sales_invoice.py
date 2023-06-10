@@ -78,16 +78,24 @@ def get_data(filters):
 		sipm.foto_surat_jalan,
 		sipm.foto_kwitansi_uang_muka,
 		sipm.foto_kwitansi_sub,
-		sipm.set_warehouse
-		from `tabSales Invoice Penjualan Motor` sipm 
-		join `tabCustomer` c on c.name = sipm.pemilik
-		join `tabSerial No` sn on sn.name = sipm.no_rangka
-		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
-		join `tabItem` i on i.name = sipm.item_code
-		join `tabUser` u on u.name = sipm.owner
-		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
+		sipm.set_warehouse,
+		w.parent_warehouse,
+		w2.parent_warehouse,
+		sn.warehouse,
+		pr.set_warehouse,
+		se.to_warehouse
+		FROM `tabSales Invoice Penjualan Motor` sipm 
+		JOIN `tabCustomer` c ON c.name = sipm.pemilik
+		JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
+		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
+		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
+		JOIN `tabStock Ledger Entry` sle ON sle.serial_no = sipm.no_rangka
+		LEFT JOIN `tabStock Entry` se ON se.name = sle.voucher_no
+		JOIN `tabItem` i ON i.name = sipm.item_code
+		JOIN `tabUser` u ON u.name = sipm.owner
+		LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no
 		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.parent = sipm.name
-		where sipm.docstatus = 1 and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type = "Stock Entry") and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1,debug=1)
+		where sipm.docstatus = 1 and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type = "Stock Entry") and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1)
 
 	
 	output = []
@@ -140,9 +148,14 @@ def get_data(filters):
 			dea = datad[0][0]
 		# grosdp = i[28]+ahm+ap+dea
 
+		if i[61]:
+			nama_area = i[61]
+		else:
+			nama_area = i[62]
+
 		
 		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
-			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57]])
+			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59]])
 		
 
 	# output_tes = output
@@ -238,9 +251,9 @@ def get_data(filters):
 			t[0],
 			t[1],
 			a_unit,
-			t[45],# id jual t[3]
-			t[4],# 
-			t[5],
+			t[48],# id jual t[3]t[45]
+			t[47],#  area jual t[4]
+			t[46],# area t[5]
 			t[6],
 			t[7],
 			data[con][34],

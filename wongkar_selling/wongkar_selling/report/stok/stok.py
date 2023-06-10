@@ -40,11 +40,16 @@ def get_data(filters):
 		sn.warehouse,
 		(SELECT cost_center from `tabStock Entry Detail` where parent=se.name Limit 1),
 		pr.supplier,
-		pr.set_warehouse
+		pr.set_warehouse,
+		se.to_warehouse,
+		w.parent_warehouse,
+		w2.parent_warehouse
 		FROM `tabSerial No` sn 
 		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabItem` i on i.name = sn.item_code
+		join `tabWarehouse` w on w.name = sn.warehouse
+		join `tabWarehouse` w2 on w2.name = w.parent_warehouse
 		left join `tabStock Entry` se on se.name = sle.voucher_no
 		where sn.status = "Active" and (sle.voucher_type = 'Purchase Receipt' or sle.voucher_type = 'Stock Entry') group by sn.name """,as_list=1,debug=1)
 
@@ -67,10 +72,12 @@ def get_data(filters):
 		elif "/" in i[6]:
 			nr = i[6].split("/")
 
-		if i[21]:
-			cabang = i[21]
+		if i[23]:
+			asal_beli = i[23]
 		else:
-			cabang = i[9]
+			asal_beli = i[24]
+
+
 		# frappe.msgprint(tes[5:7])
 		output.append([
 			i[8],
@@ -78,9 +85,9 @@ def get_data(filters):
 			i[1],
 			i[2],
 			i[22],# sumber "MD"
-			i[9],# asal_beli i[20]
-			cabang, # cabang
-			i[20], #pos i[3] i[9]
+			asal_beli,# asal_beli i[20]
+			i[26], # cabang
+			i[25], #pos i[3] i[9] i[20]
 			i[20], # wh
 			i[4], # kt[0] kode tipe
 			nt[0],
