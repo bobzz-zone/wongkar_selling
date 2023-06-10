@@ -39,7 +39,8 @@ def get_data(filters):
 		i.warna,
 		sn.warehouse,
 		(SELECT cost_center from `tabStock Entry Detail` where parent=se.name Limit 1),
-		pr.supplier
+		pr.supplier,
+		pr.set_warehouse
 		FROM `tabSerial No` sn 
 		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
@@ -66,10 +67,10 @@ def get_data(filters):
 		elif "/" in i[6]:
 			nr = i[6].split("/")
 
-		if i[9]:
-			asal_beli = i[9]
+		if i[21]:
+			cabang = i[21]
 		else:
-			asal_beli = i[21]
+			cabang = i[9]
 		# frappe.msgprint(tes[5:7])
 		output.append([
 			i[8],
@@ -77,10 +78,10 @@ def get_data(filters):
 			i[1],
 			i[2],
 			i[22],# sumber "MD"
-			i[20],#asal_beli
-			i[20],# cabang
-			i[9],#pos i[3]
-			i[20],# wh
+			i[9],# asal_beli i[20]
+			cabang, # cabang
+			i[20], #pos i[3] i[9]
+			i[20], # wh
 			i[4], # kt[0] kode tipe
 			nt[0],
 			nr[0],
