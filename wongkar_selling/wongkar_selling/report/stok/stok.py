@@ -74,8 +74,10 @@ def get_data(filters):
 
 		if i[23]:
 			asal_beli = i[23]
-		else:
+		elif i[24]:
 			asal_beli = i[24]
+		else:
+			asal_beli=i[3]
 
 
 		# frappe.msgprint(tes[5:7])
