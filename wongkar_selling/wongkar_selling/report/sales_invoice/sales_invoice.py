@@ -155,7 +155,7 @@ def get_data(filters):
 		nama_area = i[57]
 
 		
-		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
+		output.append([i[0],i[1],i[33],i[10],i[62],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
 			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59]])
 		
 
@@ -242,10 +242,10 @@ def get_data(filters):
 			piutang_leasing = t[24]-(dp_gross)+t[29]+t[31]
 
 		a_unit = ''
-		if t[3]:
-			a_unit = t[3]
-		else:
+		if t[4]:
 			a_unit = t[4]
+		else:
+			a_unit = t[3]
 	
 		
 		tampil.append([
