@@ -254,7 +254,7 @@ def get_data(filters):
 			a_unit,
 			t[48],# id jual t[3]t[45]
 			t[47],#  area jual t[4]
-			t[46],# area t[5]
+			t[5],# area t[5] t[46]
 			t[6],
 			t[7],
 			data[con][34],
