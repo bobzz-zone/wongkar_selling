@@ -148,10 +148,11 @@ def get_data(filters):
 			dea = datad[0][0]
 		# grosdp = i[28]+ahm+ap+dea
 
-		if i[61]:
-			nama_area = i[61]
-		else:
-			nama_area = i[62]
+		# if i[61]:
+		# 	nama_area = i[61]
+		# else:
+		# 	nama_area = i[62]
+		nama_area = i[57]
 
 		
 		output.append([i[0],i[1],i[33],i[10],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
