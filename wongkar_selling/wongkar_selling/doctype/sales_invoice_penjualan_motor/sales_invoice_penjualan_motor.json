@@ -2234,13 +2234,12 @@
    "reqd": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "diskon",
    "fieldtype": "Check",
    "label": "Diskon"
   },
   {
-   "depends_on": "eval:doc.diskon",
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
    "label": "Nominal Diskon"
@@ -2368,7 +2367,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-06-09 13:30:26.922382",
+ "modified": "2023-06-13 14:27:31.966319",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

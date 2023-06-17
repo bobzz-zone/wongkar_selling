@@ -232,8 +232,8 @@ def get_data(filters):
 		if t[44]:
 			foto_kw_sub = "<a href='"+frappe.utils.get_url()+t[44]+"'>"+frappe.utils.get_url()+t[44]+"</a>"
 		
-		dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]+ t[27]
-		# p_gross = 
+		# dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]+ t[27]
+		dp_gross =  (t[28] + t[27]) + t[34]
 		if t[26] == "Cash":
 			otr = t[24] + t[27]
 			piutang_leasing = 0

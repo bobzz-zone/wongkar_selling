@@ -11,6 +11,8 @@
   "account_paid_from",
   "account_paid_to",
   "cost_center",
+  "column_break_6",
+  "date",
   "from_date",
   "to_date",
   "section_break_6",
@@ -83,12 +85,21 @@
    "label": "Account Paid From",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-08 10:04:46.866679",
+ "modified": "2023-06-14 14:40:11.154391",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Payment Entry Internal Transfer",

@@ -312,11 +312,11 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 						for (let i = 0; i < r.message.length; i++) {
 							if(r.message[i].discount == 'Amount'){
 								var child = cur_frm.add_child("table_discount");
-									frappe.model.set_value(child.doctype, child.name, "rule", r.message[i].name);
-									frappe.model.set_value(child.doctype, child.name, "customer", r.message[i].customer);
-									frappe.model.set_value(child.doctype, child.name, "category_discount", r.message[i].category_discount);
-									frappe.model.set_value(child.doctype, child.name, "coa_receivable", r.message[i].coa_receivable);
-									frappe.model.set_value(child.doctype, child.name, "nominal", r.message[i].amount);
+								frappe.model.set_value(child.doctype, child.name, "rule", r.message[i].name);
+								frappe.model.set_value(child.doctype, child.name, "customer", r.message[i].customer);
+								frappe.model.set_value(child.doctype, child.name, "category_discount", r.message[i].category_discount);
+								frappe.model.set_value(child.doctype, child.name, "coa_receivable", r.message[i].coa_receivable);
+								frappe.model.set_value(child.doctype, child.name, "nominal", r.message[i].amount);
 							}else if(data[i].discount == 'Percent'){
 								var amount = r.message[i].percent * cur_frm.doc.harga / 100;
 								var child2 = cur_frm.add_child("table_discount");
