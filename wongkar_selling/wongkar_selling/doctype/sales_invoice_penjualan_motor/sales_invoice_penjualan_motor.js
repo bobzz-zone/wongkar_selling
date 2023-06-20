@@ -2633,8 +2633,9 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "nama_promo", function(frm) {
 					        frappe.model.set_value(child_l.doctype, child_l.name, "coa", r.message[i].coa);
 					        frappe.model.set_value(child_l.doctype, child_l.name, "nominal", r.message[i].amount);
 					        frappe.model.set_value(child_l.doctype, child_l.name, "nama_leasing", r.message[i].leasing);
+					        cur_frm.set_value("nominal_diskon",r.message[i].beban_dealer)
 						}
-						cur_frm.set_value("nominal_diskon",r.message[i].beban_dealer)
+						cur_frm.refresh_fields("nominal_diskon")
 						cur_frm.refresh_field("table_discount_leasing");
 					}
 				}
