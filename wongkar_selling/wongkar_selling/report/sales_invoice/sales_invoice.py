@@ -89,7 +89,7 @@ def get_data(filters):
 		JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
 		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
 		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
-		JOIN `tabStock Ledger Entry` sle ON sle.serial_no = sipm.no_rangka
+		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		LEFT JOIN `tabStock Entry` se ON se.name = sle.voucher_no
 		JOIN `tabItem` i ON i.name = sipm.item_code
 		JOIN `tabUser` u ON u.name = sipm.owner
