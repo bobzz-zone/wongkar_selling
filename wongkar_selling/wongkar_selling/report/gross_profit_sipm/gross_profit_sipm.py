@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_code,
-			sum(if(a.name like "40.0101.01.%", gl.credit,0)) as "sales",sum(if(a.root_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
+			sum(if(a.name like "40.%", gl.credit,0)) as "sales",sum(if(a.root_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
 	join tabAccount a on gl.account=a.name 
@@ -29,20 +29,20 @@ def execute(filters=None):
 	total_gp=0
 	result=[]
 	for row in data:
-		total_sales+=flt(row[4])+flt(row[6])+flt(row[7])
-		total_cogs+=flt(row[5])
-		total_gp+=flt(row[4])-flt(row[5])
+		total_sales+=flt(row[6])+flt(row[8])+flt(row[9])
+		total_cogs+=flt(row[7])
+		total_gp+=flt(row[6])-flt(row[7])
 		row8=0
 		row9=0
 		try:
-			row8=(100*(flt(row[4])-flt(row[5]))/flt(row[4]))
+			row8=(100*(flt(row[6])-flt(row[7]))/flt(row[6]))
 		except:
 			row8=0
 		try:
-			row9=(100*((flt(row[4])-flt(row[5]))/flt(row[5])))
+			row9=(100*((flt(row[6])-flt(row[7]))/flt(row[7])))
 		except:
 			row9=0
-		result.append([row[0],row[1],row[2],row[3],flt(row[4])+flt(row[6])+flt(row[7]),row[5],flt(row[4])-flt(row[5]),row[6],row[7],row8,row9])
+		result.append([row[0],row[1],row[2],row[3],row[4],row[5],flt(row[6])+flt(row[8])+flt(row[9]),row[7],flt(row[6])-flt(row[7]),row[8],row[9],row8,row9])
 	try:
 		result.append(["","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
