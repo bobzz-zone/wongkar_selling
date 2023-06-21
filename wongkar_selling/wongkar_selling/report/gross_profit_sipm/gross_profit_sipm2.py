@@ -35,16 +35,15 @@ def execute(filters=None):
 		row8=0
 		row9=0
 		try:
-			row8=(100*(flt(row[4])-flt(row[5]))/flt(row[4]))
+			row8=(100*(flt(row[4])-flt(row[5]))/flt(row[4])))
 		except:
 			row8=0
 		try:
 			row9=(100*((flt(row[4])-flt(row[5]))/flt(row[5])))
 		except:
 			row9=0
-		result.append(row[0],row[1],row[2],row[3],flt(row[4])+flt(row[6])+flt(row[7]),row[5],flt(row[4])-flt(row[5]),row8,row9)
 	try:
-		result.append(["","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
+		data.append(["","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
 		pass
-	return columns,result
+	return columns, data
