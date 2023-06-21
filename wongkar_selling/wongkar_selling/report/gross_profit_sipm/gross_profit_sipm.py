@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	data=frappe.db.sql("""select sipm.posting_date,sipm.name,sipm.customer,SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_code,
-			sum(if(a.name like "40.%", gl.credit,0)) as "sales",sum(if(a.root_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
+			sum(if(a.name like "40.101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
 	join tabAccount a on gl.account=a.name 
@@ -44,7 +44,7 @@ def execute(filters=None):
 			row9=0
 		result.append([row[0],row[1],row[2],row[3],row[4],row[5],flt(row[6])+flt(row[8])+flt(row[9]),row[7],flt(row[6])-flt(row[7]),row[8],row[9],row8,row9])
 	try:
-		result.append(["","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
+		result.append(["","","","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
 		pass
 	return columns,result
