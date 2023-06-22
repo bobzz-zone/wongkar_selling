@@ -900,7 +900,8 @@ class SalesInvoicePenjualanMotor(SellingController):
 		
 		if self.diskon == 1:
 			if self.nominal_diskon == 0:
-				frappe.throw("Silahkan mengisi Nominal Diskon")
+				pass
+				# frappe.throw("Silahkan mengisi Nominal Diskon")
 		else:
 			self.nominal_diskon = 0
 

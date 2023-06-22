@@ -678,3 +678,19 @@ def cancel_prec_pinv():
 	# print(tmp, '-tmp')
 	# print(tmp2, '-tmp2')
 	# print(tmp3, '-tmp3')
+
+@frappe.whitelist()
+def patch_rdl():
+	docname = "ACC-SINVM-2023-02753"
+	# frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(docname))
+	# doc = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-02753")
+	# doc.set_posting_time = 1
+	# doc.custom_missing_values()
+	# doc.save()
+	# frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(docname))
+	
+	docu = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2023-02753")
+	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(docname))	
+	docu.make_gl_entries()
+	frappe.db.commit()
+	print(doc.name)

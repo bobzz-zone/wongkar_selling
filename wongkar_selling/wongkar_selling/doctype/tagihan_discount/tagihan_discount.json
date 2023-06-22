@@ -123,7 +123,8 @@
   {
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
-   "label": "outstanding_amount",
+   "in_list_view": 1,
+   "label": "Outstanding Amount",
    "read_only": 1
   },
   {
@@ -156,7 +157,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-08 13:07:52.419388",
+ "modified": "2023-06-22 09:09:50.253992",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount",
