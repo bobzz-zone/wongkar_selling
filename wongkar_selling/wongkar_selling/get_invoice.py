@@ -271,7 +271,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 				pemilik,
 				item,
 				no_rangka,
-				terbayarkan as outstanding,
+				outstanding_discount as outstanding,
 				parenttype,
 				parent,
 				no_invoice,

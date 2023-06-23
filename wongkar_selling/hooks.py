@@ -117,7 +117,7 @@ doc_events = {
 		# "after_insert" : ["wongkar_selling.wongkar_selling.pe.overide_make_pe2"]
 		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
 		# "validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.wongkar_selling.get_invoice.cek_tagihan"],
-		"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel"],
+		"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_standard.custom_payment_entry.validasi_advance_leasing"],
 		"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan","wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi","wongkar_selling.custom_standard.custom_payment_entry.add_tanggalcair","wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing"],
 		"on_cancel" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa_cancel","wongkar_selling.custom_payment_entry.kalkulasi_tagihan_cancel","wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_cancel","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi_cancel","wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing_cancel"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
