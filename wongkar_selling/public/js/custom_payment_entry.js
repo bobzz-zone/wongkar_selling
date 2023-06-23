@@ -92,7 +92,7 @@ frappe.ui.form.on('Payment Entry', {
 	},
 	refresh(frm) {
 		// your code here
-		frappe.msgprint("asasas")
+		// frappe.msgprint("asasas")
 		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.pemilik){
 			frm.add_custom_button(__("Make SIPM"), function() {
 		        // When this button is clicked, do this
@@ -120,6 +120,16 @@ frappe.ui.form.on('Payment Entry', {
 			return {
 				query: "erpnext.controllers.queries.customer_query"
 			}
+		});
+
+		frm.set_query("advance_leasing", function() {
+			return {
+                filters: {
+                    'docstatus': 1,
+                    'leasing': cur_frm.doc.party,
+                    'sisa': [">",0]
+                }
+            }
 		});
 		
 		if(cur_frm.doc.doc_type == "Pembayaran Tagihan Motor" && cur_frm.doc.tipe_pembayaran == "Pembayaran STNK"){

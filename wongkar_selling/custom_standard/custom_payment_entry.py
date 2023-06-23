@@ -426,6 +426,7 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 	pe.payment_type = payment_type
 	pe.tagihan = 1
 	pe.tagihan_diskon_l = 1
+	pe.down_payment = 0
 	pe.tagihan_sipm = doc.tagihan_sipm
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
@@ -512,7 +513,7 @@ def get_payment_entry_custom_tl(dt, dn, party_amount=None, bank_account=None, ba
 				'nama_pemilik': d.nama_pemilik,
 				'item': d.item,
 				'no_rangka': d.no_rangka,
-				'nilai': d.terbayarkan,
+				'nilai': d.outstanding_discount,
 				'doc_type': dt,
 				'doc_name': dn
 				
@@ -1048,6 +1049,7 @@ def get_payment_entry_custom_sipm(dt, dn, party_amount=None, bank_account=None, 
 	pe = frappe.new_doc("Payment Entry")
 	pe.payment_type = payment_type
 	pe.tagihan = 1
+	pe.down_payment = 0
 	pe.tagihan_sipm = doc.tagihan_sipm
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
@@ -1735,7 +1737,8 @@ def get_terbayarkan_multi(doc,method):
 					frappe.db.commit()
 				for t in doc.tagihan_payment_table:
 					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-					data.terbayarkan = data.terbayarkan - t.nilai
+					data.terbayarkan = data.outstanding_discount - t.nilai
+					data.mode_of_payment_discount = doc.mode_of_payment
 					data.db_update()
 					frappe.db.commit()
 			elif doc.tipe_pembayaran == "Pembayaran SIPM":
@@ -1747,6 +1750,7 @@ def get_terbayarkan_multi(doc,method):
 				for t in doc.tagihan_payment_table:
 					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
 					data.outstanding_sipm = data.outstanding_sipm - t.nilai
+					data.mode_of_payment_sipm = doc.mode_of_payment
 					data.db_update()
 					frappe.db.commit()
 			elif doc.tipe_pembayaran == "Pembayaran Diskon":
@@ -1806,7 +1810,7 @@ def get_terbayarkan_multi_cancel(doc,method):
 					frappe.db.commit()
 				for t in doc.tagihan_payment_table:
 					data = frappe.get_doc("Daftar Tagihan Leasing",{'parent':t.doc_name,"no_invoice":t.no_sinv})
-					data.terbayarkan = data.terbayarkan + t.nilai
+					data.terbayarkan = data.outstanding_discount + t.nilai
 					data.db_update()
 					frappe.db.commit()
 			elif doc.tipe_pembayaran == "Pembayaran SIPM":
@@ -1863,10 +1867,10 @@ def get_terbayarkan(doc,method):
 				for d in td_doc.daftar_tagihan_leasing:
 					for t in doc.tagihan_payment_table:
 						if d.no_invoice == t.no_sinv:
-							baru = d.terbayarkan - t.nilai
+							baru = d.outstanding_discount - t.nilai
 							# d.terbayarkan = baru
-							if t.nilai <= d.terbayarkan:
-								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+							if t.nilai <= d.outstanding_discount:
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_discount= {},mode_of_payment_discount= '{}' WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.mode_of_payment,doc.references[0].reference_name,t.no_sinv))
 								frappe.db.commit()
 							else:
 								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
@@ -1882,7 +1886,7 @@ def get_terbayarkan(doc,method):
 							baru = d.outstanding_sipm - t.nilai
 							# d.terbayarkan = baru
 							if t.nilai <= d.outstanding_sipm:
-								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_sipm= {},mode_of_payment_sipm = '{}' WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.mode_of_payment,doc.references[0].reference_name,t.no_sinv))
 								frappe.db.commit()
 							else:
 								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
@@ -1989,11 +1993,11 @@ def get_terbayarkan_cancel(doc,method):
 				for d in td_doc.daftar_tagihan_leasing:
 					for t in doc.tagihan_payment_table:
 						if d.no_invoice == t.no_sinv:
-							baru = d.terbayarkan + t.nilai
+							baru = d.outstanding_discount + t.nilai
 							# d.terbayarkan = baru
-							if t.nilai >= d.terbayarkan:
+							if t.nilai >= d.outstanding_discount:
 								# frappe.throw("masek inis")
-								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET terbayarkan= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.sql("""UPDATE `tabDaftar Tagihan Leasing` SET outstanding_discount= {} WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.references[0].reference_name,t.no_sinv))
 								frappe.db.commit()
 							# else:
 							# 	frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
@@ -2133,3 +2137,26 @@ def make_sipm(name_pe):
 	else:
 		frappe.throw(_(' Sudah ada di {0} !').format(frappe.utils.get_link_to_form('Sales Invoice Penjualan Motor', cek)))
 
+@frappe.whitelist()
+def calculate_advance_leasing(self,method):
+	if frappe.local.site in ["honda2.digitalasiasolusindo.com"]:
+		doc = frappe.get_doc("Advance Leasing",self.advance_leasing)
+		doc.terpakai = doc.terpakai + self.paid_amount
+		sisa = doc.nilai - doc.terpakai
+		frappe.msgprint(str(sisa)+ "sisa")
+		frappe.msgprint(str(doc.nilai - doc.terpakai)+ "sisa2")
+		if sisa < doc.nilai - doc.terpakai:
+			frappe.throw("Sisa di advance leasing kurang !")
+		else:
+			doc.sisa = sisa
+		doc.db_update()
+		frappe.db.commit()
+
+@frappe.whitelist()
+def calculate_advance_leasing_cancel(self,method):
+	if frappe.local.site in ["honda2.digitalasiasolusindo.com"]:
+		doc = frappe.get_doc("Advance Leasing",self.advance_leasing)
+		doc.terpakai = doc.terpakai - self.paid_amount
+		doc.sisa = doc.nilai  - doc.terpakai
+		doc.db_update()
+		frappe.db.commit()
