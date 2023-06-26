@@ -904,6 +904,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 		else:
 			self.nominal_diskon = 0
 
+		# if self.nominal_diskon > 0:
+		# 	self.adj_discount = 0 - self.nominal_diskon
+		# 	self.account_adj_discount = "40.03.01.01.00.04.002 - Adjustment Discount - Beban Dealer - IFMI"
+
 		if not self.territory_real:
 			frappe.throw("Silahkan mengisi Territory Real")
 		
@@ -3186,7 +3190,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 						self.status = "Paid"
 				# else:
 				# 	self.status = "Submitted coba"
-			else:
+			elif self.docstatus == 0:
 				self.status = "Draft"
 
 		if update:

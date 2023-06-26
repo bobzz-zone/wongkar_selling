@@ -681,19 +681,39 @@ def cancel_prec_pinv():
 
 @frappe.whitelist()
 def patch_rdl():
-	docname = "ACC-SINVM-2023-02755-1"
-	frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(docname))
-	doc = frappe.get_doc("Sales Invoice Penjualan Motor",docname)
-	doc.set_posting_time = 1
-	doc.items = []
-	doc.custom_missing_values2()
-	doc.save()
-	frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(docname))
-	frappe.db.commit()
-	
-	docu = frappe.get_doc("Sales Invoice Penjualan Motor",docname)
-	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(docname))
-	# docu.calculate_taxes_and_totals()
-	docu.make_gl_entries()
-	frappe.db.commit()
-	print(docname)
+	docname = frappe.db.sql(""" SELECT sipm.name,sipm.customer_name,sipm.nama_pemilik,sipm.status,sipm.nominal_diskon,sipm.cara_bayar,sipm.nama_diskon AS "Category Discount SIPM",sipm.nama_promo,
+		td.rule,td.category_discount,td.customer,td.coa_receivable,td.nominal
+		FROM `tabSales Invoice Penjualan Motor` sipm 
+		JOIN `tabTable Discount` td ON td.parent = sipm.name
+		WHERE sipm.docstatus = 1 
+		AND sipm.status != "Paid" AND td.customer = "Dealer" 
+		AND sipm.nominal_diskon = 0 ORDER BY sipm.name ASC limit 10 """,as_dict=1)
+	# "ACC-SINVM-2023-02751"
+	conter = 1
+	print(len(docname)," Jumlah")
+	for i in docname:
+		print(i['name'])
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i['name']))
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+		doc.set_posting_time = 1
+		doc.items = []
+		doc.custom_missing_values2()
+		doc.set_status()
+		doc.save()
+		
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i['name']))
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i['name']))
+		frappe.db.commit()
+		
+		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i['name']))
+		# docu.calculate_taxes_and_totals()
+		docu.set_status()
+		docu.make_gl_entries()
+		print(docu.status)
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i['name']))
+		frappe.db.commit()
+		print(conter, " conter")
+		print(i['name']," --DONE")
+		conter = conter + 1
+		

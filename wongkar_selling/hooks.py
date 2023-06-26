@@ -127,6 +127,8 @@ doc_events = {
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
 		"on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update_je"],
 		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
+		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel"],
+		"on_submit": ["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
 	"Purchase Invoice": {
@@ -210,7 +212,8 @@ doc_events = {
 		"after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"onload": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin"
-	}
+	},
+
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
 	# 	"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],

@@ -2185,5 +2185,5 @@ def validasi_advance_leasing(self,method):
 		# if self.advance_leasing and (self.tipe_pembayaran != "Pembayaran SIPM" or self.tagihan_sipm) and self.mode_of_payment == "Advance Leasing":
 		if self.mode_of_payment == "Advance Leasing" and self.advance_leasing and self.tipe_pembayaran != "Pembayaran SIPM" and not self.tagihan_sipm:
 			frappe.throw("salah mode of payment !1")
-		if self.advance_leasing and not self.tagihan_sipm and self.mode_of_payment == "Advance Leasing":
+		if self.tagihan_diskon_l and (self.mode_of_payment == "Advance Leasing" or self.advance_leasing):
 			frappe.throw("salah mode of payment !")

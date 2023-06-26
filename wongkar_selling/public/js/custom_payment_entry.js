@@ -91,8 +91,11 @@ frappe.ui.form.on('Payment Entry', {
 		}catch(err){}
 	},
 	mode_of_payment(frm){
-		cur_frm.set_value("advance_leasing","")
-		cur_frm.refresh_fields("advance_leasing")
+		if(cur_frm.doc.payment_type != 'Internal Transfer'){
+			cur_frm.set_value("advance_leasing","")
+			cur_frm.refresh_fields("advance_leasing")
+		}
+		
 	},
 	refresh(frm) {
 		// your code here

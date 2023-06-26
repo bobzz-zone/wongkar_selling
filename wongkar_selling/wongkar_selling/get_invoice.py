@@ -125,14 +125,14 @@ def get_rule(item_code,territory,posting_date,category_discount,from_group):
 		item_group = frappe.get_doc("Item",item_code).item_group
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory from `tabRule` 
 			where item_group='{0}' and  (territory = '{1}' OR territory='All Territories') and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
-			and valid_to >= '{2}' and item_code is NULL HAVING territory='All Territories' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1,debug=1)
+			and valid_to >= '{2}' and item_code is NULL HAVING territory='All Territories' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 		
 		if data:
 			print("ada all territory")
 		else:
 			data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory from `tabRule` 
 				where item_group='{0}' and  (territory = '{1}') and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
-				and valid_to >= '{2}' and item_code is NULL order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1,debug=1)
+				and valid_to >= '{2}' and item_code is NULL order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 	else:
 		# item_code
 		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to from `tabRule` 

@@ -113,7 +113,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-09 13:12:54.090660",
+ "modified": "2023-06-24 09:28:18.273025",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",
@@ -134,5 +134,6 @@
  ],
  "search_fields": "leasing,nama_promo",
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "track_changes": 1
 }

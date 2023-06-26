@@ -103,7 +103,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-28 22:03:58.515695",
+ "modified": "2023-06-24 09:28:25.351692",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Biaya",
@@ -124,5 +124,6 @@
  ],
  "search_fields": "vendor,type",
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "track_changes": 1
 }
