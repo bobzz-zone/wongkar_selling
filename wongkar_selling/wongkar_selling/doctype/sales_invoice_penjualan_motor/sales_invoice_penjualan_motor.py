@@ -896,7 +896,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 
 		if not self.selling_price_list:
 			frappe.throw("Silahkan mengisi Price List")
-		
+		self.diskon = 1
 		if self.diskon == 1:
 			if self.nominal_diskon == 0:
 				pass

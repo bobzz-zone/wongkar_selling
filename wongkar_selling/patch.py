@@ -681,39 +681,149 @@ def cancel_prec_pinv():
 
 @frappe.whitelist()
 def patch_rdl():
-	docname = frappe.db.sql(""" SELECT sipm.name,sipm.customer_name,sipm.nama_pemilik,sipm.status,sipm.nominal_diskon,sipm.cara_bayar,sipm.nama_diskon AS "Category Discount SIPM",sipm.nama_promo,
-		td.rule,td.category_discount,td.customer,td.coa_receivable,td.nominal
-		FROM `tabSales Invoice Penjualan Motor` sipm 
-		JOIN `tabTable Discount` td ON td.parent = sipm.name
-		WHERE sipm.docstatus = 1 
-		AND sipm.status != "Paid" AND td.customer = "Dealer" 
-		AND sipm.nominal_diskon = 0 ORDER BY sipm.name ASC limit 10 """,as_dict=1)
+	docname = [
+'ACC-SINVM-2023-02465',
+'ACC-SINVM-2023-02466',
+'ACC-SINVM-2023-02467',
+'ACC-SINVM-2023-02473',
+'ACC-SINVM-2023-02478',
+'ACC-SINVM-2023-02481',
+'ACC-SINVM-2023-02482',
+'ACC-SINVM-2023-02483',
+'ACC-SINVM-2023-02499',
+'ACC-SINVM-2023-02500',
+'ACC-SINVM-2023-02501',
+'ACC-SINVM-2023-02502',
+'ACC-SINVM-2023-02541',
+'ACC-SINVM-2023-02543',
+'ACC-SINVM-2023-02545',
+'ACC-SINVM-2023-02546',
+'ACC-SINVM-2023-02549',
+'ACC-SINVM-2023-02552',
+'ACC-SINVM-2023-02554',
+'ACC-SINVM-2023-02557',
+'ACC-SINVM-2023-02558',
+'ACC-SINVM-2023-02559',
+'ACC-SINVM-2023-02560',
+'ACC-SINVM-2023-02561',
+'ACC-SINVM-2023-02563',
+'ACC-SINVM-2023-02566',
+'ACC-SINVM-2023-02570',
+'ACC-SINVM-2023-02572',
+'ACC-SINVM-2023-02573',
+'ACC-SINVM-2023-02575',
+'ACC-SINVM-2023-02576',
+'ACC-SINVM-2023-02577',
+'ACC-SINVM-2023-02578',
+'ACC-SINVM-2023-02579',
+'ACC-SINVM-2023-02580',
+'ACC-SINVM-2023-02581',
+'ACC-SINVM-2023-02583',
+'ACC-SINVM-2023-02585',
+'ACC-SINVM-2023-02586',
+'ACC-SINVM-2023-02587',
+'ACC-SINVM-2023-02593',
+'ACC-SINVM-2023-02597',
+'ACC-SINVM-2023-02598',
+'ACC-SINVM-2023-02600',
+'ACC-SINVM-2023-02601',
+'ACC-SINVM-2023-02602',
+'ACC-SINVM-2023-02603',
+'ACC-SINVM-2023-02604',
+'ACC-SINVM-2023-02605',
+'ACC-SINVM-2023-02606',
+'ACC-SINVM-2023-02607',
+'ACC-SINVM-2023-02608',
+'ACC-SINVM-2023-02609',
+'ACC-SINVM-2023-02610',
+'ACC-SINVM-2023-02611',
+'ACC-SINVM-2023-02612',
+'ACC-SINVM-2023-02614',
+'ACC-SINVM-2023-02617',
+'ACC-SINVM-2023-02619',
+'ACC-SINVM-2023-02635',
+'ACC-SINVM-2023-02636',
+'ACC-SINVM-2023-02637',
+'ACC-SINVM-2023-02638',
+'ACC-SINVM-2023-02641',
+'ACC-SINVM-2023-02649',
+'ACC-SINVM-2023-02650',
+'ACC-SINVM-2023-02652',
+'ACC-SINVM-2023-02653',
+'ACC-SINVM-2023-02654',
+'ACC-SINVM-2023-02655',
+'ACC-SINVM-2023-02656',
+'ACC-SINVM-2023-02657',
+'ACC-SINVM-2023-02661',
+'ACC-SINVM-2023-02663',
+'ACC-SINVM-2023-02665',
+'ACC-SINVM-2023-02667',
+'ACC-SINVM-2023-02668',
+'ACC-SINVM-2023-02672',
+'ACC-SINVM-2023-02676',
+'ACC-SINVM-2023-02677',
+'ACC-SINVM-2023-02679',
+'ACC-SINVM-2023-02680',
+'ACC-SINVM-2023-02682',
+'ACC-SINVM-2023-02683',
+'ACC-SINVM-2023-02684',
+'ACC-SINVM-2023-02685',
+'ACC-SINVM-2023-02687',
+'ACC-SINVM-2023-02690',
+'ACC-SINVM-2023-02692',
+'ACC-SINVM-2023-02693',
+'ACC-SINVM-2023-02696',
+'ACC-SINVM-2023-02700',
+'ACC-SINVM-2023-02703',
+'ACC-SINVM-2023-02705',
+'ACC-SINVM-2023-02706',
+'ACC-SINVM-2023-02707',
+'ACC-SINVM-2023-02708',
+'ACC-SINVM-2023-02709',
+'ACC-SINVM-2023-02710',
+'ACC-SINVM-2023-02713',
+'ACC-SINVM-2023-02714',
+'ACC-SINVM-2023-02717',
+'ACC-SINVM-2023-02718',
+'ACC-SINVM-2023-02721',
+'ACC-SINVM-2023-02722',
+'ACC-SINVM-2023-02723',
+'ACC-SINVM-2023-02725',
+'ACC-SINVM-2023-02727',
+'ACC-SINVM-2023-02731',
+'ACC-SINVM-2023-02736',
+'ACC-SINVM-2023-02742',
+'ACC-SINVM-2023-02766',
+'ACC-SINVM-2023-02768',
+'ACC-SINVM-2023-02769'
+]
 	# "ACC-SINVM-2023-02751"
 	conter = 1
 	print(len(docname)," Jumlah")
 	for i in docname:
-		print(i['name'])
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i['name']))
-		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
+		print(i)
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
 		doc.set_posting_time = 1
+		doc.diskon = 1
 		doc.items = []
 		doc.custom_missing_values2()
 		doc.set_status()
 		doc.save()
 		
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i['name']))
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i['name']))
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i))
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i))
 		frappe.db.commit()
 		
-		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i['name'])
-		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i['name']))
+		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i))
 		# docu.calculate_taxes_and_totals()
 		docu.set_status()
 		docu.make_gl_entries()
 		print(docu.status)
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i['name']))
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i))
 		frappe.db.commit()
 		print(conter, " conter")
-		print(i['name']," --DONE")
+		print(i," --DONE")
 		conter = conter + 1
 		
