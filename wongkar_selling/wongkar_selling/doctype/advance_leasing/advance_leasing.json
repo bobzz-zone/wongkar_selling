@@ -80,6 +80,7 @@
    "in_list_view": 1,
    "label": "Account Credit",
    "options": "Account",
+   "read_only_depends_on": "eval:doc.journal_entry",
    "reqd": 1
   },
   {
@@ -88,13 +89,14 @@
    "in_list_view": 1,
    "label": "Account Debit",
    "options": "Account",
+   "read_only_depends_on": "eval:doc.journal_entry",
    "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-26 14:17:11.475660",
+ "modified": "2023-06-27 09:11:56.215778",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Advance Leasing",

@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.desk.reportview import get_match_cond, get_filters_cond
 
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_account_details
+
 
 class AdvanceLeasing(Document):
 	def validate(self):
@@ -16,14 +18,18 @@ class AdvanceLeasing(Document):
 
 
 @frappe.whitelist()
-def make_pe(name_fp,sisa):
+def make_pe(name_fp,sisa,account_debit):
 	doc_pe = frappe.new_doc("Payment Entry")
 	doc_pe.advance_leasing = name_fp
 	doc_pe.payment_type = "Internal Transfer"
 	doc_pe.down_payment = 0
 	doc_pe.cek_adv_leasing = 1
+	doc_pe.paid_from = account_debit
 	doc_pe.paid_amount = sisa
 	doc_pe.received_amount = sisa
+	acc = get_account_details(doc_pe.paid_from, doc_pe.posting_date, doc_pe.cost_center)
+	doc_pe.paid_from_account_currency = acc.account_currency
+	doc_pe.paid_from_account_balance = acc.account_balance
 	doc_pe.flags.ignore_permissions = True
 	
 

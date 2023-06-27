@@ -156,7 +156,7 @@ def get_data(filters):
 
 		
 		output.append([i[0],i[1],i[33],i[10],i[62],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
-			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59]])
+			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59],i[27]])
 		
 
 	# output_tes = output
@@ -278,6 +278,7 @@ def get_data(filters):
 			t[25],# namajual
 			t[26],# cara bayar
 			t[27],#potongjual nominal diskon
+			t[49],#adj dscount
 			t[28] + t[27], #dpmurni t[28] otr - t[27]
 			t[32], # beban_ahm
 			t[33],#beban_md
@@ -503,6 +504,12 @@ def get_columns(filters):
 		{
 			"label": _("PotonganJual"),
 			"fieldname": "potonganjual",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Adj Discount"),
+			"fieldname": "adj_discount",
 			"fieldtype": "Currency",
 			"width": 100
 		},

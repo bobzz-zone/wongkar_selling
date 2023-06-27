@@ -2187,3 +2187,8 @@ def validasi_advance_leasing(self,method):
 			frappe.throw("salah mode of payment !1")
 		if self.tagihan_diskon_l and (self.mode_of_payment == "Advance Leasing" or self.advance_leasing):
 			frappe.throw("salah mode of payment !")
+
+		if self.advance_leasing:
+			cek = frappe.get_doc("Advance Leasing",self.advance_leasing).account_debit
+			if cek != self.paid_from:
+				frappe.throw("Akun Paid From tidak sama dengan Advance Leasing ! "+cek)

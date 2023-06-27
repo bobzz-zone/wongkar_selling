@@ -681,56 +681,51 @@ def cancel_prec_pinv():
 
 @frappe.whitelist()
 def patch_rdl():
+	pass
+# 	docname = [
+# 'ACC-SINVM-2023-02465'
+# ]
+# 	# "ACC-SINVM-2023-02751"
+# 	conter = 1
+# 	print(len(docname)," Jumlah")
+# 	for i in docname:
+# 		print(i)
+# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
+# 		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+# 		doc.set_posting_time = 1
+# 		doc.diskon = 1
+# 		doc.items = []
+# 		doc.custom_missing_values2()
+# 		doc.set_status()
+# 		doc.save()
+		
+# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i))
+# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i))
+# 		frappe.db.commit()
+		
+# 		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+
+# 		delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(i))
+# 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i))
+
+# 		frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 1 WHERE `field` = "allow_negative_stock" """)
+# 		docu.update_stock_ledger()
+# 		docu.repost_future_sle_and_gle()
+# 		# docu.calculate_taxes_and_totals()
+# 		docu.set_status()
+# 		docu.make_gl_entries()
+# 		print(docu.status)
+# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i))
+# 		frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
+# 		frappe.db.commit()
+# 		print(conter, " conter")
+# 		print(i," --DONE")
+# 		conter = conter + 1
+
+
+@frappe.whitelist()
+def patch_rdl2():
 	docname = [
-'ACC-SINVM-2023-02465',
-'ACC-SINVM-2023-02466',
-'ACC-SINVM-2023-02467',
-'ACC-SINVM-2023-02473',
-'ACC-SINVM-2023-02478',
-'ACC-SINVM-2023-02481',
-'ACC-SINVM-2023-02482',
-'ACC-SINVM-2023-02483',
-'ACC-SINVM-2023-02499',
-'ACC-SINVM-2023-02500',
-'ACC-SINVM-2023-02501',
-'ACC-SINVM-2023-02502',
-'ACC-SINVM-2023-02541',
-'ACC-SINVM-2023-02543',
-'ACC-SINVM-2023-02545',
-'ACC-SINVM-2023-02546',
-'ACC-SINVM-2023-02549',
-'ACC-SINVM-2023-02552',
-'ACC-SINVM-2023-02554',
-'ACC-SINVM-2023-02557',
-'ACC-SINVM-2023-02558',
-'ACC-SINVM-2023-02559',
-'ACC-SINVM-2023-02560',
-'ACC-SINVM-2023-02561',
-'ACC-SINVM-2023-02563',
-'ACC-SINVM-2023-02566',
-'ACC-SINVM-2023-02570',
-'ACC-SINVM-2023-02572',
-'ACC-SINVM-2023-02573',
-'ACC-SINVM-2023-02575',
-'ACC-SINVM-2023-02576',
-'ACC-SINVM-2023-02577',
-'ACC-SINVM-2023-02578',
-'ACC-SINVM-2023-02579',
-'ACC-SINVM-2023-02580',
-'ACC-SINVM-2023-02581',
-'ACC-SINVM-2023-02583',
-'ACC-SINVM-2023-02585',
-'ACC-SINVM-2023-02586',
-'ACC-SINVM-2023-02587',
-'ACC-SINVM-2023-02593',
-'ACC-SINVM-2023-02597',
-'ACC-SINVM-2023-02598',
-'ACC-SINVM-2023-02600',
-'ACC-SINVM-2023-02601',
-'ACC-SINVM-2023-02602',
-'ACC-SINVM-2023-02603',
-'ACC-SINVM-2023-02604',
-'ACC-SINVM-2023-02605',
 'ACC-SINVM-2023-02606',
 'ACC-SINVM-2023-02607',
 'ACC-SINVM-2023-02608',
@@ -802,28 +797,19 @@ def patch_rdl():
 	print(len(docname)," Jumlah")
 	for i in docname:
 		print(i)
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
 		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
-		doc.set_posting_time = 1
-		doc.diskon = 1
-		doc.items = []
-		doc.custom_missing_values2()
-		doc.set_status()
-		doc.save()
-		
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i))
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i))
-		frappe.db.commit()
-		
-		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		doc.cancel()
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
+		delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(i))
 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i))
-		# docu.calculate_taxes_and_totals()
-		docu.set_status()
-		docu.make_gl_entries()
-		print(docu.status)
-		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i))
+
+		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		docu.set_posting_time = 1
+		docu.diskon = 1
+		docu.save()
+		docu.submit()
 		frappe.db.commit()
-		print(conter, " conter")
-		print(i," --DONE")
+		print(conter, " --conter")
+		print(i, " --Done")
 		conter = conter + 1
 		
