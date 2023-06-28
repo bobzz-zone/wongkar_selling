@@ -12,6 +12,7 @@ def execute(filters=None):
 	#dapatkan data salesinvoice yang related
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
+	#update columns
 	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(sipm.customer_group="Pemilik","CASH",sipm.customer_group),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,cc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
@@ -24,7 +25,7 @@ def execute(filters=None):
 	where gl.voucher_type="Sales Invoice Penjualan Motor" and gl.is_cancelled=0 and sipm.docstatus=1 and a.root_type IN ("Income","Expense","Liability")
 	and gl.posting_date >= "{}" and gl.posting_date <="{}" and gl.company="{}"
 	group by sipm.name
-	 """.format(filters.get("from_date"),filters.get("to_date"),filters.get("company")),as_list=1,debug=1)
+	 """.format(filters.get("from_date"),filters.get("to_date"),filters.get("company")),as_list=1)
 	total_sales=0
 	total_cogs=0
 	total_gp=0
