@@ -5,7 +5,7 @@ import frappe
 from frappe.utils import flt
 def execute(filters=None):
 	columns, data = [], []
-	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Data:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","ID Jual:Data:150","Cabang Jual:Data:150","OTR:Currency:150","Potongan:Currency:150","Adjustment:Currency:150","Harga Jual:Currency:150",
+	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Data:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","ID Jual:Data:150","Cabang Jual:Data:150","Nama Area:Data:150","OTR:Currency:150","Potongan:Currency:150","Adjustment:Currency:150","Harga Jual:Currency:150",
 		"COGS:Currency:150","Gross Profit:Currency:150","Cost STNK:Currency:150","Cost BPKB:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 #	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","Item:Link/Item:150","Harga Jual:Currency:150",
 #               "COGS:Currency:150","Gross Profit:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	#update columns
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group="Leasing",sipm.customer,"CASH"),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,pwh.parent_warehouse,pwh.name,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group="Leasing",sipm.customer,"CASH"),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,pwh.parent_warehouse,pwh.name,sipm.set_warehouse,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
@@ -34,22 +34,22 @@ def execute(filters=None):
 	total_gp=0
 	result=[]
 	for row in data:
-		total_sales+=flt(row[11])+flt(row[13])+flt(row[14])
-		total_cogs+=flt(row[12])
-		total_gp+=flt(row[11])-flt(row[12])
+		total_sales+=flt(row[12])+flt(row[14])+flt(row[15])
+		total_cogs+=flt(row[13])
+		total_gp+=flt(row[12])-flt(row[13])
 		row8=0
 		row9=0
 		try:
-			row8=(100*(flt(row[11])-flt(row[12]))/flt(row[11]))
+			row8=(100*(flt(row[12])-flt(row[13]))/flt(row[12]))
 		except:
 			row8=0
 		try:
-			row9=(100*((flt(row[11])-flt(row[12]))/flt(row[12])))
+			row9=(100*((flt(row[12])-flt(row[13]))/flt(row[13])))
 		except:
 			row9=0
-		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],flt(row[11])+flt(row[13])+flt(row[14]),row[12],flt(row[11])-flt(row[12]),row[13],row[14],row8,row9])
+		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],flt(row[12])+flt(row[14])+flt(row[15]),row[13],flt(row[12])-flt(row[13]),row[14],row[15],row8,row9])
 	try:
-		result.append(["","","","","","","","","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
+		result.append(["","","","","","","","","","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
 		pass
 	return columns,result
