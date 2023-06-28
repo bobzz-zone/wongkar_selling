@@ -26,12 +26,17 @@ def get_data(filters):
 		if(tl.name is not null,tl.outstanding_sipm,sipm.outstanding_amount),
 		tdl.date,
 		if(tdl.date is not null,"Belum Realisasi","Belum Tagih"),
-		IF(sipm.tanggal_tagih,DATEDIFF(tdl.date, sipm.posting_date),0),
+		IFNULL(IF(sipm.tanggal_tagih,DATEDIFF(tdl.date, sipm.posting_date),0),0),
 		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0),
-		sipm.set_warehouse
+		sipm.set_warehouse,
+		IFNULL(tl.`outstanding_discount`,0),
+		tl.`mode_of_payment_sipm`,
+		sipm.name,
+		IFNULL(dl.nominal,0)
 		FROM `tabSales Invoice Penjualan Motor` sipm
 		left JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
 		left join `tabTagihan Discount Leasing` tdl on tdl.name = tl.parent
+		left join `tabTable Disc Leasing` dl on dl.parent = sipm.name
 		where tl.docstatus = 1 or sipm.docstatus = 1 and sipm.cara_bayar = "Credit" and sipm.posting_date between '{}' and '{}' 
 		group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1,debug=1)
 	
@@ -39,14 +44,17 @@ def get_data(filters):
 	if data:
 		for i in data:
 			tampil.append([
+				i[12],
 				i[0],
 				i[1],
 				i[9],
 				i[2],
 				i[3],
-				i[4],
+				i[4],#piutang
+				i[13],#tl
 				i[5],
 				i[6],
+				i[11],
 				i[7],
 				i[8]
 			])
@@ -55,6 +63,13 @@ def get_data(filters):
 
 def get_columns(filters):
 	columns = [
+		{
+			"label": _("SIPM"),
+			"fieldname": "sipm",
+			"fieldtype": "Link",
+			"options": "Sales Invoice Penjualan Motor",
+			"width": 200
+		},
 		{
 			"label": _("Leasing"),
 			"fieldname": "leasing",
@@ -94,6 +109,12 @@ def get_columns(filters):
 			"width": 200
 		},
 		{
+			"label": _("Tambahan Leasing"),
+			"fieldname": "tambahan_leasing",
+			"fieldtype": "Currency",
+			"width": 200
+		},
+		{
 			"label": _("Tgl Tagih"),
 			"fieldname": "tgl_tagih",
 			"fieldtype": "Date",
@@ -102,6 +123,12 @@ def get_columns(filters):
 		{
 			"label": _("Ket Penagihan"),
 			"fieldname": "ket",
+			"fieldtype": "Data",
+			"width": 180
+		},
+		{
+			"label": _("Mode Of Payment"),
+			"fieldname": "mode",
 			"fieldtype": "Data",
 			"width": 180
 		},
