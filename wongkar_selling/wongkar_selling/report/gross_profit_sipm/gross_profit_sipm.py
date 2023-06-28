@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	#update columns
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group!="Leasing","CASH",sipm.customer),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,cc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group="Leasing",sipm.customer,"CASH"),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,pc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
@@ -23,6 +23,8 @@ def execute(filters=None):
 	join `tabSerial No` sn on sn.name = sipm.no_rangka
 	left join `tabCustomer` c on c.name=sipm.customer
 	left join `tabCost Center` cc on sipm.cost_center=cc.name
+	left join `tabCost Center` pc on cc.parent_cost_center=pc.name
+
 	where gl.voucher_type="Sales Invoice Penjualan Motor" and gl.is_cancelled=0 and sipm.docstatus=1 and a.root_type IN ("Income","Expense","Liability")
 	and gl.posting_date >= "{}" and gl.posting_date <="{}" and gl.company="{}"
 	group by sipm.name
