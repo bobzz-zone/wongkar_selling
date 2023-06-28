@@ -682,45 +682,40 @@ def cancel_prec_pinv():
 @frappe.whitelist()
 def patch_rdl():
 	pass
-# 	docname = [
-# 'ACC-SINVM-2023-02465'
-# ]
-# 	# "ACC-SINVM-2023-02751"
-# 	conter = 1
-# 	print(len(docname)," Jumlah")
-# 	for i in docname:
-# 		print(i)
-# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
-# 		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
-# 		doc.set_posting_time = 1
-# 		doc.diskon = 1
-# 		doc.items = []
-# 		doc.custom_missing_values2()
-# 		doc.set_status()
-# 		doc.save()
+	docname = [
+'ACC-SINVM-2023-02465'
+]
+	# "ACC-SINVM-2023-02751"
+	conter = 1
+	print(len(docname)," Jumlah")
+	for i in docname:
+		print(i)
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 0 where name = '{}' """.format(i))
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		doc.set_posting_time = 1
+		doc.diskon = 1
+		doc.items = []
+		doc.custom_missing_values2()
+		doc.set_status()
+		doc.save()
 		
-# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i))
-# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i))
-# 		frappe.db.commit()
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set docstatus = 1 where name = '{}' """.format(i))
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor Item` set docstatus = 1 where parent = '{}' """.format(i))
+		frappe.db.commit()
 		
-# 		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		docu = frappe.get_doc("Sales Invoice Penjualan Motor",i)
 
-# 		delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(i))
-# 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i))
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(i))
 
-# 		frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 1 WHERE `field` = "allow_negative_stock" """)
-# 		docu.update_stock_ledger()
-# 		docu.repost_future_sle_and_gle()
-# 		# docu.calculate_taxes_and_totals()
-# 		docu.set_status()
-# 		docu.make_gl_entries()
-# 		print(docu.status)
-# 		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i))
-# 		frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
-# 		frappe.db.commit()
-# 		print(conter, " conter")
-# 		print(i," --DONE")
-# 		conter = conter + 1
+		# docu.calculate_taxes_and_totals()
+		docu.set_status()
+		docu.make_gl_entries()
+		print(docu.status)
+		frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set status = '{}' where name = '{}' """.format(docu.status,i))
+		frappe.db.commit()
+		print(conter, " conter")
+		print(i," --DONE")
+		conter = conter + 1
 
 
 @frappe.whitelist()

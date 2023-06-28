@@ -156,7 +156,7 @@ def get_data(filters):
 
 		
 		output.append([i[0],i[1],i[33],i[10],i[62],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
-			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59],i[27]])
+			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59],i[27],i[24]])
 		
 
 	# output_tes = output
@@ -239,18 +239,25 @@ def get_data(filters):
 			piutang_leasing = 0
 		else:
 			otr = t[24]
-			piutang_leasing = t[24]-(dp_gross)+t[29]+t[31]
+			piutang_leasing = (t[24]+t[49]-(dp_gross))+t[29]+t[31]
 
 		a_unit = ''
 		if t[4]:
 			a_unit = t[4]
 		else:
 			a_unit = t[3]
+
+		dp_murni = 0
+		if t[26] == "Cash":
+			dp_murni = otr - t[27] + t[49]
+		else:
+			dp_murni = t[28]
 	
 		
 		tampil.append([
 			t[0],
 			t[1],
+			t[50],
 			a_unit,
 			t[48],# id jual t[3]t[45]
 			t[47],#  area jual t[4]
@@ -279,7 +286,7 @@ def get_data(filters):
 			t[26],# cara bayar
 			t[27],#potongjual nominal diskon
 			t[49],#adj dscount
-			t[28] + t[27], #dpmurni t[28] otr - t[27]
+			dp_murni, #dpmurni t[28] otr - t[27] t[28] + t[27]
 			t[32], # beban_ahm
 			t[33],#beban_md
 			t[34],#beban_de
@@ -344,6 +351,13 @@ def get_columns(filters):
 			"fieldname": "bulan",
 			"fieldtype": "Data",
 			"width": 100
+		},
+		{
+			"label": _("SIPM"),
+			"fieldname": "sipm",
+			"fieldtype": "Link",
+			"options": "Sales Invoice Penjualan Motor",
+			"width": 200
 		},
 		{
 			"label": _("CabAsal Unit"),
