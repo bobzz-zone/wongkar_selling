@@ -5,7 +5,7 @@ import frappe
 from frappe.utils import flt
 def execute(filters=None):
 	columns, data = [], []
-	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","ID Jual:Data:150","Cabang Jual:Data:150","OTR:Currency:150","Potongan:Currency:150","Adjustment:Currency:150","Harga Jual:Currency:150",
+	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Data:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","ID Jual:Data:150","Cabang Jual:Data:150","OTR:Currency:150","Potongan:Currency:150","Adjustment:Currency:150","Harga Jual:Currency:150",
 		"COGS:Currency:150","Gross Profit:Currency:150","Cost STNK:Currency:150","Cost BPKB:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 #	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","Item:Link/Item:150","Harga Jual:Currency:150",
 #               "COGS:Currency:150","Gross Profit:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	#update columns
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(sipm.customer_group="Pemilik","CASH",sipm.customer_group),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,cc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group!="Leasing","CASH",sipm.customer),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,cc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
@@ -21,6 +21,7 @@ def execute(filters=None):
 	join `tabSales Invoice Penjualan Motor` sipm on sipm.name=gl.voucher_no
 	join `tabItem` i on i.name = sipm.item_code
 	join `tabSerial No` sn on sn.name = sipm.no_rangka
+	left join `tabCustomer` c on c.name=sipm.customer
 	left join `tabCost Center` cc on sipm.cost_center=cc.name
 	where gl.voucher_type="Sales Invoice Penjualan Motor" and gl.is_cancelled=0 and sipm.docstatus=1 and a.root_type IN ("Income","Expense","Liability")
 	and gl.posting_date >= "{}" and gl.posting_date <="{}" and gl.company="{}"
