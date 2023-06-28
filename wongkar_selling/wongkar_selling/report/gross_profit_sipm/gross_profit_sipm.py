@@ -12,7 +12,7 @@ def execute(filters=None):
 	#dapatkan data salesinvoice yang related
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(sipm.customer_group="Pemilik","CASH",sipm.customer_group),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,sipm.territory_biaya,sipm.territory_real,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(sipm.customer_group="Pemilik","CASH",sipm.customer_group),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,cc.parent_cost_center,sipm.cost_center,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
@@ -20,6 +20,7 @@ def execute(filters=None):
 	join `tabSales Invoice Penjualan Motor` sipm on sipm.name=gl.voucher_no
 	join `tabItem` i on i.name = sipm.item_code
 	join `tabSerial No` sn on sn.name = sipm.no_rangka
+	left join `tabCost Center` cc on sipm.cost_center=cc.name
 	where gl.voucher_type="Sales Invoice Penjualan Motor" and gl.is_cancelled=0 and sipm.docstatus=1 and a.root_type IN ("Income","Expense","Liability")
 	and gl.posting_date >= "{}" and gl.posting_date <="{}" and gl.company="{}"
 	group by sipm.name
