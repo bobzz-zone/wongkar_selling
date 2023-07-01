@@ -34,7 +34,7 @@ def execute(filters=None):
 	total_gp=0
 	result=[]
 	for row in data:
-		total_sales+=flt(row[12])+flt(row[14])+flt(row[15])
+		total_sales+=flt(row[12])
 		total_cogs+=flt(row[13])
 		total_gp+=flt(row[12])-flt(row[13])
 		row8=0
