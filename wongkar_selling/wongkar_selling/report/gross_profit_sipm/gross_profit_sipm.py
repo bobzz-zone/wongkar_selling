@@ -13,7 +13,7 @@ def execute(filters=None):
 #sum(gl.credit) as "sales",sum(gl.debit) as "cogs" ,sum(gl.credit-gl.debit) as "profit"
 #,sum(if(gl.account like '%STNK%',gl.debit),0) as "stnk",sum(if(gl.account like '%BPKB%',gl.debit),0) as "bpkb"
 	#update columns
-	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group="Leasing",sipm.customer,"CASH"),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,pwh.parent_warehouse,pwh.name,sipm.set_warehouse,sipm.harga,sipm.nominal_diskon,sipm.adj_discount,
+	data=frappe.db.sql("""select sipm.posting_date,sipm.name,if(c.customer_group="Leasing",sipm.customer,"CASH"),SUBSTRING_INDEX(sn.name,'--', 1) AS first_name,i.item_name,sipm.item_group,pwh.parent_warehouse,pwh.name,sipm.set_warehouse,if(sipm.cara_bayar="Cash",sipm.otr,sipm.harga) as "otr",sipm.nominal_diskon,sipm.adj_discount,
 			sum(if(a.name like "40.0101.%", gl.credit,if(a.name like "40.0199.%",gl.credit,0))) as "sales",sum(if(account_type ="Cost of Goods Sold", gl.debit,0)) as "cogs" ,
 			sum(if(a.root_type="Liability",	if(gl.account like '%STNK%' ,gl.credit,0),0)) as "stnk",sum(if(a.root_type="Liability",if(gl.account like '%BPKB%' ,gl.credit,0),0)) as "bpkb"
 			from `tabGL Entry` gl
