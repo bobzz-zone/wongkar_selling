@@ -235,7 +235,7 @@ def get_data(filters):
 		# dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]+ t[27]
 		dp_gross =  (t[28] + t[27]) + t[34]
 		if t[26] == "Cash":
-			otr = t[24] + t[27]
+			otr = t[24] # + t[27]
 			piutang_leasing = 0
 		else:
 			otr = t[24]
