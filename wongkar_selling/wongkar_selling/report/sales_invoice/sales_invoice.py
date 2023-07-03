@@ -41,7 +41,7 @@ def get_data(filters):
 		i.item_code,
 		i.item_name,
 		sipm.no_rangka,
-		sipm.harga,
+		if(sipm.cara_bayar="Cash",sipm.otr,sipm.harga) as "harga",
 		sipm.cara_bayar,
 		sipm.nominal_diskon,
 		IF(sipm.cara_bayar = "Cash",sipm.total_advance-sipm.nominal_diskon,sipm.total_advance),
