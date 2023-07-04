@@ -12,7 +12,9 @@
   "no_rangka",
   "nilai",
   "doc_type",
-  "doc_name"
+  "doc_name",
+  "column_break_9",
+  "cek_realisasi"
  ],
  "fields": [
   {
@@ -32,7 +34,6 @@
   {
    "fieldname": "pemilik",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Pemilik",
    "options": "Customer"
   },
@@ -67,12 +68,24 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Nama Pemilik"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "cek_realisasi",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Cek Realisasi"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-03 09:49:11.039334",
+ "modified": "2023-07-04 10:06:08.118933",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Payment Table",

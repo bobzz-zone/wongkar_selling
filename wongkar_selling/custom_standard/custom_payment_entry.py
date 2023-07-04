@@ -2190,5 +2190,5 @@ def validasi_advance_leasing(self,method):
 
 		if self.advance_leasing:
 			cek = frappe.get_doc("Advance Leasing",self.advance_leasing).account_debit
-			if cek != self.paid_from:
+			if cek != self.paid_to:
 				frappe.throw("Akun Paid From tidak sama dengan Advance Leasing ! "+cek)

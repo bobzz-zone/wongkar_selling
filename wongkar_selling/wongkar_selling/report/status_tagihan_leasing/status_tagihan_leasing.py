@@ -23,59 +23,44 @@ def get_data(filters):
 		sipm.cost_center,
 		sipm.nama_pemilik as nama_konsumen,
 		sipm.posting_date as tgl_jual,
-		if(tl.name is not null,tl.outstanding_sipm,sipm.outstanding_amount) as piutang,
+		if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total) as piutang,
+		if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total) - IFNULL(dl.nominal,0) as tagihan_pokok,
 		tdl.date as tgl_tagih,
-		if(tdl.date is not null,"Belum Realisasi","Belum Tagih") as ket,
+		if(tpt.cek_realisasi = 1,"Sudah Realisasi",if(tdl.date is not null,"Belum Realisasi","Belum Tagih"))  as ket,
 		IFNULL(IF(sipm.tanggal_tagih,DATEDIFF(tdl.date, sipm.posting_date),0),0) as ht,
 		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0) as hc,
 		sipm.set_warehouse,
 		IFNULL(tl.`outstanding_discount`,0),
-		tl.`mode_of_payment_sipm` as mode,
+		tl.`mode_of_payment_sipm` as mode_pokok,
+		tl.`mode_of_payment_discount` as mode_tambahan_leasing,
 		sipm.name as sipm,
 		IFNULL(dl.nominal,0) as tambahan_leasing,
 		w.parent_warehouse as cabid_jual,
 		w2.parent_warehouse as cab_area_jual,
-		IFNULL(tl.terbayarkan,0) as st_tl,
+		IFNULL(tl.terbayarkan,0) as pencairan_tambahan_leasing,
 		IFNULL(tl.outstanding_discount,0) as o_tl,
 		IFNULL(tl.outstanding_discount-tl.terbayarkan,0) as bt_tl,
-		IFNULL(tl.terbayarkan_sipm,0) as st_tp,
+		IF(tl.terbayarkan_sipm>0,IFNULL(tl.terbayarkan_sipm,0) - IFNULL(dl.nominal,0),0) as pencairan_tagihan_pokok,
 		IFNULL(tl.outstanding_sipm,0) as o_tp,
-		IFNULL(tl.outstanding_sipm-tl.terbayarkan_sipm,0) as bt_tp
+		IFNULL(tl.outstanding_sipm-tl.terbayarkan_sipm,0) as bt_tp,
+		sipm.tanggal_cair as tgl_pencairan_tambahan_leasing,
+		pe.posting_date as tgl_pencairan_pokok,
+		peit.date as tgl_setor_dp,
+		(if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total)) - (IF(tl.terbayarkan_sipm>0,IFNULL(tl.terbayarkan_sipm,0) - IFNULL(dl.nominal,0),0)) - IFNULL(tl.terbayarkan,0) as selisih_cair
 		FROM `tabSales Invoice Penjualan Motor` sipm
 		left JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
 		left join `tabTagihan Discount Leasing` tdl on tdl.name = tl.parent
+		left join `tabTagihan Payment Table` tpt on tpt.docstatus = 1 and tpt.doc_name = tdl.name and tpt.no_sinv = tl.no_invoice
+		left join `tabPayment Entry` pe on pe.name = tpt.parent
 		left join `tabTable Disc Leasing` dl on dl.parent = sipm.name
 		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
 		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
+		left join `tabList Payment Entry` lpe on lpe.docstatus = 1 and lpe.pemilik = sipm.pemilik
+		left join `tabPayment Entry Internal Transfer` peit on peit.name = lpe.parent
 		where tl.docstatus = 1 or sipm.docstatus = 1 and sipm.cara_bayar = "Credit" and sipm.posting_date between '{}' and '{}' 
 		group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
-	
-	tampil = []
-	if data:
-		for i in data:
-			tampil.append([
-				i['sipm'],
-				i['leasing'],
-				i['cab_area_jual'],
-				i['cabid_jual'],
-				i['nama_konsumen'],
-				i['tgl_jual'],
-				i['piutang'],#piutang
-				i['tambahan_leasing'],#tl
-				i['tgl_tagih'],
-				i['ket'],
-				# i['bt_tl'],
-				# i['st_tl'],
-				# i['o_tl'],
-				# i['bt_tp'],
-				# i['st_tp'],
-				# i['o_tp'],
-				i['mode'],
-				i["ht"],
-				i['hc']
-			])
 
-	return tampil
+	return data
 
 def get_columns(filters):
 	columns = [
@@ -90,19 +75,19 @@ def get_columns(filters):
 			"label": _("Leasing"),
 			"fieldname": "leasing",
 			"fieldtype": "Data",
-			"width": 200
+			"width": 100
 		},
 		{
 			"label": _("Cab ID Jual"),
 			"fieldname": "cabid_jual",
 			"fieldtype": "Data",
-			"width": 100
+			"width": 200
 		},
 		{
 			"label": _("Cab Area Jual"),
 			"fieldname": "cab_area_jual",
 			"fieldtype": "Data",
-			"width": 100
+			"width": 200
 		},
 		{
 			"label": _("Nama Konsumen"),
@@ -111,8 +96,20 @@ def get_columns(filters):
 			"width": 200
 		},
 		{
+			"label": _("Tgl Setor DP"),
+			"fieldname": "tgl_setor_dp",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
 			"label": _("Tgl Jual"),
 			"fieldname": "tgl_jual",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
+			"label": _("Tgl Tagih"),
+			"fieldname": "tgl_tagih",
 			"fieldtype": "Date",
 			"width": 100
 		},
@@ -123,16 +120,58 @@ def get_columns(filters):
 			"width": 200
 		},
 		{
+			"label": _("Tagihan Pokok"),
+			"fieldname": "tagihan_pokok",
+			"fieldtype": "Currency",
+			"width": 200
+		},
+		{
+			"label": _("Pencairan Tagihan Pokok"),
+			"fieldname": "pencairan_tagihan_pokok",
+			"fieldtype": "Currency",
+			"width": 200
+		},
+		{
+			"label": _("Tgl Pencairan Pokok"),
+			"fieldname": "tgl_pencairan_pokok",
+			"fieldtype": "Date",
+			"width": 180
+		},
+		{
+			"label": _("Mode Of Payment Pokok"),
+			"fieldname": "mode_pokok",
+			"fieldtype": "Data",
+			"width": 180
+		},
+		{
 			"label": _("Tambahan Leasing"),
 			"fieldname": "tambahan_leasing",
 			"fieldtype": "Currency",
 			"width": 200
 		},
 		{
-			"label": _("Tgl Tagih"),
-			"fieldname": "tgl_tagih",
+			"label": _("Pencairan Tambahan Leasing"),
+			"fieldname": "pencairan_tambahan_leasing",
+			"fieldtype": "Currency",
+			"width": 200
+		},
+		{
+			"label": _("Tgl Pencairan Tambahan Leasing"),
+			"fieldname": "tgl_pencairan_tambahan_leasing",
 			"fieldtype": "Date",
-			"width": 100
+			"width": 200
+		},
+		{
+			"label": _("Mode Of Payment Tambahan Leasing"),
+			"fieldname": "mode_tambahan_leasing",
+			"fieldtype": "Data",
+			"width": 180
+		},
+		{
+			"label": _("Selish Cair"),
+			"fieldname": "selisih_cair",
+			"fieldtype": "Currency",
+			"width": 180
 		},
 		{
 			"label": _("Ket Penagihan"),
@@ -180,12 +219,7 @@ def get_columns(filters):
 		# 	"width": 200
 		# },
 
-		{
-			"label": _("Mode Of Payment"),
-			"fieldname": "mode",
-			"fieldtype": "Data",
-			"width": 180
-		},
+		
 		{
 			"label": _("Ht"),
 			"fieldname": "ht",
