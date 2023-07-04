@@ -15,6 +15,7 @@ def get_data(filters):
 		kondisi = " and w2.parent_warehouse = '{}' ".format(filters.get("area"))
 
 	data = frappe.db.sql(""" SELECT 
+		DATE_FORMAT(sipm.posting_date,'%Y%m') as bulan,
 		tag_d.`name`,
 		td.customer,
 		w.parent_warehouse AS cab_area_jual,
@@ -31,7 +32,7 @@ def get_data(filters):
 		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
 		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
 		where sipm.docstatus = 1 {} and sipm.posting_date between '{}' and '{}' and td.nominal != 0
-		group by td.customer,w.parent_warehouse order by w2.parent_warehouse asc,td.customer  """.format(kondisi,filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
+		group by td.customer,w.parent_warehouse,DATE_FORMAT(sipm.posting_date,'%Y%m') order by w2.parent_warehouse asc,td.customer  """.format(kondisi,filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
 	
 	data_with_total = []
 	previous_area = None
@@ -42,6 +43,7 @@ def get_data(filters):
 			current_area = i['customer']
 			if (previous_area is not None and previous_area != current_area):
 				data_with_total.append({
+					'bulan': "",
 					'customer': previous_area,
 					'cabid_jual': "",
 					'cab_area_jual': "Total",
@@ -69,6 +71,7 @@ def get_data(filters):
 			previous_area = current_area
 
 		data_with_total.append({
+			'bulan': total[data[-1]['customer']].bulan,
 			'customer': total[data[-1]['customer']].customer,
 			'cabid_jual': "",
 			'cab_area_jual': "Total",
@@ -86,6 +89,7 @@ def get_data(filters):
 			o_t += d['o_t']
 
 		data_with_total.append({
+			'bulan': "",
 			'customer': "",
 			'cabid_jual': "",
 			'cab_area_jual': "Grand Total",
@@ -100,9 +104,11 @@ def get_data(filters):
 			if (previous_area != current_area):
 				i['customer'] = i['customer']
 				i['cabid_jual'] = i['cabid_jual']
+				i['bulan'] = i['bulan']
 			else:
 				i['customer'] = ""
 				i['cabid_jual'] = ""
+				i['bulan'] = ""
 			previous_area = current_area
 
 	frappe.msgprint(str(data_with_total)+ " merged_data") 
@@ -111,6 +117,12 @@ def get_data(filters):
 
 def get_columns(filters):
 	columns = [
+		# {
+		# 	"label": _("Bulan"),
+		# 	"fieldname": "bulan",
+		# 	"fieldtype": "Data",
+		# 	"width": 100
+		# },
 		{
 			"label": _("Customer"),
 			"fieldname": "customer",

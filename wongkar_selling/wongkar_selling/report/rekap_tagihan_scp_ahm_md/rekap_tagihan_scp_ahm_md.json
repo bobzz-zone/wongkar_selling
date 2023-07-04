@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2023-07-03 09:04:00.352123",
+ "modified": "2023-07-04 12:02:04.769517",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rekap Tagihan SCP AHM MD",
@@ -21,6 +21,24 @@
  "roles": [
   {
    "role": "Administrator"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "S_Sales Invoice Penjualan Motor Viewer"
+  },
+  {
+   "role": "S_Sales Invoice Penjualan Motor Creator"
+  },
+  {
+   "role": "Staff Admin Sales Entry"
+  },
+  {
+   "role": "S_Marketing Manager"
   }
  ]
 }
