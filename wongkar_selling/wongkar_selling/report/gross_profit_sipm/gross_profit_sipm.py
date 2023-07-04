@@ -47,7 +47,7 @@ def execute(filters=None):
 			row9=(100*((flt(row[12])-flt(row[13]))/flt(row[13])))
 		except:
 			row9=0
-		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11]row[12],row[13],flt(row[12])-flt(row[13]),row[14],row[15],row8,row9])
+		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],flt(row[12])-flt(row[13]),row[14],row[15],row8,row9])
 	try:
 		result.append(["","","","","","","","","","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
