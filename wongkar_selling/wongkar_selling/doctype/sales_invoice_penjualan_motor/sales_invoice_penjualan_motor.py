@@ -1014,7 +1014,7 @@ class SalesInvoicePenjualanMotor(SellingController):
 		# cara mencari grand total
 		
 		# total2 = ( self.harga - self.total_biaya ) / ppn_div
-		total2 = ( self.harga - total_biaya_tanpa_dealer ) / ppn_div
+		total2 = ( self.harga - total_biaya_tanpa_dealer + self.adj_discount ) / ppn_div
 		
 		print(total2)
 		hasil2 = self.harga - total2
@@ -2561,10 +2561,10 @@ class SalesInvoicePenjualanMotor(SellingController):
 						self.get_gl_dict({
 							"account": income_account,
 							"against": self.customer,
-							"credit": flt(item.base_net_amount, item.precision("base_net_amount")),
-							"credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount"))
+							"credit": flt(item.base_net_amount, item.precision("base_net_amount"))-flt(self.adj_discount),
+							"credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount")-flt(self.adj_discount))
 								if account_currency==self.company_currency
-								else flt(item.net_amount, item.precision("net_amount"))),
+								else flt(item.net_amount, item.precision("net_amount"))-flt(self.adj_discount)),
 							"cost_center": item.cost_center,
 							"project": item.project or self.project,
 							# "remarks": "wahyu xxxx"

@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2023-07-17 13:01:34.294377",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2023-07-17 13:01:34.294377",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Detail Purchase Order",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Purchase Receipt",
+ "report_name": "Detail Purchase Order",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Stock User"
+  }
+ ]
+}

@@ -2122,6 +2122,7 @@
    "options": "Account"
   },
   {
+   "default": "0",
    "fieldname": "adj_discount",
    "fieldtype": "Currency",
    "label": "Adj Discount Amount"
@@ -2370,7 +2371,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-06-27 15:37:40.087625",
+ "modified": "2023-07-11 16:39:37.713876",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

@@ -1537,7 +1537,7 @@ var calculate_totals= function() {
 			["taxes_and_charges_added", "taxes_and_charges_deducted"]);
 	}
 	// frappe.msgprint("masuk sini untuk total salah3")
-	cur_frm.doc.total_taxes_and_charges = cur_frm.doc.harga - biaya;
+	cur_frm.doc.total_taxes_and_charges = cur_frm.doc.harga - biaya + cur_frm.doc.adj_discount;
 	/*cur_frm.doc.total_taxes_and_charges = flt(cur_frm.doc.grand_total - cur_frm.doc.net_total
 		- flt(cur_frm.doc.rounding_adjustment), precision("total_taxes_and_charges"));*/
 	set_in_company_currency(cur_frm.doc, ["total_taxes_and_charges", "rounding_adjustment"]);
@@ -2433,7 +2433,8 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 					
 					console.log(sum,"sum")
 					console.log(cur_frm.doc.taxes,"cur_frm.doc.taxes")
-					var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer) / ppn_div;
+					// var total = Math.ceil((cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div);
+					var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div;
 					var hasil = cur_frm.doc.harga - total;
 					var akhir = cur_frm.doc.harga - hasil;
 					console.log(total,"total")
@@ -2461,7 +2462,8 @@ frappe.ui.form.on("Sales Invoice Penjualan Motor", "harga", function(frm) {
 				}else{
 					cur_frm.set_value("total_biaya",0)
 					console.log(cur_frm.doc.harga,"harga")
-				    var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer) / ppn_div;
+				    // var total = Math.ceil((cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div);
+					var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div;
 					var hasil2 = cur_frm.doc.harga - total;
 					var akhir2 = cur_frm.doc.harga - hasil2;
 					console.log(total,"total2")
