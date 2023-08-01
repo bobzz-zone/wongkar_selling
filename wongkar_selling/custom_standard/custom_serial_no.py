@@ -8,12 +8,15 @@ def isi_nosin(self,method):
 	frappe.db.commit()
 
 def rem_sinv(self,method):
+	frappe.msgprint("s")
 	# doc = frappe.get_doc("Serial No",self.name)
 	if self.delivery_document_type == 'Sales Invoice Penjualan Motor' and self.delivery_document_no:
+		frappe.msgprint("sss")
 		data = frappe.get_doc("Sales Invoice Penjualan Motor",self.delivery_document_no)
 		# self.sales_invoice_penjualan_motor = self.delivery_document_no
 		# self.sales_invoice = None
 		if not self.pemilik or self.pemilik == "":
+			frappe.msgprint("ssss")
 			self.pemilik = data.pemilik
 			self.customer = data.pemilik
 			self.customer_name = data.nama_pemilik
@@ -52,12 +55,12 @@ def rem_sinv(self,method):
 		cc2.parent_cost_center as cc_jual
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
-		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
+		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		join `tabItem` i on i.name = sipm.item_code
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
 		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1)
+		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1,debug=1)
 
 	data_blm = frappe.db.sql(""" SELECT 
 		(SELECT cc2.parent_cost_center from 

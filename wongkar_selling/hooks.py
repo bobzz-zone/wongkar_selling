@@ -207,11 +207,10 @@ doc_events = {
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
 	"Serial No":{
-		"onload": "wongkar_selling.custom_standard.custom_serial_no.rem_sinv",
 		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
-		"onload": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin"
+		"onload": ["wongkar_selling.custom_standard.custom_serial_no.isi_nosin","wongkar_selling.custom_standard.custom_serial_no.rem_sinv"]
 	},
 
 	# "Payment Entry": {

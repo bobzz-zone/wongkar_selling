@@ -473,7 +473,7 @@ def validate_lutfi(self):
 	# get_data_tagihan(self)
 	self.validate_payment_type()
 	self.validate_party_details()
-	self.validate_bank_accounts()
+	# self.validate_bank_accounts()
 	self.set_exchange_rate()
 	self.validate_mandatory()
 	validate_reference_documents_lutfi(self)
@@ -494,14 +494,14 @@ def validate_lutfi(self):
 
 def cek_payment(self):
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
-		if self.doc_type:
-			if self.doc_type == "Pembayaran Tagihan Motor":
-				if self.payment_type != "Pay":
-					frappe.throw("Salah Memilih Payment Tyepe")
-			else:
-				if self.payment_type != "Receive":
-					frappe.throw("Salah Memilih Payment Tyepe")
+	# if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
+	if self.doc_type:
+		if self.doc_type == "Pembayaran Tagihan Motor":
+			if self.payment_type != "Pay":
+				frappe.throw("Salah Memilih Payment Tyepe")
+		else:
+			if self.payment_type != "Receive":
+				frappe.throw("Salah Memilih Payment Tyepe")
 	
 # def get_data_tagihan(self):
 # 	tmp = []
@@ -879,8 +879,8 @@ def kalkulasi_tagihan_cancel(doc,method):
 
 def override_on_submit_on_cancel(self,method):
 	# if frappe.local.site in ["honda.digitalasiasolusindo.com","hondapjk.digitalasiasolusindo.com"]:
-	if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
-		PaymentEntry.validate = validate_lutfi
+	# if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:
+	PaymentEntry.validate = validate_lutfi
 	
 def coba():
 	frappe.throw("Coba cencel")

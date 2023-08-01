@@ -167,6 +167,7 @@
   "in_words",
   "total_advance",
   "outstanding_amount",
+  "disable_rounded_total",
   "advances_section",
   "allocate_advances_automatically",
   "get_advances",
@@ -763,7 +764,6 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Items",
@@ -1766,7 +1766,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "\nDraft\nReturn\nCredit Note Issued\nSubmitted\nPaid\nBilled\nUnpaid\nUnpaid and Discounted\nOverdue and Discounted\nOverdue\nCancelled\nInternal Transfer",
+   "options": "\nDraft\nReturn\nCredit Note Issued\nSubmitted\nPaid\nBilled\nUnpaid\nUnpaid and Discounted\nOverdue and Discounted\nOverdue\nCancelled\nInternal Transfer\nPartly Paid",
    "print_hide": 1,
    "read_only": 1
   },
@@ -2360,6 +2360,13 @@
    "fieldtype": "Currency",
    "label": "OTR",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_rounded_total",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Disable Rounded Total"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2371,7 +2378,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2023-07-11 16:39:37.713876",
+ "modified": "2023-07-31 13:49:45.048676",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
