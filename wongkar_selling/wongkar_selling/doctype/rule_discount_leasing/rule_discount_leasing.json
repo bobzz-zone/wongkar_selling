@@ -16,7 +16,8 @@
   "item_group",
   "customer_group",
   "territory",
-  "table_discount_leasing",
+  "coa",
+  "amount",
   "beban_dealer",
   "disable"
  ],
@@ -81,12 +82,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "table_discount_leasing",
-   "fieldtype": "Table",
-   "label": "Table Discount Leasing",
-   "options": "Table Discount Leasing"
-  },
-  {
    "fetch_from": "item_code.item_group",
    "fetch_if_empty": 1,
    "fieldname": "item_group",
@@ -109,11 +104,23 @@
    "fieldname": "beban_dealer",
    "fieldtype": "Currency",
    "label": "Beban Dealer"
+  },
+  {
+   "fieldname": "coa",
+   "fieldtype": "Link",
+   "label": "COA",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-24 09:28:18.273025",
+ "modified": "2023-08-18 10:03:22.693122",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",

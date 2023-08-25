@@ -358,6 +358,10 @@ def get_reference_details_chandra(reference_doctype, tipe_pembayaran,reference_n
 			total_amount = ref_doc.grand_total
 			bill_no = ref_doc.get("bill_no")
 			outstanding_amount = ref_doc.grand_total
+		elif reference_doctype == "Tagihan Leasing":
+			total_amount = ref_doc.grand_total
+			# bill_no = ref_doc.get("bill_no")
+			outstanding_amount = ref_doc.grand_total
 		elif reference_doctype == "Tagihan Discount Leasing" and not ref_doc.tagihan_sipm and not tipe_pembayaran:
 			# frappe.msgprint("Tagihan Discount Leasing 1ab")
 			total_amount = ref_doc.grand_total
@@ -660,7 +664,7 @@ def validate_reference_documents_lutfi(self):
 	if self.party_type == "Student":
 		valid_reference_doctypes = ("Fees")
 	elif self.party_type == "Customer":
-		valid_reference_doctypes = ("Sales Order", "Sales Invoice", "Journal Entry", "Dunning","Sales Invoice Penjualan Motor","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor")
+		valid_reference_doctypes = ("Sales Order", "Sales Invoice", "Journal Entry", "Dunning","Sales Invoice Penjualan Motor","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor","Tagihan Leasing")
 	elif self.party_type == "Supplier":
 		valid_reference_doctypes = ("Purchase Order", "Purchase Invoice", "Journal Entry","Pembayaran Tagihan Motor")
 	elif self.party_type == "Employee":

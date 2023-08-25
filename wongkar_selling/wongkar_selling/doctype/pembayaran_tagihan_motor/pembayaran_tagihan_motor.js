@@ -38,6 +38,12 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 		cur_frm.refresh_fields("supplier_bpkb")
 	},
 	refresh: function(frm){
+		frm.set_df_property("tagihan_biaya_motor", "cannot_add_rows", true);
+		frm.set_df_property("tagihan_biaya_motor", "cannot_delete_rows", true);
+		if(cur_frm.doc.__islocal){
+			cur_frm.set_value('supplier_stnk',null)
+			cur_frm.set_value('supplier_bpkb',null)
+		}
 		cur_frm.set_query("supplier_stnk", function() {
              return {
                  filters: {
@@ -73,7 +79,9 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Payable',
+					disabled : 0
 				}
 			};
 		});
@@ -82,7 +90,9 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Payable',
+					disabled : 0
 				}
 			};
 		});
@@ -91,7 +101,9 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Payable',
+					disabled : 0
 				}
 			};
 		});
@@ -147,10 +159,11 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 
 var make_payment_entry_stnk= function() {
 	return frappe.call({
-		method: "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom_stnk",
+		method: "wongkar_selling.wongkar_selling.doctype.form_pembayaran.form_pembayaran.get_form_pemabayaran",
 		args: {
 			"dt": cur_frm.doc.doctype,
-			"dn": cur_frm.doc.name
+			"dn": cur_frm.doc.name,
+			"type_bayar" : 'STNK'
 		},
 		callback: function(r) {
 			var doclist = frappe.model.sync(r.message);
@@ -162,10 +175,11 @@ var make_payment_entry_stnk= function() {
 
 var make_payment_entry_bpkb= function() {
 	return frappe.call({
-		method: "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom_bpkb",
+		method: "wongkar_selling.wongkar_selling.doctype.form_pembayaran.form_pembayaran.get_form_pemabayaran",
 		args: {
 			"dt": cur_frm.doc.doctype,
-			"dn": cur_frm.doc.name
+			"dn": cur_frm.doc.name,
+			"type_bayar" : 'BPKB'
 		},
 		callback: function(r) {
 			var doclist = frappe.model.sync(r.message);
@@ -256,7 +270,7 @@ var show_general_ledger= function() {
 				voucher_no: cur_frm.doc.name,
 				from_date: cur_frm.doc.date,
 				to_date: moment(cur_frm.doc.modified).format('YYYY-MM-DD'),
-				company: "IFMI Group",
+				company: cur_frm.doc.company,
 				group_by: "",
 				show_cancelled_entries: cur_frm.doc.docstatus === 2
 			};

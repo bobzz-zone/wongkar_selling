@@ -614,7 +614,7 @@ def get_payment_entry_custom_bpkb(dt, dn, party_amount=None, bank_account=None, 
 	pe.ensure_supplier_is_not_blocked()
 
 	pe.paid_from = party_account if payment_type=="Receive" else bank.account
-	pe.paid_to = party_account if payment_type=="Pay" else bank.account
+	pe.paid_to = doc.coa_biaya_motor_bpkb
 	pe.paid_from_account_currency = party_account_currency \
 		if payment_type=="Receive" else bank.account_currency
 	pe.paid_to_account_currency = party_account_currency if payment_type=="Pay" else bank.account_currency
@@ -848,8 +848,8 @@ def get_payment_entry_custom_stnk(dt, dn, party_amount=None, bank_account=None, 
 def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_amount=None):
 	test2 =[]
 	reference_doc = None
-	frappe.db.sql(""" UPDATE `tabTagihan Discount Leasing` set tagihan_sipm=0 where name='{}' """.format(dn))	
-	frappe.db.commit()
+	# frappe.db.sql(""" UPDATE `tabTagihan Discount Leasing` set tagihan_sipm=0 where name='{}' """.format(dn))	
+	# frappe.db.commit()
 	doc = frappe.get_doc(dt, dn)
 	if dt in ("Sales Order", "Purchase Order") and flt(doc.per_billed, 2) > 0:
 		frappe.throw(_("Can only make payment against unbilled {0}").format(dt))
@@ -874,6 +874,7 @@ def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_
 	pe.tagihan = 1
 	# pe.tagihan_sipm = doc.tagihan_sipm
 	pe.tagihan_diskon = 1
+	pe.down_payment = 0
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
 	pe.posting_date = nowdate()
@@ -956,6 +957,19 @@ def get_payment_entry_custom(dt, dn, party_amount=None, bank_account=None, bank_
 				'doc_type': dt,
 				'doc_name': dn
 				
+			})
+
+		data = frappe.db.get_list('List Tagihan Piutang Leasing',filters={'parent': dn},fields=['*'],order_by='nama_pemilik asc')
+		for d in data:
+			pe.append("tagihan_payment_table", {
+				'no_sinv': d.no_invoice,
+				'pemilik': d.pemilik,
+				'nama_pemilik': d.nama_pemilik,
+				'item': d.item,
+				'no_rangka': d.no_rangka,
+				'nilai': d.outstanding_sipm,
+				'doc_type': dt,
+				'doc_name': dn
 			})
 
 	# if pe.references[0].reference_doctype == dt and not doc.tagihan_sipm:
@@ -1204,7 +1218,7 @@ def set_exchange_rate(self, ref_doc=None):
 # @frappe.whitelist()
 def set_party_type_custom(dt):
 	# frappe.msgprint("masuk custom sini lutfi")
-	if dt in ("Sales Invoice", "Sales Order", "Dunning","Sales Invoice Penjualan Motor","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor"):
+	if dt in ("Sales Invoice", "Sales Order", "Dunning","Sales Invoice Penjualan Motor","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor",'Tagihan Leasing'):
 		party_type = "Customer"
 	elif dt in ("Purchase Invoice", "Purchase Order","Pembayaran Tagihan Motor"):
 		party_type = "Supplier"
@@ -1232,6 +1246,9 @@ def set_party_account(dt, dn, doc, party_type):
 	elif dt == "Tagihan Discount":
 		# debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan[0].no_sinv).debit_to
 		party_account = doc.coa_tagihan_discount
+	elif dt == "Tagihan Leasing":
+		# debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan[0].no_sinv).debit_to
+		party_account = doc.coa_lawan
 	elif dt == "Tagihan Discount Leasing":
 		debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",doc.daftar_tagihan_leasing[0].no_invoice).debit_to
 		party_account = doc.coa_tagihan_sipm
@@ -1264,7 +1281,7 @@ def set_party_account_currency(dt, party_account, doc):
 	return party_account_currency
 
 def set_payment_type(dt, doc):
-	if (dt in ("Sales Order", "Donation","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor") or (dt in ("Sales Invoice", "Fees", "Dunning","Sales Invoice Penjualan Motor") and doc.outstanding_amount > 0)) \
+	if (dt in ("Sales Order", "Donation","Tagihan Discount","Tagihan Discount Leasing","Pembayaran Credit Motor","Tagihan Leasing") or (dt in ("Sales Invoice", "Fees", "Dunning","Sales Invoice Penjualan Motor") and doc.outstanding_amount > 0)) \
 		or (dt=="Purchase Invoice" and doc.outstanding_amount < 0):
 			payment_type = "Receive"
 	else:
@@ -1308,6 +1325,9 @@ def set_grand_total_and_outstanding_amount(party_amount, dt, party_account_curre
 		grand_total = doc.amount
 		outstanding_amount = flt(doc.amount) - flt(doc.paid_amount)
 	elif dt == "Tagihan Discount":
+		grand_total = doc.grand_total
+		outstanding_amount = doc.outstanding_amount
+	elif dt == "Tagihan Leasing":
 		grand_total = doc.grand_total
 		outstanding_amount = doc.outstanding_amount
 	elif dt == "Tagihan Discount Leasing" and not doc.tagihan_sipm:
@@ -1453,6 +1473,10 @@ def get_reference_details_custom(reference_doctype, reference_name, party_accoun
 			total_amount = ref_doc.grand_total
 			outstanding_amount = ref_doc.outstanding_amount
 			bill_no = ref_doc.get("bill_no")
+		elif reference_doctype == "Tagihan Leasing":
+			# frappe.msgprint("Tagihan Discount")
+			total_amount = ref_doc.grand_total
+			outstanding_amount = ref_doc.outstanding_amount
 		elif reference_doctype == "Tagihan Discount Leasing" and not ref_doc.tagihan_sipm:
 			# frappe.msgprint("Tagihan Discount Leasing 1")
 			total_amount = ref_doc.grand_total
@@ -1887,6 +1911,7 @@ def get_terbayarkan(doc,method):
 			td_doc.outstanding_amount = oa_baru
 			td_doc.db_update()
 			frappe.db.commit()
+
 		elif doc.references[0].reference_doctype == "Tagihan Discount Leasing" and doc.tagihan_sipm:
 			td_doc = frappe.get_doc("Tagihan Discount Leasing",doc.references[0].reference_name)
 			for d in td_doc.daftar_tagihan_leasing:
@@ -1903,6 +1928,26 @@ def get_terbayarkan(doc,method):
 							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
 			oa_baru = td_doc.total_outstanding_tagihan_sipm - doc.paid_amount
 			td_doc.total_outstanding_tagihan_sipm = oa_baru
+			td_doc.db_update()
+			frappe.db.commit()
+
+		# tagihan Leasing
+		if doc.references[0].reference_doctype == "Tagihan Leasing":
+			td_doc = frappe.get_doc("Tagihan Leasing",doc.references[0].reference_name)
+			for d in td_doc.list_tagihan_piutang_leasing:
+				for t in doc.tagihan_payment_table:
+					if d.no_invoice == t.no_sinv:
+						baru = d.outstanding_sipm - t.nilai
+						terbayarkan_sipm = d.tagihan_sipm - baru
+						# d.terbayarkan = baru
+						if t.nilai <= d.outstanding_sipm:
+							frappe.db.sql("""UPDATE `tabList Tagihan Piutang Leasing` SET outstanding_sipm= {},mode_of_payment_sipm = '{}',terbayarkan_sipm={} 
+								WHERE parent='{}' and no_invoice= '{}' """.format(baru,doc.mode_of_payment,terbayarkan_sipm,doc.references[0].reference_name,t.no_sinv))
+							frappe.db.commit()
+						else:
+							frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+			oa_baru = td_doc.outstanding_amount - doc.paid_amount
+			td_doc.outstanding_amount = oa_baru
 			td_doc.db_update()
 			frappe.db.commit()
 
@@ -2034,6 +2079,26 @@ def get_terbayarkan_cancel(doc,method):
 								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
 				oa_baru = td_doc.total_outstanding_tagihan_sipm + doc.paid_amount
 				td_doc.total_outstanding_tagihan_sipm = oa_baru
+				td_doc.db_update()
+				frappe.db.commit()
+
+			# tagihan Leasing
+			if doc.references[0].reference_doctype == "Tagihan Leasing":
+				td_doc = frappe.get_doc("Tagihan Leasing",doc.references[0].reference_name)
+				for d in td_doc.list_tagihan_piutang_leasing:
+					for t in doc.tagihan_payment_table:
+						if d.no_invoice == t.no_sinv:
+							baru = d.outstanding_sipm + t.nilai
+							terbayarkan_sipm = d.tagihan_sipm - baru
+							# d.terbayarkan = baru
+							if t.nilai != d.outstanding_sipm:
+								frappe.db.sql("""UPDATE `tabList Tagihan Piutang Leasing` SET outstanding_sipm= {},terbayarkan_sipm={} 
+									WHERE parent='{}' and no_invoice= '{}' """.format(baru,terbayarkan_sipm,doc.references[0].reference_name,t.no_sinv))
+								frappe.db.commit()
+							else:
+								frappe.throw(t.no_sinv+" lebih besar dari yang terbayarkan !")
+				oa_baru = td_doc.outstanding_amount + doc.paid_amount
+				td_doc.outstanding_amount = oa_baru
 				td_doc.db_update()
 				frappe.db.commit()
 
@@ -2190,5 +2255,11 @@ def validasi_advance_leasing(self,method):
 
 		if self.advance_leasing:
 			cek = frappe.get_doc("Advance Leasing",self.advance_leasing).account_debit
-			if cek != self.paid_to:
+			if cek != self.paid_from:
 				frappe.throw("Akun Paid From tidak sama dengan Advance Leasing ! "+cek)
+
+
+@frappe.whitelist()
+def validasi_pe_internal_tranfer(self,method):
+	if self.payment_entry_internal_transfer:
+		frappe.throw('Tidak bisa melakukan cancel di sini !! harus di document PE internal tranfer !!')

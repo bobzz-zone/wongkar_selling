@@ -22,6 +22,24 @@ class TagihanDiscount(Document):
 			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
 		if cek:
 			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+
+	def hitung_pph(self):
+		total = 0
+		if self.cek_pph:
+			for d in self.daftar_tagihan:
+				pph = d.nilai_diskon * self.pph / 100
+				d.nilai = d.nilai_diskon - pph
+				d.terbayarkan = d.nilai
+				total += d.nilai
+		else:
+			for d in self.daftar_tagihan:
+				d.nilai = d.nilai_diskon
+				d.terbayarkan = d.nilai
+				total += d.nilai
+
+		self.grand_total = total
+		self.base_grand_total = total
+		self.outstanding_amount = total
 			
 	def set_status(self):
 		if self.docstatus == 2:
@@ -100,24 +118,45 @@ class TagihanDiscount(Document):
 		gl_entries = []
 		self.make_gl_credit(gl_entries)
 		self.make_tax_gl_entries(gl_entries)
+		self.make_pph_gl_entries(gl_entries)
 		self.make_gl_debit(gl_entries)
 		# return gl_entries
-
+		print(gl_entries, ' gl_entries')
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
+
+	def make_pph_gl_entries(self, gl_entries):
+		
+		for d in self.get('daftar_tagihan'):
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
+			pph = d.nilai_diskon * self.pph / 100
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.pph_account,
+					"against": self.customer,
+					"debit": pph,
+					"debit_in_account_currency": pph,
+					"cost_center": cost_center,
+					# "remarks": "coba Lutfi pajak!"
+				}, item=None)
+			)
 
 	def make_tax_gl_entries(self, gl_entries):
 		
 		for d in self.get('daftar_tagihan'):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
-			hitung_tax = d.nilai / 1.11
-			net = d.nilai - hitung_tax
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}).rate
+			tax = (100+rate ) / 100
+			hitung_tax = d.nilai_diskon / tax
+			net = d.nilai_diskon - hitung_tax
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": self.tax_account,
 					"against": self.customer,
 					"credit": net,
 					"credit_in_account_currency": net,
+					"against_voucher": d.no_sinv,
+					"against_voucher_type": "Sales Invoice Penjualan Motor",
 					"cost_center": cost_center,
 					# "remarks": "coba Lutfi pajak!"
 				}, item=None)
@@ -129,14 +168,18 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
-		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable FROM `tabDaftar Tagihan` cd
+		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable,td.rule,td.parent as no_sinv FROM `tabDaftar Tagihan` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
 			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
 
 		for d in data:
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
+			pendapatan = frappe.get_doc("Rule",d.rule).coa_receivable
 			against_income_account = set_against_income_account(d.no_sinv)
-			hitung_tax = d.nilai / 1.11
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}).rate
+			tax = (100+rate ) / 100
+			# hitung_tax = flt(d.nilai / tax,0)
+			hitung_tax = d.nilai / tax
 			net = d.nilai - hitung_tax
 			gl_entries.append(
 				self.get_gl_dict({
@@ -149,7 +192,7 @@ class TagihanDiscount(Document):
 					"credit_in_account_currency": hitung_tax,
 					"against_voucher": d.no_sinv,
 					"against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": cost_center
+					"cost_center": d.cost_center
 					# "project": self.project,
 					# "remarks": "coba Lutfi yyyyy!"
 				}, item=None)
@@ -162,13 +205,15 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable FROM `tabDaftar Tagihan` cd
+		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable,td.rule FROM `tabDaftar Tagihan` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
 			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
 		
 		for d in data:
 			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			pph = d.nilai * self.pph / 100
+			pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": self.coa_tagihan_discount,
@@ -176,8 +221,9 @@ class TagihanDiscount(Document):
 					"party": self.customer,
 					# "due_date": self.due_date,
 					"against": d.coa_receivable,
-					"debit": d.nilai,
-					"debit_in_account_currency": d.nilai,
+					# "debit": d.nilai,
+					"debit": d.nilai - pph if self.cek_pph else d.nilai ,
+					"debit_in_account_currency": d.nilai - pph if self.cek_pph else d.nilai,
 					# "against_voucher": d.no_sinv,
 					# "against_voucher_type": "Sales Invoice Penjualan Motor",
 					"cost_center": d.cost_center
@@ -233,7 +279,7 @@ class TagihanDiscount(Document):
 			doc = frappe.get_doc('Table Discount',{'parent': i['no_sinv'],'customer': self.customer})
 			doc.tertagih = 1
 			doc.db_update()
-			frappe.db.commit()
+			# frappe.db.commit()
 			# frappe.msgprint('Berhasil !')
 		self.set_status()
 
@@ -254,6 +300,18 @@ class TagihanDiscount(Document):
 
 	def validate(self):
 		self.set_status()
+		self.hitung_pph()
+		self.validasi_get()
+
+	def validasi_get(self):
+		for i in self.daftar_tagihan:
+			cek = frappe.db.sql(""" SELECT a.name,b.no_sinv from `tabTagihan Discount` a 
+				join `tabDaftar Tagihan` b on a.name = b.parent
+				where b.no_sinv = '{}' and a.docstatus = 0 and a.customer = '{}' """.format(i.no_sinv,self.customer),as_dict=1)
+			if cek:
+				for c in cek:
+					if c['name'] != self.name:
+						frappe.throw("No Sinv "+c['no_sinv']+" Sudah ada di "+c['name']+" !")
 
 
 def add_party_gl_entries_custom(self):

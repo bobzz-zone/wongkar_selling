@@ -19,47 +19,48 @@ def get_data(filters):
 		kondisi = " and ec.cost_center = '{}' ".format(filters.get("area"))
 
 	data = frappe.db.sql(""" SELECT 
-		sipm.customer_name as leasing,
-		sipm.cost_center,
-		sipm.nama_pemilik as nama_konsumen,
-		sipm.posting_date as tgl_jual,
-		if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total) as piutang,
-		if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total) - IFNULL(dl.nominal,0) as tagihan_pokok,
-		tdl.date as tgl_tagih,
-		if(tpt.cek_realisasi = 1,"Sudah Realisasi",if(tdl.date is not null,"Belum Realisasi","Belum Tagih"))  as ket,
-		IFNULL(IF(sipm.tanggal_tagih,DATEDIFF(tdl.date, sipm.posting_date),0),0) as ht,
-		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0) as hc,
-		sipm.set_warehouse,
-		IFNULL(tl.`outstanding_discount`,0),
-		tl.`mode_of_payment_sipm` as mode_pokok,
-		tl.`mode_of_payment_discount` as mode_tambahan_leasing,
-		sipm.name as sipm,
-		IFNULL(dl.nominal,0) as tambahan_leasing,
-		w.parent_warehouse as cabid_jual,
-		w2.parent_warehouse as cab_area_jual,
-		IFNULL(tl.terbayarkan,0) as pencairan_tambahan_leasing,
-		IFNULL(tl.outstanding_discount,0) as o_tl,
-		IFNULL(tl.outstanding_discount-tl.terbayarkan,0) as bt_tl,
-		IF(tl.terbayarkan_sipm>0,IFNULL(tl.terbayarkan_sipm,0) - IFNULL(dl.nominal,0),0) as pencairan_tagihan_pokok,
-		IFNULL(tl.outstanding_sipm,0) as o_tp,
-		IFNULL(tl.outstanding_sipm-tl.terbayarkan_sipm,0) as bt_tp,
-		sipm.tanggal_cair as tgl_pencairan_tambahan_leasing,
-		pe.posting_date as tgl_pencairan_pokok,
-		peit.date as tgl_setor_dp,
-		(if(tl.name is not null,tl.tagihan_sipm,sipm.grand_total)) - (IF(tl.terbayarkan_sipm>0,IFNULL(tl.terbayarkan_sipm,0) - IFNULL(dl.nominal,0),0)) - IFNULL(tl.terbayarkan,0) as selisih_cair
-		FROM `tabSales Invoice Penjualan Motor` sipm
-		left JOIN `tabDaftar Tagihan Leasing` tl on sipm.name = tl.no_invoice
-		left join `tabTagihan Discount Leasing` tdl on tdl.name = tl.parent
-		left join `tabTagihan Payment Table` tpt on tpt.docstatus = 1 and tpt.doc_name = tdl.name and tpt.no_sinv = tl.no_invoice
-		left join `tabPayment Entry` pe on pe.name = tpt.parent
-		left join `tabTable Disc Leasing` dl on dl.parent = sipm.name
-		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
-		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
-		left join `tabList Payment Entry` lpe on lpe.docstatus = 1 and lpe.pemilik = sipm.pemilik
-		left join `tabPayment Entry Internal Transfer` peit on peit.name = lpe.parent
-		where tl.docstatus = 1 or sipm.docstatus = 1 and sipm.cara_bayar = "Credit" and sipm.posting_date between '{}' and '{}' 
-		group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
+			sipm.name AS sipm,
+			sipm.customer_name AS leasing,
+			w2.parent_warehouse AS cabid_jual,
+			w.parent_warehouse AS cab_area_jual,
+			sipm.nama_pemilik AS nama_konsumen,
+			IFNULL(peit.date,null) AS tgl_setor_dp,
+			sipm.posting_date AS tgl_jual,
+			sipm.tanggal_tagih AS tgl_tagih,
+			sipm.outstanding_amount AS piutang,
+			IF(ltpl.name IS NOT NULL,ltpl.outstanding_sipm,0) AS tagihan_pokok,
+			IFNULL(SUM(tpt.`nilai`),0) AS pencairan_tagihan_pokok,
+			fp.posting_date AS tgl_pencairan_pokok,
+			ltpl.`mode_of_payment_sipm` AS mode_pokok,
+			IF(dtl.name IS NULL,tdl.nominal,if(dtl.outstanding_discount<=0,sum(dtl.outstanding_discount),SUM(dtl.outstanding_discount+(dtl.nilai_diskon*tdc.pph/100)))) AS tambahan_leasing,
+			IFNULL(SUM(tpt2.`nilai`+(dtl.nilai_diskon*tdc.pph/100)),0) AS pencairan_tambahan_leasing,
+			fp2.`posting_date` AS tgl_pencairan_tambahan_leasing,
+			dtl.`mode_of_payment_discount` AS mode_tambahan_leasing,
+			IF(ltpl.name IS NOT NULL,ltpl.tagihan_sipm,0) - IFNULL(SUM(tpt.`nilai`),0) - IFNULL(SUM(tpt2.`nilai`),0) + IF(dtl.name IS NULL,tdl.nominal,dtl.nilai) AS selisih_cair,
+			IF(tpt.cek_realisasi = 1,"Sudah Realisasi",IF(ltpl.name IS NOT NULL,"Belum Realisasi","Belum Tagih"))  AS ket,
+			IFNULL(IF(sipm.tanggal_tagih,DATEDIFF(tl.date, sipm.posting_date),0),0) AS ht,
+			IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0) AS hc
+			FROM `tabSales Invoice Penjualan Motor` sipm
+			LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
+			LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
+			LEFT JOIN `tabList Tagihan Piutang Leasing` ltpl ON ltpl.docstatus = 1 AND ltpl.no_invoice = sipm.name
+			LEFT JOIN `tabTagihan Leasing` tl ON tl.name = ltpl.parent
+			LEFT JOIN `tabTagihan Payment Table` tpt ON tpt.docstatus = 1 AND ltpl.parent = tpt.doc_name
+			LEFT JOIN `tabForm Pembayaran` fp ON fp.`name` = tpt.`parent` AND fp.`type` = 'Pembayaran Tagihan Leasing'
+			LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.`parent` = sipm.`name`
+			LEFT JOIN `tabDaftar Tagihan Leasing` dtl ON dtl.`docstatus` = 1 AND dtl.`no_invoice` = sipm.name
+			LEFT JOIN `tabTagihan Discount Leasing` tdc ON tdc.name = dtl.parent
+			LEFT JOIN `tabTagihan Payment Table` tpt2 ON tpt2.docstatus = 1 AND dtl.parent = tpt2.doc_name
+			LEFT JOIN `tabForm Pembayaran` fp2 ON fp2.`name` = tpt2.`parent` AND fp2.`type` = 'Pembayaran Diskon Leasing'
+			left join `tabSales Invoice Advance` sia on sia.parent =sipm.name
+			left join `tabJournal Entry` je on je.name = sia.reference_name
+			left join `tabPenerimaan DP` dp on dp.name = je.penerimaan_dp
+			left join `tabList Penerimaan DP` ldp on ldp.penerimaan_dp  = je.penerimaan_dp
+			left join `tabPayment Entry Internal Transfer` peit on peit.name = ldp.parent
+			WHERE sipm.docstatus = 1 AND sipm.cara_bayar = "Credit" AND sipm.posting_date BETWEEN '{}' AND '{}'
+		 """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
 
+	frappe.msgprint(str(data))
 	return data
 
 def get_columns(filters):

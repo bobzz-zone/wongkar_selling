@@ -44,7 +44,8 @@ jenv = {
 # include js in doctype views
 doctype_js = {"Payment Entry" : "public/js/custom_payment_entry.js",
 "Customer": "public/js/custom_customer.js",
-"Serial No": "public/js/custom_serial_no.js"
+"Serial No": "public/js/custom_serial_no.js",
+"Journal Entry": "public/js/custom_journal_entry.js"
 }
 
 doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_motor.js",
@@ -112,22 +113,30 @@ doc_events = {
 	# "Sales Invoice": {
 	# 	"before_submit" : ["wongkar_selling.wongkar_selling.selling.overide_make_gl"]
 	# },
+	# pe lama
+	# "Payment Entry": {
+	# 	# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
+	# 	# "after_insert" : ["wongkar_selling.wongkar_selling.pe.overide_make_pe2"]
+	# 	# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
+	# 	# "validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.wongkar_selling.get_invoice.cek_tagihan"],
+	# 	"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_standard.custom_payment_entry.validasi_advance_leasing"],
+	# 	"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan","wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi","wongkar_selling.custom_standard.custom_payment_entry.add_tanggalcair","wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing"],
+	# 	"on_cancel" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa_cancel",
+	# 	"wongkar_selling.custom_payment_entry.kalkulasi_tagihan_cancel","wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli",
+	# 	"wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_cancel","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi_cancel",
+	# 	"wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing_cancel","wongkar_selling.custom_standard.custom_payment_entry.validasi_pe_internal_tranfer"],
+	# 	"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
+	# },
+
 	"Payment Entry": {
-		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
-		# "after_insert" : ["wongkar_selling.wongkar_selling.pe.overide_make_pe2"]
-		# "before_save" : ["wongkar_selling.wongkar_selling.selling.overide_make_pe"],
-		# "validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.wongkar_selling.get_invoice.cek_tagihan"],
-		"validate" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_standard.custom_payment_entry.validasi_advance_leasing"],
-		"on_submit" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan","wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi","wongkar_selling.custom_standard.custom_payment_entry.add_tanggalcair","wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing"],
-		"on_cancel" : ["wongkar_selling.custom_payment_entry.override_on_submit_on_cancel","wongkar_selling.custom_payment_entry.kalkulasi_oa_cancel","wongkar_selling.custom_payment_entry.kalkulasi_tagihan_cancel","wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_cancel","wongkar_selling.custom_standard.custom_payment_entry.get_terbayarkan_multi_cancel","wongkar_selling.custom_standard.custom_payment_entry.calculate_advance_leasing_cancel"],
-		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
+		"on_cancel" : ["wongkar_selling.custom_standard.custom_payment_entry.validasi_pe_internal_tranfer"],
 	},
 	"Journal Entry":{
 		# "before_cancel": ["wongkar_selling.wongkar_selling.doctype.form_expanse_generator.form_expanse_generator.cencel_form"]
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
-		"on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update_je"],
-		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
-		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel"],
+		# "on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update_je"],
+		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_journal_entry.cek_cancel_adv_leasing"],
+		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel","wongkar_selling.custom_standard.custom_journal_entry.get_penerimaan_dp"],
 		"on_submit": ["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
@@ -155,7 +164,8 @@ doc_events = {
 		"on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update"],
 		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
 		# "on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"],
-		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"]
+		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
+		"validate": "wongkar_selling.custom_standard.custom_sales_invoice.cek_akun_return"
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sales_order_log.sales_order_log.after_submit_so"]
 	},
 	"Delivery Note": {

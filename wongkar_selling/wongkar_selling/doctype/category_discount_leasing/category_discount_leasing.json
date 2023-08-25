@@ -10,8 +10,7 @@
   "category_name",
   "valid_from",
   "valid_to",
-  "disabled",
-  "beban_dealer"
+  "disabled"
  ],
  "fields": [
   {
@@ -40,16 +39,11 @@
    "hidden": 1,
    "label": "Valid To",
    "read_only": 1
-  },
-  {
-   "fieldname": "beban_dealer",
-   "fieldtype": "Currency",
-   "label": "Beban Dealer"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-07 22:19:47.094590",
+ "modified": "2023-08-22 09:38:47.245522",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Category Discount Leasing",

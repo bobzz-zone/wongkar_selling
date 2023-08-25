@@ -118,8 +118,8 @@ class PembayaranTagihanMotor(Document):
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": account,
-						"party_type": "Supplier",
-						"party": self.supplier,
+						# "party_type": "Supplier",
+						# "party": self.supplier,
 						# "due_date": self.due_date,
 						"against": self.coa_biaya_motor,
 						"debit": d.nilai,
@@ -138,8 +138,8 @@ class PembayaranTagihanMotor(Document):
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": account,
-						"party_type": "Supplier",
-						"party": self.supplier_stnk,
+						# "party_type": "Supplier",
+						# "party": self.supplier_stnk,
 						# "due_date": self.due_date,
 						"against": self.coa_biaya_motor_stnk,
 						"debit": d.nilai_stnk,
@@ -152,14 +152,12 @@ class PembayaranTagihanMotor(Document):
 					}, item=None)
 				)
 
-			for d in self.get('tagihan_biaya_motor'):
 				account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': "BPKB"}, "coa")
-				cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": account,
-						"party_type": "Supplier",
-						"party": self.supplier_bpkb,
+						# "party_type": "Supplier",
+						# "party": self.supplier_bpkb,
 						# "due_date": self.due_date,
 						"against": self.coa_biaya_motor_bpkb,
 						"debit": d.nilai_bpkb,
@@ -171,6 +169,26 @@ class PembayaranTagihanMotor(Document):
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
 				)
+
+			# for d in self.get('tagihan_biaya_motor'):
+			# 	account = frappe.get_value("Tabel Biaya Motor",{"parent" : d.no_invoice,'type': "BPKB"}, "coa")
+			# 	cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			# 	gl_entries.append(
+			# 		self.get_gl_dict({
+			# 			"account": account,
+			# 			"party_type": "Supplier",
+			# 			"party": self.supplier_bpkb,
+			# 			# "due_date": self.due_date,
+			# 			"against": self.coa_biaya_motor_bpkb,
+			# 			"debit": d.nilai_bpkb,
+			# 			"debit_in_account_currency": d.nilai_bpkb,
+			# 			"against_voucher": d.no_invoice,
+			# 			"against_voucher_type": "Sales Invoice Penjualan Motor",
+			# 			"cost_center": cost_center
+			# 			# "project": self.project,
+			# 			# "remarks": "coba Lutfi yyyyy!"
+			# 		}, item=None)
+			# 	)
 		
 	def make_gl_credit(self, gl_entries):
 		# frappe.msgprint("MASuk make_gl_debit")
@@ -306,6 +324,18 @@ class PembayaranTagihanMotor(Document):
 	def validate(self):
 		self.set_status()
 		self.validasi_supplier()
+		self.validasi_get()
+
+	def validasi_get(self):
+		for i in self.tagihan_biaya_motor:
+			cek = frappe.db.sql(""" SELECT a.name,b.no_invoice from `tabPembayaran Tagihan Motor` a 
+				join `tabChild Tagihan Biaya Motor` b on a.name = b.parent
+				where b.no_invoice = '{}' and a.docstatus = 0 and a.supplier_stnk = '{}' and a.supplier_bpkb = '{}' """.format(i.no_invoice,self.supplier_stnk,self.supplier_bpkb),as_dict=1)
+			if cek:
+				for c in cek:
+					if c['name'] != self.name:
+						frappe.throw("No Sinv "+c['no_invoice']+" Sudah ada di "+c['name']+" !")
+
 
 @frappe.whitelist()
 def repair_gl_entry_tagihan_motor(doctype,docname):

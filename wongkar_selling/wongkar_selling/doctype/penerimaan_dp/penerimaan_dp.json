@@ -1,0 +1,197 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2023-08-02 09:11:58.887515",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "company",
+  "tanggal",
+  "cara_bayar",
+  "section_break_pkua8",
+  "customer",
+  "customer_name",
+  "column_break_rdpyr",
+  "pemilik",
+  "nama_pemilik",
+  "section_break_8iauq",
+  "debit_to",
+  "column_break_aww6w",
+  "piutang_motor",
+  "section_break_idvpn",
+  "coa_bpkb_stnk",
+  "column_break_6lwn8",
+  "piutang_bpkb_stnk",
+  "section_break_ofo88",
+  "paid_to",
+  "amended_from",
+  "cek_transfer"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "tanggal",
+   "fieldtype": "Date",
+   "label": "Tanggal"
+  },
+  {
+   "description": "Untuk Pembayaran Credit Yang di masukkan Customer Leasingnya\nUntuk Cash menggunkan nama Customer langsung",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "debit_to",
+   "fieldtype": "Link",
+   "label": "Debit To",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coa_bpkb_stnk",
+   "fieldtype": "Link",
+   "label": "Coa Biaya BPKB & STNK",
+   "mandatory_depends_on": "eval:doc.cara_bayar == 'Cash'",
+   "options": "Account"
+  },
+  {
+   "fieldname": "paid_to",
+   "fieldtype": "Link",
+   "label": "Paid To",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Penerimaan DP",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "default": "Cash",
+   "description": "untuk cara bayar cash hanya perlu memasukkan nama customernya saja. unttuk pembayaran credit perlu memasukkan leasing dan pemilik",
+   "fieldname": "cara_bayar",
+   "fieldtype": "Select",
+   "label": "Cara Bayar",
+   "options": "Cash\nCredit"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fetch_if_empty": 1,
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "section_break_8iauq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_aww6w",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "piutang_motor",
+   "fieldtype": "Currency",
+   "label": "Piutang Motor",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Cash'",
+   "fieldname": "section_break_idvpn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_6lwn8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "piutang_bpkb_stnk",
+   "fieldtype": "Currency",
+   "label": "Piutang BPKB STNK",
+   "mandatory_depends_on": "eval:doc.cara_bayar == 'Cash'"
+  },
+  {
+   "fieldname": "section_break_ofo88",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FDP-.MM.-.YYYY.-."
+  },
+  {
+   "fieldname": "section_break_pkua8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "description": "Nama Customer yang membeli",
+   "fieldname": "pemilik",
+   "fieldtype": "Link",
+   "label": "Pemilik",
+   "mandatory_depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "options": "Customer"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fetch_from": "pemilik.customer_name",
+   "fetch_if_empty": 1,
+   "fieldname": "nama_pemilik",
+   "fieldtype": "Data",
+   "label": "Nama Pemilik"
+  },
+  {
+   "fieldname": "column_break_rdpyr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "cek_transfer",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "cek_transfer",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2023-08-18 09:40:32.036528",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Penerimaan DP",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

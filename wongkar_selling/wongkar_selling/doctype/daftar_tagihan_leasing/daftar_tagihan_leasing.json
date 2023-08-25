@@ -12,16 +12,17 @@
   "item",
   "no_rangka",
   "section_break_4",
+  "nilai_diskon",
   "nilai",
   "outstanding_discount",
   "terbayarkan",
   "mode_of_payment_discount",
   "column_break_7",
+  "section_break_9",
   "tagihan_sipm",
   "outstanding_sipm",
   "terbayarkan_sipm",
-  "mode_of_payment_sipm",
-  "section_break_9"
+  "mode_of_payment_sipm"
  ],
  "fields": [
   {
@@ -90,13 +91,13 @@
    "columns": 1,
    "fieldname": "tagihan_sipm",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Tagihan SIPM",
    "read_only": 1
   },
   {
    "fieldname": "section_break_9",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fieldname": "outstanding_sipm",
@@ -114,6 +115,7 @@
   {
    "fieldname": "outstanding_discount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Outstanding Discount",
    "read_only": 1
   },
@@ -136,12 +138,19 @@
    "fieldtype": "Currency",
    "label": "Terbayarkan SIPM",
    "read_only": 1
+  },
+  {
+   "fieldname": "nilai_diskon",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "nilai_diskon",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-06-26 10:33:27.977589",
+ "modified": "2023-08-09 11:20:57.547058",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Daftar Tagihan Leasing",

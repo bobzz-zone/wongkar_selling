@@ -4,19 +4,21 @@ def isi_nosin(self,method):
 	split = self.name.split("--")
 	self.no_rangka = split[1]
 	self.no_mesin = split[0]
+	if self.delivery_document_type == 'Sales Invoice Penjualan Motor':
+		frappe.db.sql(""" UPDATE `tabSerial No` set sales_invoice_penjualan_motor='{}',sales_invoice=Null where name = '{}' """.format(self.delivery_document_no,self.name))
 	frappe.db.sql(""" UPDATE `tabSerial No` set no_rangka='{}',no_mesin = '{}' where name = '{}' """.format(split[1],split[0],self.name))
 	frappe.db.commit()
 
 def rem_sinv(self,method):
-	frappe.msgprint("s")
+	# frappe.msgprint("s")
 	# doc = frappe.get_doc("Serial No",self.name)
 	if self.delivery_document_type == 'Sales Invoice Penjualan Motor' and self.delivery_document_no:
-		frappe.msgprint("sss")
+		# frappe.msgprint("sss")
 		data = frappe.get_doc("Sales Invoice Penjualan Motor",self.delivery_document_no)
 		# self.sales_invoice_penjualan_motor = self.delivery_document_no
 		# self.sales_invoice = None
 		if not self.pemilik or self.pemilik == "":
-			frappe.msgprint("ssss")
+			# frappe.msgprint("ssss")
 			self.pemilik = data.pemilik
 			self.customer = data.pemilik
 			self.customer_name = data.nama_pemilik

@@ -3,6 +3,28 @@
 
 frappe.ui.form.on('Advance Leasing', {
 	refresh: function(frm) {
+		frm.set_query("account_debit", function() {
+			return {
+				filters: {
+					"account_type": ["in", ['Bank','Cash']],
+					"is_group": 0,
+					"company": cur_frm.doc.company,
+					"disabled": 0
+				}
+			}
+		});
+
+		frm.set_query("account_credit", function() {
+			return {
+				filters: {
+					"account_type": ["in", ['Bank','Cash']],
+					"is_group": 0,
+					"company": cur_frm.doc.company,
+					"disabled": 0
+				}
+			}
+		});
+
 		if((cur_frm.doc.docstatus == 1 || cur_frm.doc.docstatus == 2) && cur_frm.doc.sisa > 0 && cur_frm.doc.journal_entry ){
 			frm.add_custom_button(__('Make PE'), () => 
 				frappe.xcall("wongkar_selling.wongkar_selling.doctype.advance_leasing.advance_leasing.make_pe",{
@@ -16,7 +38,7 @@ frappe.ui.form.on('Advance Leasing', {
 			);
 		}
 
-		if(!cur_frm.doc.__islocal && !cur_frm.doc.journal_entry && cur_frm.doc.nilai > 0){
+		if(!cur_frm.doc.__islocal && !cur_frm.doc.journal_entry && cur_frm.doc.nilai > 0 && cur_frm.doc.docstatus ==1){
 			frm.add_custom_button(__('Make JE'), () => 
 				frappe.xcall("wongkar_selling.wongkar_selling.doctype.advance_leasing.advance_leasing.make_je",{
 					'name_fp': cur_frm.doc.name,

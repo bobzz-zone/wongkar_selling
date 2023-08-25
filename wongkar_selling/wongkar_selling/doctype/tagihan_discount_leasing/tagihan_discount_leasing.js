@@ -3,19 +3,19 @@
 
 frappe.ui.form.on('Tagihan Discount Leasing', {
 	validate: function(frm) {
-		let total = 0
-		let total_sipm = 0
-		if(cur_frm.doc.daftar_tagihan_leasing){
-			for (let i = 0; i < cur_frm.doc.daftar_tagihan_leasing.length; i++) {
-				total += cur_frm.doc.daftar_tagihan_leasing[i].nilai;
-				total_sipm += cur_frm.doc.daftar_tagihan_leasing[i].tagihan_sipm;
-			}
-		}
-		frm.set_value('grand_total',total)
-		frm.set_value('base_grand_total',total)
-		frm.set_value('outstanding_amount',total)
-		frm.set_value('total_tagihan_sipm',total_sipm)
-		frm.set_value('total_outstanding_tagihan_sipm',total_sipm)
+		// let total = 0
+		// let total_sipm = 0
+		// if(cur_frm.doc.daftar_tagihan_leasing){
+		// 	for (let i = 0; i < cur_frm.doc.daftar_tagihan_leasing.length; i++) {
+		// 		total += cur_frm.doc.daftar_tagihan_leasing[i].nilai;
+		// 		total_sipm += cur_frm.doc.daftar_tagihan_leasing[i].tagihan_sipm;
+		// 	}
+		// }
+		// frm.set_value('grand_total',total)
+		// frm.set_value('base_grand_total',total)
+		// frm.set_value('outstanding_amount',total)
+		// frm.set_value('total_tagihan_sipm',total_sipm)
+		// frm.set_value('total_outstanding_tagihan_sipm',total_sipm)
 		
 	},
 	date_from(frm){
@@ -26,8 +26,17 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 		cur_frm.set_value("customer","")
 		cur_frm.refresh_fields("customer")
 	},
+	cek_pph(frm){
+		cur_frm.set_value('pph',0)
+		cur_frm.set_value('pph_account',null)
+	},
 	refresh: function(frm){
 		show_general_ledger();
+
+		if(cur_frm.doc.__islocal){
+			cur_frm.set_value('customer',null)
+		}
+		
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
 			cur_frm.add_custom_button(__('Payment Tagihan Discount'),
 				// change_value2, __('Create'),
@@ -36,20 +45,22 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 			
 		}
 
-		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.total_outstanding_tagihan_sipm!=0) {
-			cur_frm.add_custom_button(__('Payment Tagihan SIPM'),
-				// change_value, __('Create'),
-				make_payment_entry2, __('Create'));
-			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
+		// if (cur_frm.doc.docstatus == 1 && cur_frm.doc.total_outstanding_tagihan_sipm!=0) {
+		// 	cur_frm.add_custom_button(__('Payment Tagihan SIPM'),
+		// 		// change_value, __('Create'),
+		// 		make_payment_entry2, __('Create'));
+		// 	cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
 			
-		}
+		// }
 		
 
 		frm.set_query("coa_tagihan_discount_leasing", function() {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Receivable',
+					disabled : 0
 				}
 			};
 		});
@@ -58,7 +69,9 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Receivable',
+					disabled : 0
 				}
 			};
 		});
@@ -131,7 +144,7 @@ var make_payment_entry= async function() {
 	// change_value2()
 
 	return frappe.call({
-		method: get_method_for_payment(),
+		method: 'wongkar_selling.wongkar_selling.doctype.form_pembayaran.form_pembayaran.get_form_pemabayaran',
 		args: {
 			"dt": cur_frm.doc.doctype,
 			"dn": cur_frm.doc.name
@@ -183,10 +196,11 @@ frappe.ui.form.on("Tagihan Discount Leasing", "customer", function(frm) {
 						frappe.model.set_value(child.doctype, child.name, "nama_promo", data.message[i].nama_promo);
 						// frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].total_discoun_leasing);
 						// frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].total_discoun_leasing);
+						frappe.model.set_value(child.doctype, child.name, "nilai_diskon", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "outstanding_discount", data.message[i].nominal);
-						frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
-						frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
+						// frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
+						// frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik); 
 						frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);       

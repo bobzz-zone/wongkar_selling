@@ -162,7 +162,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "serial_no.sales_invoice",
+   "fetch_from": "serial_no.sales_invoice_penjualan_motor",
    "fieldname": "sales_invoice_penjualan_motor",
    "fieldtype": "Link",
    "label": "Sales Invoice Penjualan Motor",
@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-23 11:39:52.782337",
+ "modified": "2023-08-24 11:25:24.714091",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "SKB",

@@ -15,35 +15,47 @@ def get_data(filters):
 	if filters.get("leasing"):
 		kondisi = " and sipm.customer_name = '{}' ".format(filters.get("leasing"))
 
-	tagihan = frappe.db.sql(""" SELECT 
-		sipm.customer_name as leasing,
-		w.parent_warehouse as cab_area_jual,
-		w2.parent_warehouse as cabid_jual,
-		sum(dl.nominal)-IFNULL(sum(tl.nilai),0) as bt_tl,
-		IFNULL(sum(tl.nilai),0) as st_tl,
-		IFNULL(sum(tl.outstanding_discount),0) as o_tl,
-		IFNULL(sum(tl.terbayarkan),0) as sb_tl,
-		sum(sipm.outstanding_amount)-IFNULL(sum(tl.tagihan_sipm),0) as bt_tp,
-		IFNULL(sum(tl.tagihan_sipm),0) as st_tp,
-		IFNULL(sum(tl.outstanding_sipm),0) as o_tp,
-		IFNULL(sum(tl.terbayarkan_sipm),0) as sb_tp,
-		(SELECT IFNULL(SUM(tl.terbayarkan),0) FROM `tabDaftar Tagihan Leasing` tl WHERE tl.mode_of_payment_sipm = "Advance Leasing") AS sb_tpa,
-		(SELECT IFNULL(SUM(tl.terbayarkan),0) FROM `tabDaftar Tagihan Leasing` tl WHERE tl.mode_of_payment_sipm != "Advance Leasing") AS sb_tpn,
-		count(sipm.name) as tot_booking
-		FROM `tabSales Invoice Penjualan Motor` sipm
-		LEFT JOIN `tabDaftar Tagihan Leasing` tl ON tl.`docstatus` = 1 AND sipm.name = tl.no_invoice
-		left join `tabTagihan Discount Leasing` tdl on tdl.name = tl.parent
-		left join `tabTable Disc Leasing` dl on dl.parent = sipm.name
-		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
-		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
-		where sipm.docstatus = 1 {} and sipm.cara_bayar = "Credit" and sipm.posting_date between '{}' and '{}'
-		group by sipm.customer_name,w.parent_warehouse  order by w2.parent_warehouse asc """.format(kondisi,filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
+	tagihan = frappe.db.sql(""" 
+		SELECT 
+			sipm.customer_name AS leasing,
+			w.parent_warehouse AS cab_area_jual,
+			w2.parent_warehouse AS cabid_jual,
+			SUM(dl.nominal-(dl.nominal*tdl.pph/100))-COALESCE(SUM(tl.nilai_diskon-(tl.nilai_diskon*tdl.pph/100)),0) AS bt_tl,
+			COALESCE(SUM(tl.nilai+(tl.nilai_diskon*tdl.pph/100))-IF(tl.terbayarkan>0,sum(tl.terbayarkan+(tl.nilai_diskon*tdl.pph/100)),0),0) AS st_tl,
+			if(tl.outstanding_discount<=0,sum(tl.outstanding_discount),SUM(tl.outstanding_discount+(tl.nilai_diskon*tdl.pph/100))) AS o_tl,
+			COALESCE(IF(tl.terbayarkan>0,sum(tl.terbayarkan+(tl.nilai_diskon*tdl.pph/100)),0),0) AS sb_tl,
+			SUM(sipm.outstanding_amount) AS bt_tp,
+			COALESCE(SUM(ltpl.tagihan_sipm),0) - COALESCE(SUM(ltpl.terbayarkan_sipm),0) AS st_tp,
+			COALESCE(SUM(ltpl.outstanding_sipm),0) AS o_tp,
+			COALESCE(SUM(ltpl.terbayarkan_sipm),0) AS sb_tp,
+			COALESCE(SUM(CASE WHEN ltpl.mode_of_payment_sipm = 'Advance Leasing' THEN ltpl.terbayarkan_sipm ELSE 0 END), 0) AS sb_tpa,
+			COALESCE(SUM(CASE WHEN ltpl.mode_of_payment_sipm != 'Advance Leasing' THEN ltpl.terbayarkan_sipm ELSE 0 END), 0) AS sb_tpn,
+			COUNT(sipm.name) AS tot_booking,
+			tl.mode_of_payment_sipm
+			FROM `tabSales Invoice Penjualan Motor` sipm
+			LEFT JOIN `tabDaftar Tagihan Leasing` tl ON tl.`docstatus` = 1 AND sipm.name = tl.no_invoice
+			LEFT JOIN `tabTagihan Discount Leasing` tdl ON tdl.name = tl.parent
+			LEFT JOIN `tabTable Disc Leasing` dl ON dl.parent = sipm.name
+			lEFT JOIN `tabList Tagihan Piutang Leasing` ltpl on ltpl.docstatus = 1 and sipm.name = ltpl.no_invoice
+			LEFT JOIN `tabTagihan Leasing` tpl on tpl.name = ltpl.parent
+			LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
+			LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
+			WHERE sipm.docstatus = 1 {0}   
+			AND sipm.cara_bayar = "Credit"
+			AND sipm.posting_date BETWEEN '{1}' AND '{2}'
+			GROUP BY sipm.customer_name,w.parent_warehouse
+			ORDER BY w2.parent_warehouse
+		 """.format(kondisi,filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
+
+
+	
 
 	data = []
 	data_with_total = []
 	previous_area = None
 	total = _dict()
 	if tagihan:
+		sorted_data = sorted(tagihan, key=lambda x: x['cabid_jual'])
 		for i in tagihan:
 			current_area = i['cabid_jual']
 			if (previous_area is not None and previous_area != current_area):
@@ -141,11 +153,14 @@ def get_data(filters):
 			'sb_tp': sb_tp,
 			'o_tp': o_tp
 		})
-
+		frappe.msgprint(str(data_with_total))
 		for i in data_with_total:
 			current_area = i['cabid_jual']
+
 			if (previous_area != current_area):
 				i['cabid_jual'] = i['cabid_jual']
+			elif len(data_with_total)==3:
+				data_with_total[0]['cabid_jual'] = data_with_total[0]['cabid_jual']
 			else:
 				i['cabid_jual'] = ""
 			previous_area = current_area

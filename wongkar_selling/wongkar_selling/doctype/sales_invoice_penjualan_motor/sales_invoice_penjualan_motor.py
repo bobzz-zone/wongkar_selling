@@ -10,9 +10,9 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 )
 from erpnext.setup.doctype.company.company import update_company_current_month_sales
 from erpnext.healthcare.utils import manage_invoice_submit_cancel
-from erpnext.accounts.doctype.tax_withholding_category.tax_withholding_category import (
-    get_party_tax_withholding_details,
-)
+# from erpnext.accounts.doctype.tax_withholding_category.tax_withholding_category import (
+#     get_party_tax_withholding_details,
+# )
 from erpnext.stock.doctype.batch.batch import set_batch_nos
 from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
 from frappe.utils import cint, flt, round_based_on_smallest_currency_fraction
@@ -21,6 +21,16 @@ from erpnext.stock import get_warehouse_account_map
 from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries, process_gl_map
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
 from erpnext.controllers.accounts_controller import get_advance_journal_entries,get_advance_journal_entries,get_advance_payment_entries
+from erpnext.accounts.utils import check_if_advance_entry_modified,validate_allocated_amount,update_reference_in_journal_entry,update_reference_in_payment_entry
+# from erpnext.accounts.general_ledger import get_round_off_account_and_cost_center
+from erpnext.stock.doctype.serial_no.serial_no import (
+    get_delivery_note_serial_no,
+    get_serial_nos,
+    update_serial_nos_after_submit,
+)
+
+# from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
+from wongkar_selling.custom_standard.custom_taxes_and_total import calculate_taxes_and_totals_custom
 
 class SalesInvoicePenjualanMotor(SalesInvoice):
     def get_advance_entries(self, include_unallocated=True):
@@ -30,6 +40,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             # name = self.name
             pemilik = self.pemilik
             party_account = self.debit_to
+            party_bpkb_stnk = self.coa_bpkb_stnk
             party_type = "Customer"
             party = self.customer
             amount_field = "credit_in_account_currency"
@@ -47,7 +58,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             for d in self.get("items") if d.get(order_field)]))
 
         # frappe.msgprint(str(order_list)+"order_list")
-        journal_entries = get_advance_journal_entries(party_type, party, party_account,
+        journal_entries = get_advance_journal_entries_custom(party_type, party, party_account,party_bpkb_stnk,self.cara_bayar,self.pemilik,
             amount_field, order_doctype, order_list, include_unallocated)
 
         # payment_entries = get_advance_payment_entries(party_type, party, party_account,
@@ -98,6 +109,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     def onload(self):
         # frappe.msgprint("asas")
+        # if len(self.items) > 0:
+        #     self.calculate_totals()
+        #     self.calculate_total_advance()
         self.set_status()
 
     def set_status(self, update=False, status=None, update_modified=True):
@@ -129,7 +143,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     self.status = "Overdue"
                 if outstanding_amount > 0 and due_date >= nowdate and self.is_discounted and discountng_status=='Disbursed':
                     self.status = "Unpaid and Discounted"
-                if outstanding_amount > 0 and due_date >= nowdate:
+                if outstanding_amount > 0 and due_date >= nowdate and not self.tertagih:
                     # frappe.msgprint("masuk sini status 222")
                     self.status = "Unpaid"
                 #Check if outstanding amount is 0 due to credit note issued against invoice
@@ -139,6 +153,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     self.status = "Return"
                 if outstanding_amount<=0:
                     if self.customer_group=="Leasing":
+                        update = True
+                        # frappe.msgprint("masuk sini status 333")
                         self.status="Billed"
                     else:
                         self.status = "Paid"
@@ -146,9 +162,13 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 #   self.status = "Submitted coba"
             elif self.docstatus == 0:
                 self.status = "Draft"
-
+        
+        # frappe.msgprint(str(update_modified)+ "update_modified")
         if update:
+            # frappe.msgprint("masuk update")
+            # frappe.msgprint(self.status+ " self.status")
             self.db_set('status', self.status, update_modified = update_modified)
+            frappe.db.commit()
 
     def cek_rdl(self):
         # if len(self.items) > 1 or self.from_group:
@@ -214,7 +234,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         print(dp)
         self.dp_gross_hitung = dp
 
+    # @frappe.whitelist()
     def validate(self):
+        # frappe.msgprint('sads')
         self.cek_no_po_leasing()
         self.cek_rdl()
         self.cek_rule()
@@ -223,14 +245,16 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             frappe.throw("No rangka tidak sama dengan item !")
         #validate rule biaya harus ada 3
         if not self.bypass_biaya:
-            if len(self.tabel_biaya_motor)<2:
+            if len(self.tabel_biaya_motor)<=2:
                 frappe.throw("Error ada biaya yang belum di set")
 
         # super(SalesInvoice, self).validate()
         self.validate_auto_set_posting_time()
         # self.calculate_taxes_and_totals()
-        self.calculate_totals()
-        self.calculate_total_advance()
+        if len(self.items) > 0:
+            calculate_taxes_and_totals_custom(self)
+            # self.calculate_totals()
+            # self.calculate_total_advance()
         # doc = self.doc
         # calculate_taxes_and_totals.calculate_totals(self, doc)
         # if not self.is_pos:
@@ -349,9 +373,17 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
 
     def on_cancel(self):
-       super(SalesInvoicePenjualanMotor, self).on_cancel()
+        super(SalesInvoicePenjualanMotor, self).on_cancel()
+        from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
 
-       self.remove_pemilik()
+        if self.doctype in ["Sales Invoice", "Sales Invoice Penjualan Motor","Purchase Invoice"]:
+            if frappe.db.get_single_value("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
+                unlink_ref_doc_from_payment_entries(self)
+
+        if not self.is_return:
+            self.update_serial_no(in_cancel=True)
+
+        self.remove_pemilik()               
 
     def before_submit(self):
         self.dp_gross_h()
@@ -407,10 +439,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         # cari nilai
         from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
         if not self.harga:
-            self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"] - self.nominal_diskon
+            self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
             self.otr = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
         else:
-            self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"] - self.nominal_diskon
+            self.harga = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
             self.otr = get_item_price(self.item_code, self.selling_price_list, self.posting_date)[0]["price_list_rate"]
 
         # reset semua table
@@ -430,8 +462,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         print(self.posting_date)
         if list_tabel_biaya:
             for row in list_tabel_biaya:
-                # if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-                if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
+                if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+                # if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
                     self.append("tabel_biaya_motor",{
                             "rule":row.name,
                             "vendor":row.vendor,
@@ -448,8 +480,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         list_table_discount = get_rule(self.item_code,self.territory_real,self.posting_date,self.nama_diskon,self.from_group)
         if list_table_discount:
             for row in list_table_discount:
-                # if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
-                if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
+                if row.valid_from <= self.posting_date.date() and row.valid_to >= self.posting_date.date():
+                # if row.valid_from <= self.posting_date and row.valid_to >= self.posting_date:
                     if row.discount == "Percent":
                         row.amount = row.percent * self.harga / 100
 
@@ -470,7 +502,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         if list_table_discount_leasing:
             for row in list_table_discount_leasing:
                 self.append("table_discount_leasing",{
+                        "rule":row.name,
                         "coa":row.coa,
+                        "coa_lawan":row.coa_lawan,
                         "nominal":row.amount,
                         "nama_leasing":row.leasing
                     })
@@ -515,46 +549,85 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         if not expense_account:
             expense_account = frappe.db.get_value("Company",company,"default_expense_account")
 
+        from erpnext.stock.get_item_details import get_item_details
+        
+        # frappe.msgprint(str(args)+ ' args')
+        tax = frappe.get_doc("Sales Taxes and Charges Template",self.taxes_and_charges)
+        doc = self
+        total_biaya_tanpa_dealer = 0
+        if self.tabel_biaya_motor:
+            if len(self.tabel_biaya_motor) > 0:
+                for i in self.tabel_biaya_motor:
+                    if i.type in ['STNK','BPKB']:
+                        total_biaya_tanpa_dealer += i.amount
+
+        ppn_rate = tax.taxes[0].rate
+        ppn_div = (100+ppn_rate)/100
+       
+        total_diskon_setelah_pajak = 0
+        if self.table_discount:
+            if len(self.table_discount):
+                for i in self.table_discount:
+                    # diskon_setelah_pajak = flt(i.nominal / ppn_div,0)
+                    diskon_setelah_pajak = i.nominal / ppn_div
+                    total_diskon_setelah_pajak += diskon_setelah_pajak
+                    print(diskon_setelah_pajak)
+        
+        total_diskon_leasing_setelah_pajak = 0
+        if self.table_discount_leasing:
+            if len(self.table_discount_leasing):
+                for i in self.table_discount_leasing:
+                    # diskon_leasing_setelah_pajak = flt(i.nominal / ppn_div,0)
+                    diskon_leasing_setelah_pajak = i.nominal / ppn_div
+                    total_diskon_leasing_setelah_pajak += diskon_leasing_setelah_pajak
+
+        
+        # nominal_diskon_sp = flt(self.nominal_diskon / ppn_div,0)
+        nominal_diskon_sp = self.nominal_diskon / ppn_div
+        pajak_diskon_sp = self.nominal_diskon - nominal_diskon_sp
+        args = {
+            "item_code": self.item_code,
+            "company": self.company,
+            "doctype": self.doctype,
+            "currency": self.currency,
+            "conversion_rate": self.conversion_rate,
+            "warehouse": self.set_warehouse,
+            "price_list": self.selling_price_list
+        }
+        out = get_item_details(args,self,overwrite_warehouse=False)
+        # frappe.msgprint(str(out)+ ' out')
+        harga_asli = self.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+        
         # menambah tabel item
-        self.append("items",{
-                "item_code":self.item_code,
-                "item_name": frappe.get_value("Item", self.item_code,"item_name"),
-                "description": frappe.get_value("Item", self.item_code,"description"),
-                "stock_uom": frappe.get_value("Item", self.item_code,"stock_uom"),
-                "uom": frappe.get_value("Item", self.item_code,"stock_uom"),
-                "conversion_factor": 1,
-                "rate": total2,
-                "base_rate": total2,
-                "amount": total2,
-                "base_amount": total2,
-                "base_net_amount": total2,
-                # "net_amount":total2,
-                "qty": 1,
-                "stock_qty": 1,
-                "income_account": income_account,
-                "expense_account": expense_account,
-                "discount_amount": hasil2 + self.nominal_diskon,
-                "warehouse": self.set_warehouse,
-                "serial_no": self.no_rangka,
-                "cost_center": self.cost_center
+
+        out.update({
+                'serial_no':self.no_rangka,
+                'cost_center': self.cost_center,
+                'price_list_rate':harga_asli,
+                'rate':harga_asli,
+                'stock_uom_rate':harga_asli,
+                'amount': harga_asli
             })
+
+        self.append("items",out)
         
         self.adj_discount = 0 if not self.adj_discount else self.adj_discount
 
         tax_template = frappe.db.get_list("Sales Taxes and Charges Template",{"is_default":1},"name")[0]
         # frappe.throw(str(tax_template))
+        
 
         if not self.taxes:
             # frappe.throw('asdsad')
             self.taxes = []
             self.taxes_and_charges = tax_template["name"]
 
-            tax = frappe.get_doc("Sales Taxes and Charges Template",tax_template)
+            tax = frappe.get_doc("Sales Taxes and Charges Template",self.taxes_and_charges)
             # self.grand_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
             # self.rounded_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
 
-            self.grand_total = (self.harga) + self.adj_discount
-            self.rounded_total = (self.harga) + self.adj_discount
+            self.grand_total = (self.harga) - self.nominal_diskon
+            # self.rounded_total = (self.harga) + self.adj_discount
 
             # for row in tax.taxes:
             #   self.append("taxes",{
@@ -579,15 +652,17 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                         "currency": row.currency,
                         "included_in_print_rate": row.included_in_print_rate,
                         "rate":row.rate,
-                        "tax_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
-                        "base_tax_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
-                        # "tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
-                        # "base_tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
+                        # "tax_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
+                        # "base_tax_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
+                        # # "tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
+                        # # "base_tax_amount": (self.harga - total_biaya) * ((row.rate)/100),
                         
-                        "total": (self.harga - total_biaya),
-                        "tax_amount_after_discount_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
-                        "base_tax_amount_after_discount_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100
+                        # "total": (self.harga - total_biaya),
+                        # "tax_amount_after_discount_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100,
+                        # "base_tax_amount_after_discount_amount": (self.harga - total_biaya) / ((100+row.rate)/100) * row.rate/100
                     })
+
+            
 
             # frappe.msgprint(str(total_discount)+" total_discount")
             # frappe.msgprint(str(total_discount)+" total_discount_leasing")
@@ -607,12 +682,12 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             # self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
 
 
-            # self.net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-            # self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+            self.net_total = flt(self.get("taxes")[-1].total) - flt(self.get("taxes")[-1].total)
+            self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
             self.base_grand_total = (self.harga) + self.adj_discount
             self.outstanding_amount = (self.harga) + self.adj_discount - tot_adv
 
-
+        calculate_taxes_and_totals_custom(self)
 
     def on_submit(self):
         self.add_pemilik()
@@ -656,7 +731,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         self.update_serial_no()
 
         if not cint(self.is_pos) == 1 and not self.is_return:
-            self.update_against_document_in_jv()
+            self.update_against_document_in_jv_custom()
 
         self.update_time_sheet(self.name)
 
@@ -688,6 +763,96 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         self.process_common_party_accounting()
 
+    def update_serial_no(self, in_cancel=False):
+        """update Sales Invoice refrence in Serial No"""
+        invoice = None if (in_cancel or self.is_return) else self.name
+        if in_cancel and self.is_return:
+            invoice = self.return_against
+
+        for item in self.items:
+            if not item.serial_no:
+                continue
+
+            for serial_no in get_serial_nos(item.serial_no):
+                if serial_no and frappe.db.get_value("Serial No", serial_no, "item_code") == item.item_code:
+                    frappe.db.set_value("Serial No", serial_no, "sales_invoice", None)
+                    frappe.db.set_value("Serial No", serial_no, "sales_invoice_penjualan_motor", invoice)
+
+    def update_against_document_in_jv_custom(self):
+        """
+        Links invoice and advance voucher:
+                1. cancel advance voucher
+                2. split into multiple rows if partially adjusted, assign against voucher
+                3. submit advance voucher
+        """
+        print("kkkkkkhhhhjjjj")
+        if self.doctype in ["Sales Invoice", "Sales Invoice Penjualan Motor"]:
+            party_type = "Customer"
+            party = self.customer
+            party_account = self.debit_to
+            party_bpkb_stnk = self.coa_bpkb_stnk
+            dr_or_cr = "credit_in_account_currency"
+        else:
+            party_type = "Supplier"
+            party = self.supplier
+            party_account = self.credit_to
+            dr_or_cr = "debit_in_account_currency"
+
+        lst = []
+        for d in self.get("advances"):
+            if flt(d.allocated_amount) > 0:
+                if d.reference_type == 'Journal Entry':
+                    cek_akun = frappe.get_doc('Journal Entry Account',d.reference_row).account
+                    cek_name = frappe.get_doc('Journal Entry Account',d.reference_row).name
+                    print(cek_akun, ' cek_akun')
+                    if cek_akun == party_account:
+                        print("masuk mo")
+                        reference_row = cek_name
+                        party_account_tmp = cek_akun
+                    if cek_akun == party_bpkb_stnk:
+                        print("masuk bs")
+                        reference_row = cek_name
+                        party_account_tmp = cek_akun
+                else:
+                    reference_row = d.reference_row
+                    party_account_tmp = party_account
+                args = frappe._dict(
+                    {
+                        "voucher_type": d.reference_type,
+                        "voucher_no": d.reference_name,
+                        "voucher_detail_no": reference_row,
+                        "against_voucher_type": self.doctype,
+                        "against_voucher": self.name,
+                        "account": party_account_tmp,
+                        "party_type": party_type,
+                        "party": party,
+                        "is_advance": "Yes",
+                        "dr_or_cr": dr_or_cr,
+                        "unadjusted_amount": flt(d.advance_amount),
+                        "allocated_amount": flt(d.allocated_amount),
+                        "precision": d.precision("advance_amount"),
+                        "exchange_rate": (
+                            self.conversion_rate if self.party_account_currency != self.company_currency else 1
+                        ),
+                        "grand_total": (
+                            self.base_grand_total
+                            if self.party_account_currency == self.company_currency
+                            else self.grand_total
+                        ),
+                        "outstanding_amount": self.outstanding_amount,
+                        "difference_account": frappe.db.get_value(
+                            "Company", self.company, "exchange_gain_loss_account"
+                        ),
+                        "exchange_gain_loss": flt(d.get("exchange_gain_loss")),
+                    }
+                )
+                lst.append(args)
+
+        if lst:
+            from erpnext.accounts.utils import reconcile_against_document
+            print(lst, ' lst')
+            reconcile_against_document_custom(lst)
+
     def make_gl_entries(self, gl_entries=None, from_repost=False):
         from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
 
@@ -714,6 +879,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
             if update_outstanding == "No":
+                print("lkdlaksdlaskdlmaskdnsadjk")
                 from erpnext.accounts.doctype.gl_entry.gl_entry import update_outstanding_amt
 
                 update_outstanding_amt(
@@ -734,10 +900,11 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         self.make_customer_gl_entry(gl_entries)
         # tambahan
-        self.make_disc_gl_entry_custom(gl_entries)
-        self.make_disc_gl_entry_custom_leasing(gl_entries)
+        # self.make_disc_gl_entry_custom(gl_entries)
+        # self.make_disc_gl_entry_custom_leasing(gl_entries)
         self.make_biaya_gl_entry_custom(gl_entries)
         self.make_adj_disc_gl_entry(gl_entries)
+        self.make_disc_gl_entry(gl_entries)
         # self.make_cogs_entry_credit(gl_entries)
         # self.make_disc_gl_entry_lawan_custom(gl_entries)
 
@@ -929,10 +1096,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                         self.get_gl_dict({
                             "account": income_account,
                             "against": self.customer,
-                            "credit": flt(item.base_net_amount, item.precision("base_net_amount"))-flt(self.adj_discount),
-                            "credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount")-flt(self.adj_discount))
+                            "credit": flt(item.base_net_amount, item.precision("base_net_amount"))-flt(self.adj_discount)+self.nominal_diskon,
+                            "credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount")-flt(self.adj_discount))+self.nominal_diskon
                                 if account_currency==self.company_currency
-                                else flt(item.net_amount, item.precision("net_amount"))-flt(self.adj_discount)),
+                                else flt(item.net_amount, item.precision("net_amount"))-flt(self.adj_discount)+self.nominal_diskon),
                             "cost_center": item.cost_center,
                             "project": item.project or self.project,
                             # "remarks": "wahyu xxxx"
@@ -1026,18 +1193,22 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         total_net_d = 0
         total_net_dl = 0
         for d in self.table_discount:
-            hitung_tax_d = (d.nominal) / tax
+            hitung_tax_d = flt((d.nominal) / tax,0)
             net_d = (d.nominal) - hitung_tax_d
             total_net_d = total_net_d + net_d
 
         for dl in self.table_discount_leasing:
-            hitung_tax_dl = (dl.nominal) / tax
+            hitung_tax_dl = flt((dl.nominal) / tax,0)
             net_dl = (dl.nominal) - hitung_tax_dl
             total_net_dl = total_net_dl + net_dl
 
+        nd = flt(self.nominal_diskon / tax,0)
+        net_nd = self.nominal_diskon - nd
         print(total_net_d, " total_net_d")
         print(total_net_dl, " total_net_dl")  
-        net_total = total_net_d + total_net_dl 
+        print(net_nd, " net_nd")
+        net_total = total_net_d + total_net_dl + net_nd
+        # net_total = total_net_d
 
         print(net_total, " net_total")
 
@@ -1048,11 +1219,11 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     self.get_gl_dict({
                         "account": tax.account_head,
                         "against": self.customer,
-                        "credit": (flt(tax.base_tax_amount_after_discount_amount,
-                            tax.precision("tax_amount_after_discount_amount"))+net_total)-net_total,
-                        "credit_in_account_currency": ((flt(tax.base_tax_amount_after_discount_amount,
-                            tax.precision("base_tax_amount_after_discount_amount"))+net_total)-net_total  if account_currency==self.company_currency else
-                            (flt(tax.tax_amount_after_discount_amount, tax.precision("tax_amount_after_discount_amount"))+net_total)-net_total),
+                        "credit": (flt(tax.base_tax_amount_after_discount_amount-net_nd,
+                            tax.precision("tax_amount_after_discount_amount"))),
+                        "credit_in_account_currency": ((flt(tax.base_tax_amount_after_discount_amount-net_nd,
+                            tax.precision("base_tax_amount_after_discount_amount")))  if account_currency==self.company_currency else
+                            (flt(tax.tax_amount_after_discount_amount-net_nd, tax.precision("tax_amount_after_discount_amount")))),
                         "cost_center": tax.cost_center,
                         # "remarks": "coba Lutfi pajak!"
                     }, account_currency, item=tax)
@@ -1108,16 +1279,38 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     }, self.party_account_currency, item=self)
                 )
 
+     # disc gl
+    def make_disc_gl_entry(self, gl_entries):
+        tax = (100+ self.taxes[0].rate) / 100
+        if self.coa_diskon:
+            gl_entries.append(
+                self.get_gl_dict({
+                    "account": self.coa_diskon,
+                    # "party_type": "Customer",
+                    # "party": self.nama_leasing,
+                    # "due_date": self.due_date,
+                    "against": self.against_income_account,
+                    "debit": abs(flt(self.nominal_diskon/tax,0)),
+                    "debit_in_account_currency": abs(flt(self.nominal_diskon/tax,0)),
+                    "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+                    "against_voucher_type": self.doctype,
+                    "cost_center": self.cost_center,
+                    "project": self.project,
+                    # "remarks": "coba Lutfi ffff!"
+                }, self.party_account_currency, item=self)
+            )
+            
+
     # table biaya
     def make_biaya_gl_entry_custom(self, gl_entries):
         for d in self.get('tabel_biaya_motor'):
             gl_entries.append(
                 self.get_gl_dict({
                     "account": d.coa,
-                    "party_type": "Supplier",
-                    "party": d.vendor,
+                    # "party_type": "Supplier",
+                    # "party": d.vendor,
                     "due_date": self.due_date,
-                    "against": self.against_income_account,
+                    "against": self.coa_bpkb_stnk,
                     "credit": d.amount ,
                     "credit_in_account_currency": d.amount,
                     "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
@@ -1132,7 +1325,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
     def make_disc_gl_entry_custom_leasing(self, gl_entries):
         tax = (100+ self.taxes[0].rate) / 100
         tax_account = self.taxes[0].account_head
-        pendapatan = frappe.get_doc("Company",self.company).pendapatan_lain_leasing
+        # pendapatan = frappe.get_doc("Company",self.company).pendapatan_lain_leasing
         for d in self.get('table_discount_leasing'):
             hitung_tax = (d.nominal) / tax
             net_dl = (d.nominal) - hitung_tax
@@ -1143,7 +1336,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     # "party": d.nama_leasing,
                     "due_date": self.due_date,
                     # "against": self.against_income_account,
-                    "against": pendapatan,
+                    "against": d.coa_lawan,
                     "debit": hitung_tax,
                     "debit_in_account_currency": hitung_tax,
                     "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
@@ -1168,7 +1361,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             hitung_tax_c = (d.nominal) / tax
             gl_entries.append(
                 self.get_gl_dict({
-                    "account": pendapatan,
+                    "account": d.coa_lawan,
                     # "party_type": "Customer",
                     # "party": d.nama_leasing,
                     "due_date": self.due_date,
@@ -1186,12 +1379,14 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     # diskon biasa
     def make_disc_gl_entry_custom(self, gl_entries):
+        # from erpnext.accounts.general_ledger import merge_similar_entries
         tax = (100+ self.taxes[0].rate) / 100
         tax_account = self.taxes[0].account_head
-        pendapatan = frappe.get_doc("Company",self.company).pendapatan_lain
+        # pendapatan = frappe.get_doc("Company",self.company).pendapatan_lain
         total_net_d = 0
         for d in self.get('table_discount'):
-            hitung_tax = (d.nominal) / tax
+            pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
+            hitung_tax = flt((d.nominal) / tax,0)
             net_d = (d.nominal) - hitung_tax
             gl_entries.append(
                 self.get_gl_dict({
@@ -1221,25 +1416,43 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             #   }, self.party_account_currency, item=self)
             # )
         
-        for d in self.get('table_discount'):
-            hitung_tax_c = (d.nominal) / tax
-            gl_entries.append(
-                self.get_gl_dict({
-                    "account": pendapatan,
-                    # "party_type": "Customer",
-                    # "party": d.customer,
-                    "due_date": self.due_date,
-                    # "against": self.against_income_account,
-                    "against": d.coa_receivable,
-                    "credit": hitung_tax_c,
-                    "credit_in_account_currency": hitung_tax_c,
-                    "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
-                    "against_voucher_type": self.doctype,
-                    "cost_center": self.cost_center,
-                    "project": self.project,
-                    # "remarks": "coba Lutfi yyyyy!"
-                }, self.party_account_currency, item=self)
-            )
+        tmp_againt = ''
+        previous_coa = None
+        # for d in self.get('table_discount'):
+        #     pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
+        #     current_coa = pendapatan
+        #     if (previous_coa is not None and previous_coa != current_coa):
+        #         pass
+        #     else:
+        #         tmp_againt.append(d.coa_receivable)
+        #     previous_area = current_coa
+        #     tampil = str(tmp_againt).replace("'","").replace("[","").replace("]","")
+        # print(tampil, ' tampiltampiltampiltampilsss')
+       
+        # for d in self.get('table_discount'):
+        #     pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
+        #     hitung_tax_c = (d.nominal) / tax
+        #     gl_entries.append(
+        #         self.get_gl_dict({
+        #             "account": pendapatan,
+        #             # "party_type": "Customer",
+        #             # "party": d.customer,
+        #             "due_date": self.due_date,
+        #             # "against": self.against_income_account,
+        #             "against": d.coa_receivable,
+        #             "credit": hitung_tax_c,
+        #             "credit_in_account_currency": hitung_tax_c,
+        #             "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+        #             "against_voucher_type": self.doctype,
+        #             "cost_center": self.cost_center,
+        #             "project": self.project,
+        #             # "remarks": "coba Lutfi yyyyy!"
+        #         }, self.party_account_currency, item=self)
+        #     )
+        
+
+
+        # gl_entries = merge_similar_entries(gl_entries)
 
     def make_customer_gl_entry(self, gl_entries):
         # # Checked both rounding_adjustment and rounded_total
@@ -1251,6 +1464,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         #   grand_total_in_company_currency = flt(grand_total * self.conversion_rate,
         #       self.precision("grand_total"))
 
+        tax = (100+ self.taxes[0].rate) / 100
+        tax_account = self.taxes[0].account_head
+
         tot_disc = 0
         for d in self.get('table_discount'):
             tot_disc = tot_disc + d.nominal
@@ -1259,9 +1475,33 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         for l in self.get('table_discount_leasing'):
             tot_discl = tot_discl + l.nominal
 
+        tmp_akun=[]
         tot_biaya = 0
         for b in self.get('tabel_biaya_motor'):
-            tot_biaya = tot_biaya + b.amount
+            if b.type in ['BPKB','STNK']:
+                tmp_akun.append(b.coa)
+                tot_biaya = tot_biaya + b.amount
+
+        total_diskon_setelah_pajak = 0
+        if self.table_discount:
+            if len(self.table_discount):
+                for i in self.table_discount:
+                    diskon_setelah_pajak = flt(i.nominal / tax,0)
+                    total_diskon_setelah_pajak += diskon_setelah_pajak
+                    print(diskon_setelah_pajak)
+        print(total_diskon_setelah_pajak, ' total_diskon_setelah_pajak')
+
+        total_diskon_leasing_setelah_pajak = 0
+        if self.table_discount_leasing:
+            if len(self.table_discount_leasing):
+                for i in self.table_discount_leasing:
+                    diskon_leasing_setelah_pajak = flt(i.nominal / tax,0)
+                    total_diskon_leasing_setelah_pajak += diskon_leasing_setelah_pajak
+
+        print(total_diskon_leasing_setelah_pajak, ' total_diskon_leasing_setelah_pajak')
+
+        nominal_diskon_sp = flt(self.nominal_diskon / tax,0)
+        print(nominal_diskon_sp, ' nominal_diskon_sp')
 
         # gl_entries.append(
         #   self.get_gl_dict({
@@ -1292,8 +1532,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 # "debit_in_account_currency": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
                 # "debit": (self.harga - tot_disc - tot_discl) + self.adj_discount,
                 # "debit_in_account_currency": (self.harga - tot_disc - tot_discl) + self.adj_discount,
-                "debit": (self.harga) + self.adj_discount,
-                "debit_in_account_currency": (self.harga) + self.adj_discount,
+                "debit": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
+                "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
                 "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
                 "against_voucher_type": self.doctype,
                 "cost_center": self.cost_center,
@@ -1302,6 +1542,85 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             }, self.party_account_currency, item=self)
         )
 
+        # piutang bpkb sntk
+        if self.tabel_biaya_motor:
+            if len(self.tabel_biaya_motor) > 0:
+                bpkb_stnk = tot_biaya / tax
+                gl_entries.append(
+                    self.get_gl_dict({
+                        "account": self.coa_bpkb_stnk,
+                        "party_type": "Customer",
+                        "party": self.customer,
+                        "due_date": self.due_date,
+                        "against": tmp_akun[0]+', '+tmp_akun[1] if len(tmp_akun)>0 else tmp_akun[0],
+                        # "debit": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
+                        # "debit_in_account_currency": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
+                        # "debit": (self.harga - tot_disc - tot_discl) + self.adj_discount,
+                        # "debit_in_account_currency": (self.harga - tot_disc - tot_discl) + self.adj_discount,
+                        "debit": tot_biaya,
+                        "debit_in_account_currency": tot_biaya,
+                        "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+                        "against_voucher_type": self.doctype,
+                        "cost_center": self.cost_center,
+                        "project": self.project,
+                        # "remarks": "coba Lutfi xxxxx!"
+                    }, self.party_account_currency, item=self)
+                )
+
+
+    # def calculate(self):
+    #     if not len(self.get("items")):
+    #         return
+
+    #     self.discount_amount_applied = False
+    #     self._calculate()
+
+    #     if self.meta.get_field("discount_amount"):
+    #         self.set_discount_amount()
+    #         self.apply_discount_amount()
+
+    #     # Update grand total as per cash and non trade discount
+    #     if self.apply_discount_on == "Grand Total" and self.get("is_cash_or_non_trade_discount"):
+    #         self.grand_total -= self.discount_amount
+    #         self.base_grand_total -= self.base_discount_amount
+    #         self.set_rounded_total()
+
+    #     self.calculate_shipping_charges()
+
+    #     if self.doctype in ["Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor"]:
+    #         self.calculate_total_advance()
+
+    #     if self.meta.get_field("other_charges_calculation"):
+    #         self.set_item_wise_tax_breakup()
+
+    # def _calculate(self):
+    #     self.validate_conversion_rate()
+    #     self.calculate_item_values()
+    #     self.validate_item_tax_template()
+    #     self.initialize_taxes()
+    #     self.determine_exclusive_rate()
+    #     self.calculate_net_total()
+    #     self.calculate_taxes()
+    #     self.manipulate_grand_total_for_inclusive_tax()
+    #     self.calculate_totals()
+    #     self._cleanup()
+    #     self.calculate_total_net_weight()
+
+    # def validate_conversion_rate(self):
+    #     # validate conversion rate
+    #     company_currency = erpnext.get_company_currency(self.company)
+    #     if not self.currency or self.currency == company_currency:
+    #         self.currency = company_currency
+    #         self.conversion_rate = 1.0
+    #     else:
+    #         validate_conversion_rate(
+    #             self.currency,
+    #             self.conversion_rate,
+    #             self.meta.get_label("conversion_rate"),
+    #             self.company,
+    #         )
+
+    #     self.conversion_rate = flt(self.conversion_rate)
 
     def calculate_total_advance(self):
         if self.docstatus < 2:
@@ -1456,6 +1775,52 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 self.base_paid_amount - base_grand_total, self.precision("base_change_amount")
             )
 
+    def calculate_item(self):
+        ppn_rate = self.taxes[0].rate
+        print(ppn_rate, ' ppn_rate')
+        ppn_div = (100+ppn_rate)/100
+        total_biaya_tanpa_dealer = 0 
+        
+        if self.tabel_biaya_motor:
+            if len(self.tabel_biaya_motor) > 0:
+                for i in self.tabel_biaya_motor:
+                    if i.type in ('STNK','BPKB'):
+                        total_biaya_tanpa_dealer += i.amount
+
+        self.total_biaya = total_biaya_tanpa_dealer
+        
+        print(total_biaya_tanpa_dealer, ' total_biaya_tanpa_dealer')
+        total_diskon_setelah_pajak = 0
+        if self.table_discount:
+            if len(self.table_discount):
+                for i in self.table_discount:
+                    diskon_setelah_pajak = flt(i.nominal / ppn_div,0)
+                    total_diskon_setelah_pajak += diskon_setelah_pajak
+                    print(diskon_setelah_pajak)
+        print(total_diskon_setelah_pajak, ' total_diskon_setelah_pajak')
+        nominal_diskon_sp = flt(self.nominal_diskon / ppn_div,0)
+        print(nominal_diskon_sp, ' nominal_diskon_sp')
+        harga_asli = self.harga - total_biaya_tanpa_dealer - diskon_setelah_pajak - nominal_diskon_sp
+        print(harga_asli, ' harga_asli')
+        
+        self.items[0].price_list_rate = harga_asli
+        self.items[0].rate = harga_asli
+        self.items[0].serial_no = self.no_rangka
+        
+
+        tdl = 0
+        if self.table_discount_leasing:
+            if len(self.table_discount_leasing) > 0:
+                for i in self.table_discount_leasing:
+                    tdl += nominal
+
+        self.total_discoun_leasing = tdl
+        
+        if self.cek_adjustment_harga:
+            if self.adjustment_harga <=0:
+                frappe.throw("Adjustment Harga Harus lebih besar dari 0 !")
+
+
     def calculate_totals(self):
         doc = self
         print (doc, 'docccc')
@@ -1465,14 +1830,48 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 for i in self.tabel_biaya_motor:
                     if i.type in ['STNK','BPKB']:
                         total_biaya_tanpa_dealer += i.amount
+
+        ppn_rate = self.taxes[0].rate
+        print(ppn_rate, ' ppn_rate')
+        ppn_div = (100+ppn_rate)/100
+       
+        total_diskon_setelah_pajak = 0
+        if self.table_discount:
+            if len(self.table_discount):
+                for i in self.table_discount:
+                    # diskon_setelah_pajak = flt(i.nominal / ppn_div,0)
+                    diskon_setelah_pajak = i.nominal / ppn_div
+                    total_diskon_setelah_pajak += diskon_setelah_pajak
+                    print(diskon_setelah_pajak)
+        print(total_diskon_setelah_pajak, ' total_diskon_setelah_pajak')
+
+        total_diskon_leasing_setelah_pajak = 0
+        if self.table_discount_leasing:
+            if len(self.table_discount_leasing):
+                for i in self.table_discount_leasing:
+                    # diskon_leasing_setelah_pajak = flt(i.nominal / ppn_div,0)
+                    diskon_leasing_setelah_pajak = i.nominal / ppn_div
+                    total_diskon_leasing_setelah_pajak += diskon_leasing_setelah_pajak
+
+        print(total_diskon_leasing_setelah_pajak, ' total_diskon_leasing_setelah_pajak')
+
+        # nominal_diskon_sp = flt(self.nominal_diskon / ppn_div,0)
+        nominal_diskon_sp = self.nominal_diskon / ppn_div
+        print(nominal_diskon_sp, ' nominal_diskon_sp')
+        pajak_diskon_sp = self.nominal_diskon - nominal_diskon_sp
+        print(pajak_diskon_sp, " pajak_diskon_sp")
        
         if self.get("taxes"):
             print(self.rounding_adjustment, ' self.rounding_adjustment')
-            self.grand_total = flt(self.get("taxes")[-1].total)+total_biaya_tanpa_dealer+ flt(self.rounding_adjustment)
+            self.grand_total = flt(self.get("taxes")[-1].total)+total_biaya_tanpa_dealer+total_diskon_setelah_pajak+total_diskon_leasing_setelah_pajak-pajak_diskon_sp+ flt(self.rounding_adjustment)
+            # self.grand_total = round(self.grand_total,-1)
         else:
             self.grand_total = flt(self.net_total)
 
         if self.get("taxes"):
+            # frappe.msgprint(str(self.grand_total)+" frappe.msgprint")
+            # frappe.msgprint(str(self.net_total)+ ' frappe.msgprint2')
+            # frappe.msgprint(str(self.rounding_adjustment)+ ' frappe.msgprint3')
             self.total_taxes_and_charges = flt(
                 self.grand_total - self.net_total - flt(self.rounding_adjustment),
                 self.precision("total_taxes_and_charges"),
@@ -1535,6 +1934,7 @@ def set_rounded_total(self):
         )
 
         # if print_in_rate is set, we would have already calculated rounding adjustment
+        self.rounding_adjustment = 0
         self.rounding_adjustment += flt(
             self.rounded_total - self.grand_total, self.precision("rounding_adjustment")
         )
@@ -1649,6 +2049,260 @@ def get_advance_payment_entries(pemilik,party_type, party, party_account, order_
 
     return list(payment_entries_against_order) + list(unallocated_payment_entries)
 
+
+def get_advance_journal_entries_custom(
+    party_type,
+    party,
+    party_account,
+    party_bpkb_stnk,
+    cara_bayar,
+    pemilik,
+    amount_field,
+    order_doctype,
+    order_list,
+    include_unallocated=True,
+):
+    dr_or_cr = (
+        "credit_in_account_currency" if party_type == "Customer" else "debit_in_account_currency"
+    )
+
+    conditions = []
+    if include_unallocated:
+        conditions.append("ifnull(t2.reference_name, '')=''")
+
+    if order_list:
+        order_condition = ", ".join(["%s"] * len(order_list))
+        conditions.append(
+            " (t2.reference_type = '{0}' and ifnull(t2.reference_name, '') in ({1}))".format(
+                order_doctype, order_condition
+            )
+        )
+
+    reference_condition = " and (" + " or ".join(conditions) + ")" if conditions else ""
+
+    # nosemgrep
+    if cara_bayar == 'Cash':
+        journal_entries = frappe.db.sql(
+            """
+            select
+                "Journal Entry" as reference_type, t1.name as reference_name,
+                t1.remark as remarks, t2.{0} as amount, t2.name as reference_row,
+                t2.reference_name as against_order, t2.exchange_rate
+            from
+                `tabJournal Entry` t1, `tabJournal Entry Account` t2
+            where
+                t1.name = t2.parent and (t2.account = %s or t2.account = %s)
+                and t2.party_type = %s and t2.party = %s
+                and t2.is_advance = 'Yes' and t1.docstatus = 1
+                and {1} > 0 {2}
+            order by t1.posting_date""".format(
+                amount_field, dr_or_cr, reference_condition
+            ),
+            [party_account,party_bpkb_stnk, party_type, party] + order_list,
+            as_dict=1,debug=1,
+        )
+    else:
+         journal_entries = frappe.db.sql(
+            """
+            select
+                "Journal Entry" as reference_type, t1.name as reference_name,
+                t1.remark as remarks, t2.{0} as amount, t2.name as reference_row,
+                t2.reference_name as against_order, t2.exchange_rate
+            FROM
+                `tabJournal Entry` t1
+                LEFT JOIN `tabJournal Entry Account` t2 ON t1.`name` = t2.`parent`
+                LEFT JOIN `tabPenerimaan DP` dp ON dp.`name` = t1.`penerimaan_dp`
+            where
+                t1.name = t2.parent and (t2.account = %s or t2.account = %s)
+                and t2.party_type = %s and t2.party = %s AND dp.`pemilik` = %s
+                and t2.is_advance = 'Yes' and t1.docstatus = 1
+                and {1} > 0 {2}
+            order by t1.posting_date""".format(
+                amount_field, dr_or_cr, reference_condition
+            ),
+            [party_account,party_bpkb_stnk, party_type, party,pemilik] + order_list,
+            as_dict=1,debug=1,
+        )
+
+    return list(journal_entries)
+
+def reconcile_against_document_custom(args):
+    print("reconcile_against_document_custom")
+    """
+    Cancel PE or JV, Update against document, split if required and resubmit
+    """
+    # To optimize making GL Entry for PE or JV with multiple references
+    reconciled_entries = {}
+    for row in args:
+        if not reconciled_entries.get((row.voucher_type, row.voucher_no)):
+            reconciled_entries[(row.voucher_type, row.voucher_no)] = []
+
+        reconciled_entries[(row.voucher_type, row.voucher_no)].append(row)
+        print(reconciled_entries, ' reconciled_entries')
+
+    for key, entries in reconciled_entries.items():
+        voucher_type = key[0]
+        voucher_no = key[1]
+
+        # cancel advance entry
+        doc = frappe.get_doc(voucher_type, voucher_no)
+        frappe.flags.ignore_party_validation = True
+        print(doc.name, doc.doctype, ' je')
+        # doc.make_gl_entries(1)
+        doc.make_gl_entries(cancel=1, adv_adj=1)
+        # delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(doc.name))
+        # frappe.db.commit()
+
+        for entry in entries:
+            check_if_advance_entry_modified(entry)
+            validate_allocated_amount(entry)
+
+            # update ref in advance entry
+            if voucher_type == "Journal Entry":
+                print(entry, ' entry')
+                update_reference_in_journal_entry_custom(entry, doc, do_not_save=True)
+            else:
+                update_reference_in_payment_entry(entry, doc, do_not_save=True)
+
+        doc.save(ignore_permissions=True)
+        # re-submit advance entry
+        doc = frappe.get_doc(entry.voucher_type, entry.voucher_no)
+        doc.make_gl_entries(cancel=0, adv_adj=1)
+        frappe.flags.ignore_party_validation = False
+
+        if entry.voucher_type in ("Payment Entry", "Journal Entry"):
+            doc.update_expense_claim()
+
+def update_reference_in_journal_entry_custom(d, journal_entry, do_not_save=False):
+    print("update_reference_in_journal_entry_custom")
+    """
+    Updates against document, if partial amount splits into rows
+    """
+    jv_detail = journal_entry.get("accounts", {"name": d["voucher_detail_no"]})[0]
+
+    print(d, ' dddddd')
+
+    if flt(d["unadjusted_amount"]) - flt(d["allocated_amount"]) != 0:
+        # adjust the unreconciled balance
+        amount_in_account_currency = flt(d["unadjusted_amount"]) - flt(d["allocated_amount"])
+        amount_in_company_currency = amount_in_account_currency * flt(jv_detail.exchange_rate)
+        jv_detail.set(d["dr_or_cr"], amount_in_account_currency)
+        jv_detail.set(
+            "debit" if d["dr_or_cr"] == "debit_in_account_currency" else "credit",
+            amount_in_company_currency,
+        )
+    else:
+        journal_entry.remove(jv_detail)
+
+    # new row with references
+    new_row = journal_entry.append("accounts")
+
+    new_row.update((frappe.copy_doc(jv_detail)).as_dict())
+
+    new_row.set(d["dr_or_cr"], d["allocated_amount"])
+    new_row.set(
+        "debit" if d["dr_or_cr"] == "debit_in_account_currency" else "credit",
+        d["allocated_amount"] * flt(jv_detail.exchange_rate),
+    )
+
+    new_row.set(
+        "credit_in_account_currency"
+        if d["dr_or_cr"] == "debit_in_account_currency"
+        else "debit_in_account_currency",
+        0,
+    )
+    new_row.set("credit" if d["dr_or_cr"] == "debit_in_account_currency" else "debit", 0)
+
+    new_row.set("reference_type", d["against_voucher_type"])
+    new_row.set("reference_name", d["against_voucher"])
+
+    new_row.against_account = cstr(jv_detail.against_account)
+    new_row.is_advance = cstr(jv_detail.is_advance)
+    new_row.docstatus = 1
+
+    # will work as update after submit
+    journal_entry.flags.ignore_validate_update_after_submit = True
+    if not do_not_save:
+        journal_entry.save(ignore_permissions=True)
+
+def get_party_tax_withholding_details(inv, tax_withholding_category=None):
+    pan_no = ""
+    parties = []
+    party_type, party = get_party_details(inv)
+    has_pan_field = frappe.get_meta(party_type).has_field("pan")
+
+    if not tax_withholding_category:
+        if has_pan_field:
+            fields = ["tax_withholding_category", "pan"]
+        else:
+            fields = ["tax_withholding_category"]
+
+        tax_withholding_details = frappe.db.get_value(party_type, party, fields, as_dict=1)
+
+        tax_withholding_category = tax_withholding_details.get("tax_withholding_category")
+        pan_no = tax_withholding_details.get("pan")
+
+    if not tax_withholding_category:
+        return
+
+    # if tax_withholding_category passed as an argument but not pan_no
+    if not pan_no and has_pan_field:
+        pan_no = frappe.db.get_value(party_type, party, "pan")
+
+    # Get others suppliers with the same PAN No
+    if pan_no:
+        parties = frappe.get_all(party_type, filters={"pan": pan_no}, pluck="name")
+
+    if not parties:
+        parties.append(party)
+
+    posting_date = inv.get("posting_date") or inv.get("transaction_date")
+    tax_details = get_tax_withholding_details(tax_withholding_category, posting_date, inv.company)
+
+    if not tax_details:
+        frappe.throw(
+            _("Please set associated account in Tax Withholding Category {0} against Company {1}").format(
+                tax_withholding_category, inv.company
+            )
+        )
+
+    if party_type == "Customer" and not tax_details.cumulative_threshold:
+        # TCS is only chargeable on sum of invoiced value
+        frappe.throw(
+            _(
+                "Tax Withholding Category {} against Company {} for Customer {} should have Cumulative Threshold value."
+            ).format(tax_withholding_category, inv.company, party)
+        )
+
+    tax_amount, tax_deducted, tax_deducted_on_advances, voucher_wise_amount = get_tax_amount(
+        party_type, parties, inv, tax_details, posting_date, pan_no
+    )
+
+    if party_type == "Supplier":
+        tax_row = get_tax_row_for_tds(tax_details, tax_amount)
+    else:
+        tax_row = get_tax_row_for_tcs(inv, tax_details, tax_amount, tax_deducted)
+
+    if inv.doctype == "Purchase Invoice":
+        return tax_row, tax_deducted_on_advances, voucher_wise_amount
+    else:
+        return tax_row
+
+
+def get_party_details(inv):
+    party_type, party = "", ""
+
+    if inv.doctype in ["Sales Invoice","Sales Invoice Penjualan Motor"]:
+        party_type = "Customer"
+        party = inv.customer
+    else:
+        party_type = "Supplier"
+        party = inv.supplier
+
+    if not party:
+        frappe.throw(_("Please select {0} first").format(party_type))
+
+    return party_type, party
 
 
 

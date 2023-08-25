@@ -13,8 +13,9 @@ class AdvanceLeasing(Document):
 		self.sisa = self.nilai - self.terpakai
 
 	def on_submit(self):
-		if not self.journal_entry:
-			frappe.throw("Journal Belum Terbentuk !")
+		pass
+		# if not self.journal_entry:
+		# 	frappe.throw("Journal Belum Terbentuk !")
 
 
 @frappe.whitelist()
@@ -42,13 +43,13 @@ def make_je(name_fp,nilai,tanggal,account_debit,account_credit,leasing):
 	doc_je.posting_date = tanggal
 	doc_je.flags.ignore_permissions = True
 	row = doc_je.append('accounts', {})
-	row.party_type = "Customer"
-	row.party = leasing
 	row.debit_in_account_currency = nilai
 	row.account = account_debit
 
 	row_c = doc_je.append('accounts', {})
 	row_c.credit_in_account_currency = nilai
+	# row_c.party_type = "Customer"
+	# row_c.party = leasing
 	row_c.account = account_credit
 	
 	return doc_je.as_dict()

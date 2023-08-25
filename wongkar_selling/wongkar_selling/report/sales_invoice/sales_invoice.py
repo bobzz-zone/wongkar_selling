@@ -20,323 +20,149 @@ def get_data(filters):
 	# year = po+"%"
 	# frappe.msgprint(year)
 	
-	data = frappe.db.sql(""" SELECT 
-		year(sipm.posting_date) as tahun,
-		DATE_FORMAT(sipm.posting_date,'%Y%m') as bulan,
-		sipm.territory_real,
-		sipm.cost_center,
-		sipm.posting_date,
-		sipm.nama_pemilik,
-		c.nama_kecamatan,
-		c.nama_kelurahan,
-		c.nama_dati2,
-		c.alamat,
-		sle.warehouse,
-		c.no_hp,
-		c.salutation,
-		c.agama,
-		c.tanggal_lahir,
-		c.no_ktp,
-		c.no_kk,
-		i.item_code,
-		i.item_name,
-		sipm.no_rangka,
-		ifnull(sipm.otr,sipm.harga) as "harga",
-		sipm.cara_bayar,
-		sipm.nominal_diskon,
-		IF(sipm.cara_bayar = "Cash",sipm.total_advance-sipm.nominal_diskon,sipm.total_advance),
-		sipm.name,
-		IF(sipm.cara_bayar = "Credit",sipm.customer_name,"CASH"),
-		IF(IFNULL(SUM(tdl.nominal),0),SUM(tdl.nominal),0),
-		sipm.adj_discount,
-		sipm.outstanding_amount,
-		sipm.nama_promo,
-		u.full_name,
-		sipm.status,
-		sn.tanggal_faktur,
-		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`nama_pemilik`,sipm.`nama_pemilik`),
-		i.tahun_rakitan,# i.tahun_rakitan tahun_rakit
-		sipm.dp_gross_hitung,
-		sipm.tanggal_tagih,
-		sipm.tanggal_cair,
-		IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0),
-		sipm.sales_man,# sipm.sales_man marketing
-		sipm.jangka_waktu,
-		sipm.angsuran,
-		IF(sipm.tanggal_tagih,DATEDIFF(sipm.tanggal_tagih, sipm.posting_date),0),
-		sipm.tanggal_po,
-		sipm.no_po_leasing,
-		i.warna,
-		sipm.nama_penjualan,
-		sipm.foto_gesekan,
-		sipm.foto_gesekan_no_rangka,
-		sipm.po_attch,
-		c.foto_ktp,
-		c.foto_kk,
-		sipm.foto_invoice,
-		sipm.foto_surat_jalan,
-		sipm.foto_kwitansi_uang_muka,
-		sipm.foto_kwitansi_sub,
-		sipm.set_warehouse,
-		w.parent_warehouse,
-		w2.parent_warehouse,
-		sn.warehouse,
-		pr.set_warehouse,
-		se.to_warehouse
-		FROM `tabSales Invoice Penjualan Motor` sipm 
-		JOIN `tabCustomer` c ON c.name = sipm.pemilik
-		JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
-		LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
-		LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
-		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
-		LEFT JOIN `tabStock Entry` se ON se.name = sle.voucher_no
-		JOIN `tabItem` i ON i.name = sipm.item_code
-		JOIN `tabUser` u ON u.name = sipm.owner
-		LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no
-		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.parent = sipm.name
-		where sipm.docstatus = 1 and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type = "Stock Entry") and sipm.posting_date between '{}' and '{}' group by sipm.name order by sipm.posting_date asc """.format(filters.get('from_date'),filters.get('to_date')),as_list = 1)
-
+	data = frappe.db.sql(""" 
+			SELECT 
+				YEAR(sipm.posting_date) AS tahun,
+				DATE_FORMAT(sipm.posting_date,'%Y%m') AS bulan,
+				sipm.name AS sipm,
+				sle.name,
+				sle2.name,
+				se.`purpose`,
+				IF(sle.name IS NOT NULL,sle.`warehouse`,sle2.`warehouse`)  AS cabasal_unit,
+				w2.parent_warehouse AS cabid_jual,
+				w.parent_warehouse AS cab_area_jual,
+				sipm.`cost_center` AS namaarea,
+				sipm.`posting_date` AS tanggaljual,
+				sipm.`nama_pemilik` AS nama_pemilik,
+				sn.nama_pemilik AS nama_skb,
+				c.`nama_kecamatan` AS namakecamatan,
+				c.`nama_kelurahan` AS namakelurahan,
+				c.alamat,
+				c.`no_hp` AS hp,
+				c.`salutation` AS namaprovesi,
+				c.`agama` AS namaagama,
+				c.`tanggal_lahir` AS tanggallahir,
+				c.`no_ktp` AS ktp,
+				c.`no_kk` AS kk,
+				SUBSTRING_INDEX(sipm.`item_code`,' - ', 1) AS kode_tipe,
+				i.item_name AS nama_tipe,
+				i.warna,
+				i.`tahun_rakitan` AS tahun_rakit,
+				sn.`no_mesin`,
+				sn.`no_rangka`,
+				sipm.`harga` as otr,
+				IF(sipm.cara_bayar = "Credit",sipm.customer_name,"CASH") AS namajual,
+				sipm.`cara_bayar`,
+				sipm.`nominal_diskon` AS potonganjual,
+				IF(sipm.`cara_bayar`="Credit",sipm.`total_advance`,sipm.`harga`-sipm.`nominal_diskon`) AS dpmurni,
+				td.`nominal` AS bebanahm,
+				td2.`nominal` AS bebanmd,
+				IFNULL(td3.`nominal`,0) AS bebandealer,
+				0 AS cashback,
+				IF(sipm.`cara_bayar`="Credit",sipm.`total_advance`,sipm.`harga`-sipm.`nominal_diskon`) + sipm.nominal_diskon + IFNULL(td3.`nominal`,0) AS grosdp,
+				NULL AS kettambahanlain,
+				sipm.harga - (IF(sipm.`cara_bayar`="Credit",sipm.`total_advance`,sipm.`harga`-sipm.`nominal_diskon`) + sipm.nominal_diskon + IFNULL(td3.`nominal`,0)) AS piutangleasing,
+				ltpl.name,
+				IF(ltpl.name IS NOT NULL,ltpl.terbayarkan_sipm,0) AS cair,
+				IF(dtl.name IS NOT NULL,IF(dtl.terbayarkan>0,dtl.terbayarkan+(dtl.nilai_diskon*tdl.pph/100),0),0) AS cairlain,
+				0  AS selisihcair,
+				IF(IFNULL(ltpl.terbayarkan_sipm,0)> 0,'Y','N') AS ketcair,
+				sipm.nama_promo AS namaprog,
+				sipm.tanggal_tagih AS tanggaltagih,
+				sipm.tanggal_cair AS tanggalcair,
+				IF(sipm.tanggal_tagih,DATEDIFF(sipm.tanggal_tagih, sipm.posting_date),0) AS ht,
+				IF(sipm.tanggal_tagih AND sipm.tanggal_cair,DATEDIFF(sipm.tanggal_cair, sipm.tanggal_tagih),0) AS hc,
+				0 AS piutang_konsumen,
+				sipm.tanggal_po AS tgl_po,
+				sipm.no_po_leasing AS no_po,
+				sipm.nama_penjualan,
+				sipm.sales_man AS marketing,
+				sipm.jangka_waktu as jangkawaktu,
+				sipm.angsuran,
+				s.tanggal_faktur as tglmohonfaktur,
+				sipm.status as docstaus,
+				sn.biaya_stnk as biaya_stnk,
+				sn.biaya_bpkb as biaya_skb,
+				sipm.foto_gesekan as foto_nosin,
+				sipm.foto_gesekan_no_rangka as foto_rangka,
+				sipm.po_attch as foto_po,
+				c.foto_ktp as foto_ktp,
+				c.foto_kk as foto_kk,
+				sipm.foto_invoice as foto_inv,
+				sipm.foto_surat_jalan as foto_sj,
+				sipm.foto_kwitansi_uang_muka as foto_kw_um,
+				sipm.foto_kwitansi_sub as foto_kw_sub
+			FROM `tabSales Invoice Penjualan Motor` sipm 
+			JOIN `tabItem` i ON i.`name` = sipm.`item_code`
+			JOIN `tabCustomer` c ON c.name = sipm.`pemilik`
+			JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
+			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name AND td.customer = 'AHM'
+			LEFT JOIN `tabTable Discount` td2 ON td2.`parent` = sipm.name AND td2.customer = 'Anugerah Perdana'
+			LEFT JOIN `tabTable Discount` td3 ON td3.`parent` = sipm.name AND td3.customer = 'Dealer'
+			LEFT JOIN `tabList Tagihan Piutang Leasing` ltpl ON ltpl.docstatus = 1 AND ltpl.no_invoice = sipm.name
+			LEFT JOIN `tabDaftar Tagihan Leasing` dtl ON dtl.docstatus = 1 AND dtl.no_invoice = sipm.name
+			LEFT JOIN `tabTagihan Discount Leasing` tdl ON tdl.name = dtl.parent
+			LEFT JOIN `tabSKB` s ON sn.name = s.serial_no
+			LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
+			LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
+			LEFT JOIN `tabStock Ledger Entry` sle ON sle.voucher_type = "Purchase Receipt" AND  sle.serial_no LIKE CONCAT("%",sn.name,"%")
+			LEFT JOIN `tabStock Ledger Entry` sle2 ON sle2.voucher_type = "Stock Entry" AND sle2.serial_no = sn.`name`
+			LEFT JOIN `tabStock Entry` se ON se.`name` = sle2.`voucher_no` AND se.`purpose` = 'Material Receipt'
+			WHERE sipm.docstatus = 1 
+			AND sipm.posting_date BETWEEN '{}' AND '{}'
+			GROUP BY sipm.name ORDER BY sipm.posting_date ASC 
+			 """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
 	
-	output = []
-	output_beban = []
 	for i in data:
-		data2 = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'AHM' group by sipm.name """.format(i[24]),as_list=1)
-		datamd = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Anugerah Perdana' group by sipm.name """.format(i[24]),as_list=1)
-		datad = frappe.db.sql(""" SELECT sum(td.nominal) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name where sipm.name = '{}' and td.customer = 'Dealer' group by sipm.name """.format(i[24]),as_list=1)
-
-		disc_leasing = frappe.db.sql(""" SELECT IFNULL(nominal,0) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name where sipm.name = '{}' """.format(i[24]),as_list=1)
-
-		kd = i[17].split("-")
-		i_n = i[18].split("-")
-		w = i[18].split("-")
-		if "--" in i[19]:
-			nr = i[19].split("--")
-		elif "/" in i[19]:
-			nr = i[19].split("/")
-		if len(w) > 2:
-			w2 = w[1]+" - "+w[2]
-		else:
-			w2 = w[1]
-
 		bl = 0
 		tam_les = 0
 		tam_lain = 0
-		if len(disc_leasing) == 3:
-			bl = disc_leasing[0][0]
-			tam_les = disc_leasing[1][0]
-			tam_lain = disc_leasing[2][0]
-		elif len(disc_leasing) == 2:
-			bl = disc_leasing[0][0]
-			tam_les = disc_leasing[1][0]
-		elif len(disc_leasing) == 1:
-			bl = disc_leasing[0][0]
-
+		data_leasing = frappe.db.sql(""" SELECT tdl.name,tdl.nominal,tdl.idx from 
+			`tabTable Disc Leasing` tdl where parent = '{}' """.format(i['sipm']),as_dict=1)
+		if len(data_leasing) == 3:
+			bl = data_leasing[0]['nominal']
+			tam_les = data_leasing[1]['nominal']
+			tam_lain = data_leasing[2]['nominal']
+		elif len(data_leasing) == 2:
+			bl = data_leasing[0]['nominal']
+			tam_les = data_leasing[1]['nominal']
+		elif len(data_leasing) == 1:
+			bl = data_leasing[0]['nominal']
+		i['piutangleasing'] = i['piutangleasing'] + bl +tam_les+tam_lain
+		i['piutangkonsumen'] = i['piutangleasing']
+		i['selisihcair'] =  i['piutangleasing']  - (i['cair']+i['cairlain'])
+		i['foto_nosin'] = "<a href='"+frappe.utils.get_url()+i['foto_nosin']+"'>"+frappe.utils.get_url()+i['foto_nosin']+"</a>"
+		i['foto_rangka'] = "<a href='"+frappe.utils.get_url()+i['foto_rangka']+"'>"+frappe.utils.get_url()+i['foto_rangka']+"</a>"
+		if i['foto_po']:
+			i['foto_po'] = "<a href='"+frappe.utils.get_url()+i['foto_po']+"'>"+frappe.utils.get_url()+i['foto_po']+"</a>"
 		
-		ahm=0
-		ap = 0
-		dea = 0
-		if data2:
-			ahm = data2[0][0]
-		if datamd:
-			ap = datamd[0][0]
-		if datad:
-			dea = datad[0][0]
-		# grosdp = i[28]+ahm+ap+dea
-
-		# if i[61]:
-		# 	nama_area = i[61]
-		# else:
-		# 	nama_area = i[62]
-		nama_area = i[57]
-
+		if i['foto_ktp']:
+			i['foto_ktp'] = "<a href='"+frappe.utils.get_url()+i['foto_ktp']+"'>"+frappe.utils.get_url()+i['foto_ktp']+"</a>"
 		
-		output.append([i[0],i[1],i[33],i[10],i[62],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[11],i[12],i[13],i[14],i[15],i[16],kd[0],i_n[0],i[46],i[35],nr[0],nr[1],i[20],
-			i[25],i[21],i[22],i[23],bl,tam_les,tam_lain,ahm,ap,dea,i[47],i[48],i[49],i[50],i[51],i[52],i[53],i[54],i[55],i[56],i[57],nama_area,i[58],i[59],i[27],i[24]])
+		if i['foto_kk']:
+			i['foto_kk'] = "<a href='"+frappe.utils.get_url()+i['foto_kk']+"'>"+frappe.utils.get_url()+i['foto_kk']+"</a>"
 		
-
-	# output_tes = output
-	conter = 0
-	tmp = []
-	for ot in output:
-		# ot.extend(output_beban[conter])
-		tmp.append(ot)
-		conter = conter+1
-	con = 0
-	tmp2 = tmp
-	tampil = []	
-	# frappe.msgprint(str(tmp2)+'tmp2')
-	for t in tmp2:
-		# frappe.msgprint(data[con][24])
-		data_stnk = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "STNK" """.format(data[con][24]),as_list=1)
-		data_bpkb = frappe.db.sql(""" SELECT sum(bm.amount) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.type = "BPKB" """.format(data[con][24]),as_list=1)
-		data_dealer = frappe.db.sql(""" SELECT IFNULL(sum(bm.amount),0) from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabTabel Biaya Motor` bm ON bm.`parent` = sipm.name where sipm.name = '{}' and bm.vendor = "Dealer" """.format(data[con][24]),as_list=1)
-
-		cair = frappe.db.sql(""" SELECT tagihan_sipm-outstanding_sipm from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabDaftar Tagihan Leasing` bm ON bm.`no_invoice` = sipm.name where bm.docstatus=1 and sipm.name='{0}' """.format(data[con][24]),as_list=1)
-
-		cair_disc = frappe.db.sql(""" SELECT nilai-terbayarkan from `tabSales Invoice Penjualan Motor` sipm 
-			LEFT JOIN `tabDaftar Tagihan Leasing` bm ON bm.`no_invoice` = sipm.name where bm.docstatus=1 and sipm.name='{0}' """.format(data[con][24]),as_list=1)
-		# frappe.msgprint(str(data_stnk[0][0]))
-		# frappe.msgprint(str(cair)+" "+data[con][24])
-		stnk=0
-		d_dealer = 0
-		d_cair = 0
-		ket_cair = 'N'
-		d_caird = 0
-		d_bpkb = 0
-		foto_nosin = ""
-		foto_rangka = ""
-		foto_po = ""
-		foto_ktp = ""
-		foto_kk = ""
-		foto_inv = ""
-		foto_sj = ""
-		foto_kw_um = ""
-		foto_kw_sub = ""
-
-		if data_stnk:
-			stnk=data_stnk[0][0]
-		if data_dealer:
-			d_dealer=data_dealer[0][0]
-		if cair:
-			d_cair=cair[0][0]
-			ket_cair = 'Y'
-		if cair_disc:
-			d_caird=cair_disc[0][0]
-		if data_bpkb:
-			d_bpkb=data_bpkb[0][0]
-		if t[36]:
-			foto_nosin = "<a href='"+frappe.utils.get_url()+t[36]+"'>"+frappe.utils.get_url()+t[36]+"</a>"
-		if t[37]:
-			foto_rangka = "<a href='"+frappe.utils.get_url()+t[37]+"'>"+frappe.utils.get_url()+t[37]+"</a>"
-		if t[38]:
-			foto_po = "<a href='"+frappe.utils.get_url()+t[38]+"'>"+frappe.utils.get_url()+t[38]+"</a>"
-		if t[39]:
-			foto_ktp = "<a href='"+frappe.utils.get_url()+t[39]+"'>"+frappe.utils.get_url()+t[39]+"</a>"
-		if t[40]:
-			foto_kk = "<a href='"+frappe.utils.get_url()+t[40]+"'>"+frappe.utils.get_url()+t[40]+"</a>"
-		if t[41]:
-			foto_inv = "<a href='"+frappe.utils.get_url()+t[41]+"'>"+frappe.utils.get_url()+t[41]+"</a>"
-		if t[42]:
-			foto_sj = "<a href='"+frappe.utils.get_url()+t[42]+"'>"+frappe.utils.get_url()+t[42]+"</a>"
-		if t[43]:
-			foto_kw_um = "<a href='"+frappe.utils.get_url()+t[43]+"'>"+frappe.utils.get_url()+t[43]+"</a>"
-		if t[44]:
-			foto_kw_sub = "<a href='"+frappe.utils.get_url()+t[44]+"'>"+frappe.utils.get_url()+t[44]+"</a>"
+		if i['foto_inv']:
+			i['foto_inv'] = "<a href='"+frappe.utils.get_url()+i['foto_inv']+"'>"+frappe.utils.get_url()+i['foto_inv']+"</a>"
 		
-		# dp_gross = t[28]+t[32]+t[33]+t[34]+t[29]+ t[27]
-		dp_gross =  (t[28] + t[27]) + t[34]
-		if t[26] == "Cash":
-			otr = t[24] # + t[27]
-			piutang_leasing = 0
-		else:
-			otr = t[24]
-			piutang_leasing = (t[24]+t[49]-(dp_gross))+t[29]+t[31]
+		if i['foto_sj']:
+			i['foto_sj'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
+		
+		if i['foto_kw_um']:
+			i['foto_kw_um'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
+		
+		if i['foto_kw_sub']:
+			i['foto_kw_sub'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
 
-		a_unit = ''
-		if t[4]:
-			a_unit = t[4]
-		else:
-			a_unit = t[3]
-
-		dp_murni = 0
-		if t[26] == "Cash":
-			dp_murni = otr - t[27] + t[49]
-		else:
-			dp_murni = t[28]
+		i.update({
+				'bebanleasing': bl,
+				'tambahanleasing': tam_les,
+				'tambahanLain': tam_lain
+			})
 	
-		
-		tampil.append([
-			t[0],
-			t[1],
-			t[50],
-			a_unit,
-			t[48],# id jual t[3]t[45]
-			t[47],#  area jual t[4]
-			t[5],# area t[5] t[46]
-			t[6],
-			t[7],
-			data[con][34],
-			t[8],
-			t[9],
-			t[10],
-			t[11],
-			t[12],
-			t[13],
-			t[14],
-			t[15],
-			t[16],
-			t[17],
-			t[18],
-			t[19],
-			t[20],
-			t[21],
-			t[22],
-			t[23],#no rangka
-			otr,#otr [24]
-			t[25],# namajual
-			t[26],# cara bayar
-			t[27],#potongjual nominal diskon
-			t[49],#adj dscount
-			dp_murni, #dpmurni t[28] otr - t[27] t[28] + t[27]
-			t[32], # beban_ahm
-			t[33],#beban_md
-			t[34],#beban_de
-			t[29], # beban leasing
-			0,#cashback d_dealer
-			dp_gross,#gross dp data[con][36] t[28]+t[32]+t[33]+t[34]
-			t[29], # tambahn leasing t[30]
-			t[31], # tambah lain d_dealer
-			"",# ket tambahn 
-			piutang_leasing,#piutang leasing data[con][28] t[24]-(dp_gross)+t[29]+t[31]
-			d_cair,# cair
-			d_caird,
-			d_cair+d_caird-(t[24]-(dp_gross)+t[29]+t[31]),# selisih cair d_cair-d_caird (t[24]-(dp_gross)+t[29]+t[31])-d_cair-d_caird
-			ket_cair,
-			data[con][29],
-			data[con][37],#tt
-			data[con][38],#tc
-			data[con][43],
-			data[con][39],#hc
-			piutang_leasing,#piutang Konsumen data[con][28] t[27] t[24]-(t[28]+t[32]+t[33]+t[34])+t[30]+t[31]
-			data[con][44],
-			data[con][45],
-			# "SALES LAPANGAN",
-			t[35], # "Mediator" nama penjualan
-			data[con][40],
-			data[con][41],#top kredit
-			data[con][42], # angsuran
-			data[con][32],
-			data[con][31],
-			stnk,#stnk
-			d_bpkb,
-			foto_nosin,
-			foto_rangka,
-			foto_po,
-			foto_ktp,
-			foto_kk,
-			foto_inv,
-			foto_sj,
-			foto_kw_um,
-			foto_kw_sub
-			])
-		con = con + 1
-
-
-	# for t in data:
-	# 	tmp2.append([t[26]])
-
-
-	# frappe.msgprint(str(tampil))
-	return tampil
+	frappe.msgprint(str(data)+" data")
+	
+	return data
 
 def get_columns(filters):
 	columns = [
@@ -511,7 +337,7 @@ def get_columns(filters):
 		},
 		{
 			"label": _("Cara Bayar"),
-			"fieldname": "Cara Bayar",
+			"fieldname": "cara_bayar",
 			"fieldtype": "Data",
 			"width": 100
 		},
@@ -559,7 +385,7 @@ def get_columns(filters):
 		},
 		{
 			"label": _("CashBack"),
-			"fieldname": "cashBack",
+			"fieldname": "cashback",
 			"fieldtype": "Currency",
 			"width": 100
 		},
@@ -583,13 +409,13 @@ def get_columns(filters):
 		},
 		{
 			"label": _("Ket Tambahan Lain"),
-			"fieldname": "kettambahanLain",
+			"fieldname": "kettambahanlain",
 			"fieldtype": "Data",
 			"width": 100
 		},
 		{
 			"label": _("PiutangLeasing"),
-			"fieldname": "PiutangLeasing",
+			"fieldname": "piutangleasing",
 			"fieldtype": "Currency",
 			"width": 100
 		},
@@ -637,13 +463,13 @@ def get_columns(filters):
 		},
 		{
 			"label": _("HariTagih"),
-			"fieldname": "haritagih",
+			"fieldname": "ht",
 			"fieldtype": "Int",
 			"width": 100
 		},
 		{
 			"label": _("HariCair"),
-			"fieldname": "HariCair",
+			"fieldname": "hc",
 			"fieldtype": "Int",
 			"width": 100
 		},

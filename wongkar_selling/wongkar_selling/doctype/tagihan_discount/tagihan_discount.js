@@ -3,15 +3,15 @@
 
 frappe.ui.form.on('Tagihan Discount', {
 	validate: function(frm) {
-		let total = 0
-		if(cur_frm.doc.daftar_tagihan){
-			for (let i = 0; i < cur_frm.doc.daftar_tagihan.length; i++) {
-				total += cur_frm.doc.daftar_tagihan[i].nilai;
-			}
-		}
-		frm.set_value('grand_total',total)
-		frm.set_value('base_grand_total',total)
-		frm.set_value('outstanding_amount',total)
+		// let total = 0
+		// if(cur_frm.doc.daftar_tagihan){
+		// 	for (let i = 0; i < cur_frm.doc.daftar_tagihan.length; i++) {
+		// 		total += cur_frm.doc.daftar_tagihan[i].nilai;
+		// 	}
+		// }
+		// frm.set_value('grand_total',total)
+		// frm.set_value('base_grand_total',total)
+		// frm.set_value('outstanding_amount',total)
 		//frm.set_value('status',total)
 	},
 	date_from(frm){
@@ -24,6 +24,7 @@ frappe.ui.form.on('Tagihan Discount', {
 	},
 	refresh: function(frm){
 		show_general_ledger();
+		frm.set_df_property("daftar_tagihan", "cannot_add_rows", true);
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
 			cur_frm.add_custom_button(__('Payment'),
 				make_payment_entry, __('Create'));
@@ -34,11 +35,22 @@ frappe.ui.form.on('Tagihan Discount', {
 			return {
 				filters: {
 					company: frm.doc.company,
-					is_group: 0
+					is_group: 0,
+					account_type: 'Receivable',
+					disabled : 0
 				}
 			};
 		});
-	}/*,
+
+		if(cur_frm.doc.__islocal){
+			cur_frm.set_value('customer',null)
+		}
+	},
+	cek_pph(frm){
+		cur_frm.set_value('pph',0)
+		cur_frm.set_value('pph_account',null)
+	}
+	/*,
 	before_submit: function(frm){
 		cur_frm.set_value('status','Submitted')
 	}*/
@@ -46,33 +58,31 @@ frappe.ui.form.on('Tagihan Discount', {
 
 var make_payment_entry= function() {
 	return frappe.call({
-		method: get_method_for_payment(),
+		method: "wongkar_selling.wongkar_selling.doctype.form_pembayaran.form_pembayaran.get_form_pemabayaran",
 		args: {
 			"dt": cur_frm.doc.doctype,
 			"dn": cur_frm.doc.name
 		},
 		callback: function(r) {
-			console.log(r,r)
 			var doclist = frappe.model.sync(r.message);
 			frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
-			// cur_frm.refresh_fields()
 		}
 	});
 }
 
-var get_method_for_payment= function(){
-	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom"; 
-	//"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
-	if(cur_frm.doc.__onload && cur_frm.doc.__onload.make_payment_via_journal_entry){
-		if(in_list(['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor','Tagihan Discount'],  cur_frm.doc.doctype)){
-			method = "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_invoice";
-		}else {
-			method= "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_order";
-		}
-	}
+// var get_method_for_payment= function(){
+// 	var method = "wongkar_selling.custom_standard.custom_payment_entry.get_payment_entry_custom"; 
+// 	//"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry";
+// 	if(cur_frm.doc.__onload && cur_frm.doc.__onload.make_payment_via_journal_entry){
+// 		if(in_list(['Sales Invoice', 'Purchase Invoice','Sales Invoice Penjualan Motor','Tagihan Discount'],  cur_frm.doc.doctype)){
+// 			method = "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_invoice";
+// 		}else {
+// 			method= "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_against_order";
+// 		}
+// 	}
 
-	return method
-}
+// 	return method
+// }
 
 // asli
 frappe.ui.form.on("Tagihan Discount", "customer", function(frm) {
@@ -96,6 +106,7 @@ frappe.ui.form.on("Tagihan Discount", "customer", function(frm) {
 						frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
 						frappe.model.set_value(child.doctype, child.name, "type", data.message[i].category_discount);
 						frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
+						frappe.model.set_value(child.doctype, child.name, "nilai_diskon", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].nominal);
 						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
 						frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
@@ -126,7 +137,7 @@ var show_general_ledger= function() {
 				voucher_no: cur_frm.doc.name,
 				from_date: cur_frm.doc.date,
 				to_date: moment(cur_frm.doc.modified).format('YYYY-MM-DD'),
-				company: "IFMI Group",
+				company: cur_frm.doc.company,
 				group_by: "",
 				show_cancelled_entries: cur_frm.doc.docstatus === 2
 			};

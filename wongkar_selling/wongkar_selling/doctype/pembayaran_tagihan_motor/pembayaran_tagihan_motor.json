@@ -91,11 +91,12 @@
    "options": "Child Tagihan Biaya Motor"
   },
   {
+   "default": "STNK dan BPKB",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "STNK dan BPKB\nSTNK\nBPKB\nDiskon Dealer"
+   "options": "STNK dan BPKB"
   },
   {
    "depends_on": "eval:doc.type == \"Diskon Dealer\"",
@@ -174,7 +175,6 @@
    "read_only": 1
   },
   {
-   "default": "21.0105.01.00.00.002 - Hutang Pihak ke Tiga Belum di Tagih - STNK - HND",
    "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
    "fieldname": "coa_biaya_motor_stnk",
    "fieldtype": "Link",
@@ -183,7 +183,6 @@
    "options": "Account"
   },
   {
-   "default": "21.0105.01.00.00.001 - Hutang Pihak ke Tiga Belum di Tagih - BPKB - HND",
    "depends_on": "eval:doc.type == \"STNK dan BPKB\"",
    "fieldname": "coa_biaya_motor_bpkb",
    "fieldtype": "Link",
@@ -278,7 +277,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-29 10:04:59.002659",
+ "modified": "2023-08-12 10:20:49.277023",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Tagihan Motor",

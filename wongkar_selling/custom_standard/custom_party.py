@@ -24,7 +24,6 @@ class DuplicatePartyAccountError(frappe.ValidationError): pass
 def get_party_details(party=None, account=None, party_type="Customer", company=None, posting_date=None,
 	bill_date=None, price_list=None, currency=None, doctype=None, ignore_permissions=False, fetch_payment_terms_template=True,
 	party_address=None, company_address=None, shipping_address=None, pos_profile=None):
-
 	if not party:
 		return {}
 	if not frappe.db.exists(party_type, party):
@@ -184,7 +183,7 @@ def set_price_list(party_details, party, party_type, given_price_list, pos=None)
 
 
 def set_account_and_due_date(party, account, party_type, company, posting_date, bill_date, doctype):
-	if doctype not in ["POS Invoice", "Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor"]:
+	if doctype not in ["POS Invoice", "Sales Invoice", "Purchase Invoice","Sales Invoice Penjualan Motor","Penerimaan DP"]:
 		# not an invoice
 		return {
 			party_type.lower(): party

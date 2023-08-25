@@ -12,6 +12,7 @@
   "nama_pemilik",
   "item",
   "no_rangka",
+  "nilai_diskon",
   "nilai",
   "terbayarkan"
  ],
@@ -52,9 +53,10 @@
    "fieldname": "terbayarkan",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Terbayarkan"
+   "label": "Outstanding"
   },
   {
+   "columns": 1,
    "fieldname": "item",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -74,12 +76,19 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Nama Pemilik"
+  },
+  {
+   "fieldname": "nilai_diskon",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Nilai Diskon",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-03 18:33:35.498770",
+ "modified": "2023-08-12 12:06:12.704451",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Daftar Tagihan",

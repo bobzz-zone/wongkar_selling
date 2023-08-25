@@ -88,8 +88,9 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 				}
 			});
 	    }
-	},
-	customer: function() {
+	},	
+	customer:function(frm) {
+		console.log("llooo")
 		if (cur_frm.doc.is_pos){
 			var pos_profile = cur_frm.doc.pos_profile;
 		}
@@ -121,7 +122,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 				}
 			});
 		}
-	},	
+	},
 	debit_to: function(frm) {
 		var me = this;
 		frm.set_value("party_account_currency", "IDR");
@@ -158,6 +159,8 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 							for (let i = 0; i < r.message.length; i++) {
 								var child_l = cur_frm.add_child("table_discount_leasing");
 						        frappe.model.set_value(child_l.doctype, child_l.name, "coa", r.message[i].coa);
+						        frappe.model.set_value(child_l.doctype, child_l.name, "rule", r.message[i].name);
+						        frappe.model.set_value(child_l.doctype, child_l.name, "coa_lawan", r.message[i].coa_lawan);
 						        frappe.model.set_value(child_l.doctype, child_l.name, "nominal", r.message[i].amount);
 						        frappe.model.set_value(child_l.doctype, child_l.name, "nama_leasing", r.message[i].leasing);
 						        cur_frm.set_value("nominal_diskon",r.message[i].beban_dealer)
@@ -182,9 +185,12 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 	territory_real:function(frm){
 		cur_frm.set_value("no_rangka","")
 		cur_frm.set_value("nama_diskon","")
+		cur_frm.set_value("nama_promo","")
 	},
 	territory_biaya:function(frm){
 		cur_frm.set_value("no_rangka","")
+		cur_frm.set_value("nama_diskon","")
+		cur_frm.set_value("nama_promo","")
 	},
 	cost_center:function(frm){
 		cur_frm.set_value("no_rangka","")
@@ -195,48 +201,20 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 	set_warehouse:function(frm){
 		cur_frm.set_value("no_rangka","")
 	},
-	
+	refresh(frm){
+		// frappe.msgprint('asdsa123')
+		// if(cur_frm.doc.items){
+		// 	if(cur_frm.doc.items.length > 0){
+		// 		// frappe.msgprint('asdsa123zz')
+		// 		cur_frm.call("validate",{})
+		// 	}
+		// }
+	},
 	validate(frm){
-		frappe.msgprint("test")
-		var ppn_rate = cur_frm.doc.taxes[0]['rate']
-		var ppn_div = (100+ppn_rate)/100
-		var total_biaya_tanpa_dealer = 0 
-		let sum = 0;
-		let sum2 = 0;
-		
-		for (let z = 0; z < cur_frm.doc.tabel_biaya_motor.length; z++) {
-			sum += cur_frm.doc.tabel_biaya_motor[z].amount;
-			if(cur_frm.doc.tabel_biaya_motor[z].type == "STNK" || cur_frm.doc.tabel_biaya_motor[z].type == "BPKB"){
-				total_biaya_tanpa_dealer += cur_frm.doc.tabel_biaya_motor[z].amount;
-			}
-		}
-		cur_frm.set_value("total_biaya",sum)
-		
-		console.log(sum,"sum")
-		console.log(cur_frm.doc.taxes,"cur_frm.doc.taxes")
-		// var total = Math.ceil((cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div);
-		var total = (cur_frm.doc.harga - total_biaya_tanpa_dealer + cur_frm.doc.adj_discount) / ppn_div;
-		var hasil = cur_frm.doc.harga - total;
-		var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer
-		var akhir = cur_frm.doc.harga - hasil;
-		console.log(total,"total")
-		console.log(hasil,"hasilxxxx")
-		console.log(akhir,"akhir")
+		// frappe.msgprint("test")
 
-	    var cb_disc = 0
-	    if(cur_frm.doc.diskon==1){
-	    	cb_disc = hasil + cur_frm.doc.nominal_diskon
-	    }else{
-	    	cb_disc = hasil + 0
-	    }
-	   
-	    cur_frm.doc.items[0].price_list_rate = harga_asli
-	    cur_frm.doc.items[0].rate = harga_asli
-	    cur_frm.doc.items[0].serial_no = cur_frm.doc.no_rangka
-	    cur_frm.refresh_fields("items");
-	    console.log(cur_frm.doc.items, " cur_frm.doc.items[0]xxx")
+		hitung_item_rate()
 		this.calculate_taxes_and_totals();
-
 		let td = 0
 		let tdl = 0
 		if(cur_frm.doc.table_discount){
@@ -252,6 +230,12 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 		let oa =0
 		oa = (cur_frm.doc.harga - td - tdl) + cur_frm.doc.adj_discount
 		cur_frm.set_value("total_discoun_leasing",tdl)
+
+		if(cur_frm.doc.cek_adjustment_harga){
+			if(cur_frm.doc.adjustment_harga <=0){
+				frappe.throw("Adjustment Harga Harus lebih besar dari 0 !")
+			}
+		}
 	},
 	setup: function(doc) {
 		this.setup_posting_date_time_check();
@@ -863,6 +847,49 @@ cur_frm.set_query("asset", "items", function(doc, cdt, cdn) {
 });
 
 frappe.ui.form.on('Sales Invoice Penjualan Motor', {
+	customer(frm) {
+		console.log("llooo")
+		if (cur_frm.doc.is_pos){
+			var pos_profile = cur_frm.doc.pos_profile;
+		}
+		var me = this;
+		if(cur_frm.updating_party_details) return;
+		erpnext.utils.get_party_details(cur_frm,
+			"wongkar_selling.custom_standard.custom_party.get_party_details", {
+			// "erpnext.accounts.party.get_party_details", {
+				posting_date: cur_frm.doc.posting_date,
+				party: cur_frm.doc.customer,
+				party_type: "Customer",
+				account: cur_frm.doc.debit_to,
+				price_list: cur_frm.doc.selling_price_list,
+				pos_profile: pos_profile
+			}, function() {
+				// apply_pricing_rule();
+			});
+
+		if(cur_frm.doc.customer) {
+			frappe.call({
+				"method": "erpnext.accounts.doctype.sales_invoice.sales_invoice.get_loyalty_programs",
+				"args": {
+					"customer": cur_frm.doc.customer
+				},
+				callback: function(r) {
+					if(r.message && r.message.length > 1) {
+						select_loyalty_program(cur_frm, r.message);
+					}
+				}
+			});
+		}
+	},
+	cek_adjustment_harga(frm){
+		if(!cur_frm.cek_adjustment_harga){
+			cur_frm.set_value('adjustment_harga',0)
+			cur_frm.set_value('no_rangka','')
+		}
+	},
+	adjustment_harga(frm){
+		cur_frm.set_value('no_rangka','')
+	},
 	item_code(frm){
 		cur_frm.set_value("nama_diskon","")
 		cur_frm.set_value("no_rangka","")
@@ -899,16 +926,22 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			    			var hitung_disc = 0;
 							hitung_disc = r.message[0].price_list_rate - cur_frm.doc.nominal_diskon
 							console.log(hitung_disc,"hitung_disc")
-							cur_frm.set_value("harga",hitung_disc)
+							cur_frm.set_value("harga",r.message[0].price_list_rate)
 							cur_frm.set_value("otr",r.message[0].price_list_rate)
 			    		}
+
 			    		if(cur_frm.doc.diskon==0){
 			    			cur_frm.set_value("harga", r.message[0].price_list_rate);
 			    			cur_frm.set_value("otr",r.message[0].price_list_rate)
 				        	//cur_frm.refresh_fields("harga")
 			    		}
+
+			    		if(cur_frm.doc.cek_adjustment_harga == 1){
+			    			cur_frm.set_value("otr", r.message[0].price_list_rate);
+			    			cur_frm.set_value("harga", cur_frm.doc.adjustment_harga);
+			    		}
 			    	}else{
-			    		cur_frm.set_value("harga", 0);
+			    		//cur_frm.set_value("harga", 0);
 				        //cur_frm.refresh_fields("harga")
 			    	}
 				}
@@ -917,23 +950,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 
 	    	var coba12 = cur_frm.doc.harga
 	    	console.log(coba12,"ccccc")
-		}
 
-		if(!cur_frm.doc.no_rangka){
-			cur_frm.set_value("harga", 0);
-			cur_frm.refresh_field("harga");
-			cur_frm.set_value("otr", 0);
-			cur_frm.refresh_field("otr");
-			cur_frm.clear_table("items");
-			cur_frm.refresh_field("items");
-		}
-	},
-	harga(frm){
-		console.log("hargaaaa")
-		cur_frm.clear_table("tabel_biaya_motor");
-		cur_frm.refresh_field("tabel_biaya_motor");  
-		let today = cur_frm.doc.posting_date;
-		if(cur_frm.doc.harga){
 	    	frappe.call({
 				method: "wongkar_selling.wongkar_selling.get_invoice.get_biaya",
 				args: {
@@ -1020,6 +1037,24 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 
 		    // cur_frm.doc.items[0]['price_list_rate'] = total
 		    // cur_frm.refresh_fields("items")
+		}
+
+		if(!cur_frm.doc.no_rangka){
+			// cur_frm.set_value("harga", 0);
+			// cur_frm.refresh_field("harga");
+			// cur_frm.set_value("otr", 0);
+			// cur_frm.refresh_field("otr");
+			cur_frm.clear_table("items");
+			cur_frm.refresh_field("items");
+		}
+	},
+	hargaaaa(frm){
+		console.log("hargaaaa")
+		cur_frm.clear_table("tabel_biaya_motor");
+		cur_frm.refresh_field("tabel_biaya_motor");  
+		let today = cur_frm.doc.posting_date;
+		if(cur_frm.doc.harga > 0){
+	    	
 	    }
 	},
 	setup: function(frm){
@@ -1380,7 +1415,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 	},
 
 	refresh: function(frm) {
-		frappe.msgprint("sadasdsa")
+		// frappe.msgprint("sadasdsa")
+
 		cur_frm.set_value("update_stock",1)
 		cur_frm.refresh_fields("update_stock")
 		if(frm.doc.__islocal){
@@ -1396,7 +1432,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		cur_frm.refresh_fields("taxes");
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
-		frappe.msgprint("test 123")
+		// frappe.msgprint("test 123")
 		cur_frm.set_query("no_rangka", function() {
 			var wh = ''
 			/*if(cur_frm.doc.territory == 'All Territories'){
@@ -1823,3 +1859,60 @@ var add_to_item_line = function(frm, checked_values, invoice_healthcare_services
 		frm.refresh_fields();
 	}
 };
+
+var hitung_item_rate = function(frm){
+	var ppn_rate = cur_frm.doc.taxes[0]['rate']
+	var ppn_div = (100+ppn_rate)/100
+	var total_biaya_tanpa_dealer = 0 
+	let sum = 0;
+	let sum2 = 0;
+	
+	for (let z = 0; z < cur_frm.doc.tabel_biaya_motor.length; z++) {
+		sum += cur_frm.doc.tabel_biaya_motor[z].amount;
+		if(cur_frm.doc.tabel_biaya_motor[z].type == "STNK" || cur_frm.doc.tabel_biaya_motor[z].type == "BPKB"){
+			total_biaya_tanpa_dealer += cur_frm.doc.tabel_biaya_motor[z].amount;
+		}
+	}
+	cur_frm.set_value("total_biaya",sum)
+
+    var total_diskon_setelah_pajak = 0
+	if(cur_frm.doc.table_discount){
+		if(cur_frm.doc.table_discount.length > 0){
+			for(var i = 0;i<cur_frm.doc.table_discount.length;i++){
+				// var diskon_setelah_pajak = Math.ceil(cur_frm.doc.table_discount[i].nominal /ppn_div)
+				var diskon_setelah_pajak = cur_frm.doc.table_discount[i].nominal /ppn_div
+				total_diskon_setelah_pajak += diskon_setelah_pajak
+			}
+		}
+	}
+	
+	console.log(total_diskon_setelah_pajak, ' total_diskon_setelah_pajak')
+
+	var total_diskon_leasing_setelah_pajak = 0
+
+	if(cur_frm.doc.table_discount_leasing){
+		if(cur_frm.doc.table_discount_leasing.length > 0){
+			for(var i =0;i<cur_frm.doc.table_discount_leasing.length;i++){
+				// var diskon_leasing_setelah_pajak = Math.ceil(cur_frm.doc.table_discount_leasing[i].nominal /ppn_div)
+				var diskon_leasing_setelah_pajak = cur_frm.doc.table_discount_leasing[i].nominal /ppn_div
+				total_diskon_leasing_setelah_pajak += diskon_leasing_setelah_pajak
+			}
+		}
+	}
+	
+	console.log(total_diskon_leasing_setelah_pajak, ' total_diskon_leasing_setelah_pajak')
+	// var nominal_diskon_sp = Math.ceil(cur_frm.doc.nominal_diskon / ppn_div)
+	var nominal_diskon_sp = cur_frm.doc.nominal_diskon / ppn_div
+	console.log(nominal_diskon_sp, ' nominal_diskon_sp')
+	var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+	
+   
+    cur_frm.doc.items[0].price_list_rate = harga_asli
+    cur_frm.doc.items[0].rate = harga_asli
+    cur_frm.doc.items[0].stock_uom_rate = harga_asli
+    cur_frm.doc.items[0].serial_no = cur_frm.doc.no_rangka
+    cur_frm.doc.items[0].stock_uom_rate
+    cur_frm.refresh_fields("items");
+    console.log(cur_frm.doc.items, " cur_frm.doc.items[0]xxx")
+	
+}

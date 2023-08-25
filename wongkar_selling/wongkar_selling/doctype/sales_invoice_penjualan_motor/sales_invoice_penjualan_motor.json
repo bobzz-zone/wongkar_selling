@@ -83,8 +83,11 @@
   "foto_kwitansi_sub",
   "no_mesin",
   "diskon",
+  "coa_diskon",
   "nominal_diskon",
   "harga",
+  "cek_adjustment_harga",
+  "adjustment_harga",
   "otr",
   "cb_sinvm0",
   "no_po_leasing",
@@ -130,6 +133,7 @@
   "section_break_40",
   "taxes",
   "sb_biaya_section",
+  "coa_bpkb_stnk",
   "tabel_biaya_motor",
   "total_biaya",
   "sec_tax_breakup",
@@ -764,6 +768,7 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Items",
@@ -2118,14 +2123,18 @@
   {
    "fieldname": "account_adj_discount",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Account Adj Discount",
-   "options": "Account"
+   "options": "Account",
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "adj_discount",
    "fieldtype": "Currency",
-   "label": "Adj Discount Amount"
+   "hidden": 1,
+   "label": "Adj Discount Amount",
+   "read_only": 1
   },
   {
    "fieldname": "sb_biaya_section",
@@ -2239,11 +2248,13 @@
    "default": "1",
    "fieldname": "diskon",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Diskon",
    "read_only": 1
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
    "label": "Nominal Diskon"
@@ -2367,18 +2378,39 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Disable Rounded Total"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "fieldname": "coa_diskon",
+   "fieldtype": "Link",
+   "label": "COA diskon",
+   "mandatory_depends_on": "eval:doc.nominal_diskon != 0",
+   "options": "Account"
+  },
+  {
+   "default": "0",
+   "fieldname": "cek_adjustment_harga",
+   "fieldtype": "Check",
+   "label": "Cek Adjustment Harga"
+  },
+  {
+   "depends_on": "eval:doc.cek_adjustment_harga",
+   "fieldname": "adjustment_harga",
+   "fieldtype": "Currency",
+   "label": "Adjustment Harga"
+  },
+  {
+   "fieldname": "coa_bpkb_stnk",
+   "fieldtype": "Link",
+   "label": "Coa Biaya BPKB & STNK",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
- "links": [
-  {
-   "group": "Reference",
-   "link_doctype": "POS Invoice",
-   "link_fieldname": "consolidated_invoice"
-  }
- ],
- "modified": "2023-07-31 13:49:45.048676",
+ "links": [],
+ "modified": "2023-08-18 09:57:45.608360",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

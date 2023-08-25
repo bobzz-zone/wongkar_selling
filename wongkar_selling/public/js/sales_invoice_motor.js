@@ -3,8 +3,7 @@
 
 // render
 frappe.listview_settings['Sales Invoice Penjualan Motor'] = {
-	add_fields: ["customer", "customer_name", "base_grand_total", "outstanding_amount", "due_date", "company",
-		"currency", "is_return"],
+	add_fields: ["status"],
 	get_indicator: function(doc) {
 		var status_color = {
 			"Draft": "grey",
@@ -15,7 +14,8 @@ frappe.listview_settings['Sales Invoice Penjualan Motor'] = {
 			"Unpaid and Discounted": "orange",
 			"Overdue and Discounted": "red",
 			"Overdue": "red",
-			"Internal Transfer": "darkgrey"
+			"Internal Transfer": "darkgrey",
+			"Billed": "grey"
 		};
 		return [__(doc.status), status_color[doc.status], "status,=,"+doc.status];
 	},
