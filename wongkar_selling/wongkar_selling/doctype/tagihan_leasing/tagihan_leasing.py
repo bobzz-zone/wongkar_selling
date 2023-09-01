@@ -230,11 +230,16 @@ class TagihanLeasing(Document):
 			self.status = 'Draft'
 
 	def before_cancel(self):
-		cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
-			join `tabPayment Entry` pe on pe.name = per.parent
-			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		# cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
+		# 	join `tabPayment Entry` pe on pe.name = per.parent
+		# 	where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		
+		cek = frappe.db.sql(""" SELECT fp.name from `tabList Doc Name` l 
+			join `tabForm Pembayaran` fp on fp.name = l.parent
+			where l.docname = '{}' and fp.docstatus != 2 GROUP by fp.name """.format(self.name),as_dict=1)
+		
 		if cek:
-			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Form Pembayaran "+cek[0]['name'])
 			
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ('GL Entry')

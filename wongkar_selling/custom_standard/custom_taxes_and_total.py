@@ -540,7 +540,8 @@ class calculate_taxes_and_totals_custom(object):
 		print(pajak_diskon_sp, " pajak_diskon_sp")
 
 		if self.doc.get("taxes"):
-			self.doc.grand_total = flt(self.doc.get("taxes")[-1].total)+total_biaya_tanpa_dealer+total_diskon_setelah_pajak+total_diskon_leasing_setelah_pajak-pajak_diskon_sp+ flt(self.doc.rounding_adjustment)
+			# self.doc.grand_total = flt(self.doc.get("taxes")[-1].total)+total_biaya_tanpa_dealer+total_diskon_setelah_pajak+total_diskon_leasing_setelah_pajak-pajak_diskon_sp+ flt(self.doc.rounding_adjustment)
+			self.doc.grand_total = flt(self.doc.get("taxes")[-1].total)+total_biaya_tanpa_dealer-self.doc.nominal_diskon+ flt(self.doc.rounding_adjustment)
 			# self.doc.grand_total = flt(self.doc.get("taxes")[-1].total) + flt(self.doc.rounding_adjustment)
 		else:
 			self.doc.grand_total = flt(self.doc.net_total)

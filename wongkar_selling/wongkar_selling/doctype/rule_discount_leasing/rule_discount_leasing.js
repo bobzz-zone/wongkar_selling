@@ -3,15 +3,15 @@
 
 frappe.ui.form.on('Rule Discount Leasing', {
 	refresh: function(frm) {
-		frm.fields_dict['table_discount_leasing'].grid.get_field('coa').get_query = function(doc, cdt, cdn) {
-        var child = locals[cdt][cdn];
-        // console.log(child);
-            return {    
-                filters:[
-                    ['is_group', '=', 0]
-                ]
-            }
-        }
+		// frm.fields_dict['table_discount_leasing'].grid.get_field('coa').get_query = function(doc, cdt, cdn) {
+        // var child = locals[cdt][cdn];
+        // // console.log(child);
+        //     return {    
+        //         filters:[
+        //             ['is_group', '=', 0]
+        //         ]
+        //     }
+        // }
         frm.set_df_property("nama_promo", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("leasing", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("valid_from", "read_only", frm.is_new() ? 0 : 1);
@@ -20,6 +20,9 @@ frappe.ui.form.on('Rule Discount Leasing', {
 		frm.set_df_property("customer_group", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("territory", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("table_discount_leasing", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("coa", "read_only", frm.is_new() ? 0 : 1);
+		// frm.set_df_property("amount", "read_only", frm.is_new() ? 0 : 1);
+		// frm.set_df_property("beban_dealer", "read_only", frm.is_new() ? 0 : 1);
 	}
 });
 

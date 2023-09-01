@@ -7,12 +7,19 @@ from frappe.model.document import Document
 class PaymentEntryInternalTransfer(Document):
 	def validate(self):
 		total = 0
+		total_fp = 0
 		if self.list_penerimaan_dp:
 			if len(self.list_penerimaan_dp) > 0:
 				for i in self.list_penerimaan_dp:
 					total = total + i.total
 
-		self.total = total
+		# list_form_pembayaran
+		# if self.list_form_pembayaran:
+		# 	if len(self.list_form_pembayaran) > 0:
+		# 		for i in self.list_form_pembayaran:
+		# 			total_fp += i.total
+
+		self.total = total + total_fp
 		self.validasi_get()
 
 	def validasi_get(self):
@@ -30,6 +37,12 @@ class PaymentEntryInternalTransfer(Document):
 			if len(self.list_penerimaan_dp) > 0:
 				for i in self.list_penerimaan_dp:
 					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 1 where name = '{}' """.format(i.penerimaan_dp))
+
+		# list_form_pembayaran
+		# if self.list_form_pembayaran:
+		# 	if len(self.list_form_pembayaran) > 0:
+		# 		for i in self.list_form_pembayaran:
+		# 			frappe.db.sql(""" UPDATE `tabForm Pembayaran` set cek_transfer = 1 where name = '{}' """.format(i.form_pembayaran))
 		
 		doc_pe = frappe.new_doc("Payment Entry")
 		doc_pe.payment_entry_internal_transfer = self.name
@@ -50,6 +63,12 @@ class PaymentEntryInternalTransfer(Document):
 			if len(self.list_penerimaan_dp) > 0:
 				for i in self.list_penerimaan_dp:
 					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 0 where name = '{}' """.format(i.penerimaan_dp))
+
+		# list_form_pembayaran
+		# if self.list_form_pembayaran:
+		# 	if len(self.list_form_pembayaran) > 0:
+		# 		for i in self.list_form_pembayaran:
+		# 			frappe.db.sql(""" UPDATE `tabForm Pembayaran` set cek_transfer = 0 where name = '{}' """.format(i.form_pembayaran))
 		
 		data = frappe.db.sql(""" SELECT name from `tabPayment Entry` where payment_entry_internal_transfer = "{}" """.format(self.name),as_dict=1)
 
@@ -88,6 +107,25 @@ def get_dp(name_pe,paid_from,from_date,to_date):
 				IF(cara_bayar='Cash',piutang_bpkb_stnk+piutang_motor,piutang_motor) AS total
 				FROM `tabPenerimaan DP` WHERE docstatus = 1 AND cek_transfer = 0 AND paid_to = '{}'
 				AND tanggal BETWEEN '{}' AND '{}' ORDER BY tanggal ASC 
+			""".format(paid_from,from_date,to_date),as_dict=1,debug=1)
+
+	return data
+
+@frappe.whitelist()
+def get_fp(name_pe,paid_from,from_date,to_date):
+	# data_pe = frappe.get_doc("Payment Entry Internal Transfer",name_pe)
+	data = frappe.db.sql(""" SELECT 
+				fp.name,
+				fp.customer,
+				fp.posting_date as tanggal,
+				sum(tpt.nilai) as total
+				FROM `tabForm Pembayaran` fp join
+				`tabTagihan Payment Table` tpt on tpt.parent = fp.name
+				WHERE fp.docstatus = 1 AND fp.cek_transfer = 0 AND fp.paid_to = '{}'
+				AND fp.customer is not null
+				AND fp.posting_date BETWEEN '{}' AND '{}' 
+				group by fp.name
+				ORDER BY tanggal ASC 
 			""".format(paid_from,from_date,to_date),as_dict=1,debug=1)
 
 	return data

@@ -309,111 +309,120 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 		erpnext.queries.setup_warehouse_query(this.frm);
 	},
 
-	// refresh: function(doc, dt, dn) {
-	// 	const me = this;
-	// 	this._super();
-	// 	if(cur_frm.msgbox && cur_frm.msgbox.$wrapper.is(":visible")) {
-	// 		// hide new msgbox
-	// 		cur_frm.msgbox.hide();
-	// 	}
+	refresh: function(doc, dt, dn) {
+		// const me = this;
+		// this._super();
+		// if(cur_frm.msgbox && cur_frm.msgbox.$wrapper.is(":visible")) {
+		// 	// hide new msgbox
+		// 	cur_frm.msgbox.hide();
+		// }
 
-	// 	this.frm.toggle_reqd("due_date", !this.frm.doc.is_return);
+		// this.frm.toggle_reqd("due_date", !this.frm.doc.is_return);
 
-	// 	if (this.frm.doc.is_return) {
-	// 		this.frm.return_print_format = "Sales Invoice Return";
-	// 	}
+		if (this.frm.doc.is_return) {
+			this.frm.return_print_format = "Sales Invoice Return";
+		}
 
-	// 	this.show_general_ledger();
+		this.show_general_ledger();
 
-	// 	if(doc.update_stock) this.show_stock_ledger();
+		if(doc.update_stock) this.show_stock_ledger();
 
-	// 	if (doc.docstatus == 1 && doc.outstanding_amount!=0
-	// 		&& !(cint(doc.is_return) && doc.return_against)) {
-	// 		this.frm.add_custom_button(
-	// 			__('Payment'),
-	// 			() => this.make_payment_entry(),
-	// 			__('Create')
-	// 		);
-	// 		this.frm.page.set_inner_btn_group_as_primary(__('Create'));
-	// 	}
+		// if (doc.docstatus == 0 && doc.outstanding_amount!=0) {
+		// 	this.frm.add_custom_button(
+		// 		__('Penerimaan DP'),
+		// 		() => make_penerimaan_dp(),
+		// 		__('Create')
+		// 	);
+		// 	this.frm.page.set_inner_btn_group_as_primary(__('Create'));
+		// }
 
-	// 	if(doc.docstatus==1 && !doc.is_return) {
+		// if (doc.docstatus == 1 && doc.outstanding_amount!=0
+		// 	&& !(cint(doc.is_return) && doc.return_against)) {
+		// 	this.frm.add_custom_button(
+		// 		__('Payment'),
+		// 		() => this.make_payment_entry(),
+		// 		__('Create')
+		// 	);
+		// 	this.frm.page.set_inner_btn_group_as_primary(__('Create'));
+		// }
 
-	// 		var is_delivered_by_supplier = false;
+		// if(doc.docstatus==1 && !doc.is_return) {
 
-	// 		is_delivered_by_supplier = cur_frm.doc.items.some(function(item){
-	// 			return item.is_delivered_by_supplier ? true : false;
-	// 		})
+		// 	var is_delivered_by_supplier = false;
 
-	// 		if(doc.outstanding_amount >= 0 || Math.abs(flt(doc.outstanding_amount)) < flt(doc.grand_total)) {
-	// 			cur_frm.add_custom_button(__('Return / Credit Note'),
-	// 				this.make_sales_return, __('Create'));
-	// 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
-	// 		}
+		// 	is_delivered_by_supplier = cur_frm.doc.items.some(function(item){
+		// 		return item.is_delivered_by_supplier ? true : false;
+		// 	})
 
-	// 		if(cint(doc.update_stock)!=1) {
-	// 			// show Make Delivery Note button only if Sales Invoice is not created from Delivery Note
-	// 			var from_delivery_note = false;
-	// 			from_delivery_note = cur_frm.doc.items
-	// 				.some(function(item) {
-	// 					return item.delivery_note ? true : false;
-	// 				});
+		// 	if(doc.outstanding_amount >= 0 || Math.abs(flt(doc.outstanding_amount)) < flt(doc.grand_total)) {
+		// 		cur_frm.add_custom_button(__('Return / Credit Note'),
+		// 			this.make_sales_return, __('Create'));
+		// 		cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
+		// 	}
 
-	// 			if(!from_delivery_note && !is_delivered_by_supplier) {
-	// 				cur_frm.add_custom_button(__('Delivery'),
-	// 					cur_frm.cscript['Make Delivery Note'], __('Create'));
-	// 			}
-	// 		}
+		// 	if(cint(doc.update_stock)!=1) {
+		// 		// show Make Delivery Note button only if Sales Invoice is not created from Delivery Note
+		// 		var from_delivery_note = false;
+		// 		from_delivery_note = cur_frm.doc.items
+		// 			.some(function(item) {
+		// 				return item.delivery_note ? true : false;
+		// 			});
 
-	// 		if (doc.outstanding_amount>0) {
-	// 			cur_frm.add_custom_button(__('Payment Request'), function() {
-	// 				me.make_payment_request();
-	// 			}, __('Create'));
+		// 		if(!from_delivery_note && !is_delivered_by_supplier) {
+		// 			cur_frm.add_custom_button(__('Delivery'),
+		// 				cur_frm.cscript['Make Delivery Note'], __('Create'));
+		// 		}
+		// 	}
 
-	// 			cur_frm.add_custom_button(__('Invoice Discounting'), function() {
-	// 				cur_frm.events.create_invoice_discounting(cur_frm);
-	// 			}, __('Create'));
+		// 	if (doc.outstanding_amount>0) {
+		// 		cur_frm.add_custom_button(__('Payment Request'), function() {
+		// 			me.make_payment_request();
+		// 		}, __('Create'));
 
-	// 			if (doc.due_date < frappe.datetime.get_today()) {
-	// 				cur_frm.add_custom_button(__('Dunning'), function() {
-	// 					cur_frm.events.create_dunning(cur_frm);
-	// 				}, __('Create'));
-	// 			}
-	// 		}
+		// 		cur_frm.add_custom_button(__('Invoice Discounting'), function() {
+		// 			cur_frm.events.create_invoice_discounting(cur_frm);
+		// 		}, __('Create'));
 
-	// 		if (doc.docstatus === 1) {
-	// 			cur_frm.add_custom_button(__('Maintenance Schedule'), function () {
-	// 				cur_frm.cscript.make_maintenance_schedule();
-	// 			}, __('Create'));
-	// 		}
+		// 		if (doc.due_date < frappe.datetime.get_today()) {
+		// 			cur_frm.add_custom_button(__('Dunning'), function() {
+		// 				cur_frm.events.create_dunning(cur_frm);
+		// 			}, __('Create'));
+		// 		}
+		// 	}
 
-	// 		if(!doc.auto_repeat) {
-	// 			cur_frm.add_custom_button(__('Subscription'), function() {
-	// 				erpnext.utils.make_subscription(doc.doctype, doc.name)
-	// 			}, __('Create'))
-	// 		}
-	// 	}
+		// 	if (doc.docstatus === 1) {
+		// 		cur_frm.add_custom_button(__('Maintenance Schedule'), function () {
+		// 			cur_frm.cscript.make_maintenance_schedule();
+		// 		}, __('Create'));
+		// 	}
 
-	// 	// Show buttons only when pos view is active
-	// 	if (cint(doc.docstatus==0) && cur_frm.page.current_view_name!=="pos" && !doc.is_return) {
-	// 		this.frm.cscript.sales_order_btn();
-	// 		this.frm.cscript.delivery_note_btn();
-	// 		this.frm.cscript.quotation_btn();
-	// 	}
+		// 	if(!doc.auto_repeat) {
+		// 		cur_frm.add_custom_button(__('Subscription'), function() {
+		// 			erpnext.utils.make_subscription(doc.doctype, doc.name)
+		// 		}, __('Create'))
+		// 	}
+		// }
 
-	// 	this.set_default_print_format();
-	// 	if (doc.docstatus == 1 && !doc.inter_company_invoice_reference) {
-	// 		let internal = me.frm.doc.is_internal_customer;
-	// 		if (internal) {
-	// 			let button_label = (me.frm.doc.company === me.frm.doc.represents_company) ? "Internal Purchase Invoice" :
-	// 				"Inter Company Purchase Invoice";
+		// // Show buttons only when pos view is active
+		// if (cint(doc.docstatus==0) && cur_frm.page.current_view_name!=="pos" && !doc.is_return) {
+		// 	this.frm.cscript.sales_order_btn();
+		// 	this.frm.cscript.delivery_note_btn();
+		// 	this.frm.cscript.quotation_btn();
+		// }
 
-	// 			me.frm.add_custom_button(button_label, function() {
-	// 				me.make_inter_company_invoice();
-	// 			}, __('Create'));
-	// 		}
-	// 	}
-	// },
+		// this.set_default_print_format();
+		// if (doc.docstatus == 1 && !doc.inter_company_invoice_reference) {
+		// 	let internal = me.frm.doc.is_internal_customer;
+		// 	if (internal) {
+		// 		let button_label = (me.frm.doc.company === me.frm.doc.represents_company) ? "Internal Purchase Invoice" :
+		// 			"Inter Company Purchase Invoice";
+
+		// 		me.frm.add_custom_button(button_label, function() {
+		// 			me.make_inter_company_invoice();
+		// 		}, __('Create'));
+		// 	}
+		// }
+	},
 
 	make_maintenance_schedule: function() {
 		frappe.model.open_mapped_doc({
@@ -1450,49 +1459,49 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 
 		});
 
-		if (frm.doc.docstatus===0 && !frm.doc.is_return) {
-			frm.add_custom_button(__("Fetch Timesheet"), function() {
-				let d = new frappe.ui.Dialog({
-					title: __("Fetch Timesheet"),
-					fields: [
-						{
-							"label" : __("From"),
-							"fieldname": "from_time",
-							"fieldtype": "Date",
-							"reqd": 1,
-						},
-						{
-							fieldtype: "Column Break",
-							fieldname: "col_break_1",
-						},
-						{
-							"label" : __("To"),
-							"fieldname": "to_time",
-							"fieldtype": "Date",
-							"reqd": 1,
-						},
-						{
-							"label" : __("Project"),
-							"fieldname": "project",
-							"fieldtype": "Link",
-							"options": "Project",
-							"default": frm.doc.project
-						},
-					],
-					primary_action: function() {
-						const data = d.get_values();
-						frm.events.add_timesheet_data(frm, {
-							from_time: data.from_time,
-							to_time: data.to_time,
-							project: data.project
-						});
-						d.hide();
-					},
-					primary_action_label: __("Get Timesheets")
-				});
-				d.show();
-			});
-		}
+		// if (frm.doc.docstatus===0 && !frm.doc.is_return) {
+		// 	frm.add_custom_button(__("Fetch Timesheet"), function() {
+		// 		let d = new frappe.ui.Dialog({
+		// 			title: __("Fetch Timesheet"),
+		// 			fields: [
+		// 				{
+		// 					"label" : __("From"),
+		// 					"fieldname": "from_time",
+		// 					"fieldtype": "Date",
+		// 					"reqd": 1,
+		// 				},
+		// 				{
+		// 					fieldtype: "Column Break",
+		// 					fieldname: "col_break_1",
+		// 				},
+		// 				{
+		// 					"label" : __("To"),
+		// 					"fieldname": "to_time",
+		// 					"fieldtype": "Date",
+		// 					"reqd": 1,
+		// 				},
+		// 				{
+		// 					"label" : __("Project"),
+		// 					"fieldname": "project",
+		// 					"fieldtype": "Link",
+		// 					"options": "Project",
+		// 					"default": frm.doc.project
+		// 				},
+		// 			],
+		// 			primary_action: function() {
+		// 				const data = d.get_values();
+		// 				frm.events.add_timesheet_data(frm, {
+		// 					from_time: data.from_time,
+		// 					to_time: data.to_time,
+		// 					project: data.project
+		// 				});
+		// 				d.hide();
+		// 			},
+		// 			primary_action_label: __("Get Timesheets")
+		// 		});
+		// 		d.show();
+		// 	});
+		// }
 
 		if (frm.doc.is_debit_note) {
 			frm.set_df_property('return_against', 'label', __('Adjustment Against'));
@@ -1904,10 +1913,12 @@ var hitung_item_rate = function(frm){
 	// var nominal_diskon_sp = Math.ceil(cur_frm.doc.nominal_diskon / ppn_div)
 	var nominal_diskon_sp = cur_frm.doc.nominal_diskon / ppn_div
 	console.log(nominal_diskon_sp, ' nominal_diskon_sp')
-	var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+	// var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+	// var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - cur_frm.doc.nominal_diskon
+	var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer 
 	
    
-    cur_frm.doc.items[0].price_list_rate = harga_asli
+    // cur_frm.doc.items[0].price_list_rate = harga_asli
     cur_frm.doc.items[0].rate = harga_asli
     cur_frm.doc.items[0].stock_uom_rate = harga_asli
     cur_frm.doc.items[0].serial_no = cur_frm.doc.no_rangka
@@ -1915,4 +1926,14 @@ var hitung_item_rate = function(frm){
     cur_frm.refresh_fields("items");
     console.log(cur_frm.doc.items, " cur_frm.doc.items[0]xxx")
 	
+}
+
+var make_penerimaan_dp = function(frm){
+	frappe.msgprint("make_penerimaan_dp")
+	frappe.xcall("wongkar_selling.wongkar_selling.doctype.sales_invoice_penjualan_motor.sales_invoice_penjualan_motor.make_dp",{
+		'name_dp': cur_frm.doc.name
+	}).then(dp =>{
+		frappe.model.sync(dp);
+		frappe.set_route('Form', dp.doctype, dp.name);
+	})
 }

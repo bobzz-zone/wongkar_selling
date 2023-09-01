@@ -596,14 +596,15 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         }
         out = get_item_details(args,self,overwrite_warehouse=False)
         # frappe.msgprint(str(out)+ ' out')
-        harga_asli = self.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+        # harga_asli = self.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+        harga_asli = self.harga - total_biaya_tanpa_dealer
         
         # menambah tabel item
 
         out.update({
                 'serial_no':self.no_rangka,
                 'cost_center': self.cost_center,
-                'price_list_rate':harga_asli,
+                # 'price_list_rate':harga_asli,
                 'rate':harga_asli,
                 'stock_uom_rate':harga_asli,
                 'amount': harga_asli
@@ -682,10 +683,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             # self.outstanding_amount = (self.harga - total_discount - total_discount_leasing) + self.adj_discount - tot_adv
 
 
-            self.net_total = flt(self.get("taxes")[-1].total) - flt(self.get("taxes")[-1].total)
-            self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
-            self.base_grand_total = (self.harga) + self.adj_discount
-            self.outstanding_amount = (self.harga) + self.adj_discount - tot_adv
+            # self.net_total = flt(self.get("taxes")[-1].total) - flt(self.get("taxes")[-1].total)
+            # self.base_net_total = (self.harga - total_discount - total_discount_leasing) + self.adj_discount
+            # self.base_grand_total = (self.harga) + self.adj_discount
+            # self.outstanding_amount = (self.harga) + self.adj_discount - tot_adv
 
         calculate_taxes_and_totals_custom(self)
 
@@ -1065,6 +1066,30 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             )
 
     def make_item_gl_entries(self, gl_entries):
+        tax = (100+ self.taxes[0].rate) / 100
+        nominal_diskon = 0
+        nominal_diskon_leasing = 0
+        total_net_d = 0
+        total_net_dl = 0
+        for d in self.table_discount:
+            # hitung_tax_d = flt((d.nominal) / tax,0)
+            hitung_tax_d = flt((d.nominal) / tax)
+            net_d = (d.nominal) - hitung_tax_d
+            total_net_d = total_net_d + net_d
+
+        for dl in self.table_discount_leasing:
+            # hitung_tax_dl = flt((dl.nominal) / tax,0)
+            hitung_tax_dl = flt((dl.nominal) / tax)
+            net_dl = (dl.nominal) - hitung_tax_dl
+            total_net_dl = total_net_dl + net_dl
+
+        # nd = flt(self.nominal_diskon / tax,0)
+        nd = flt(self.nominal_diskon / tax)
+        net_nd = self.nominal_diskon - nd
+        net_total = total_net_d + total_net_dl + net_nd
+        # net_total = total_net_d
+
+        
         # income account gl entries
         for item in self.get("items"):
             if flt(item.base_net_amount, item.precision("base_net_amount")):
@@ -1096,10 +1121,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                         self.get_gl_dict({
                             "account": income_account,
                             "against": self.customer,
-                            "credit": flt(item.base_net_amount, item.precision("base_net_amount"))-flt(self.adj_discount)+self.nominal_diskon,
-                            "credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount")-flt(self.adj_discount))+self.nominal_diskon
+                            "credit": flt(item.base_net_amount, item.precision("base_net_amount"))-flt(self.adj_discount),
+                            "credit_in_account_currency": (flt(item.base_net_amount, item.precision("base_net_amount")-flt(self.adj_discount))
                                 if account_currency==self.company_currency
-                                else flt(item.net_amount, item.precision("net_amount"))-flt(self.adj_discount)+self.nominal_diskon),
+                                else flt(item.net_amount, item.precision("net_amount"))-flt(self.adj_discount)),
                             "cost_center": item.cost_center,
                             "project": item.project or self.project,
                             # "remarks": "wahyu xxxx"
@@ -1193,16 +1218,19 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         total_net_d = 0
         total_net_dl = 0
         for d in self.table_discount:
-            hitung_tax_d = flt((d.nominal) / tax,0)
+            # hitung_tax_d = flt((d.nominal) / tax,0)
+            hitung_tax_d = flt((d.nominal) / tax)
             net_d = (d.nominal) - hitung_tax_d
             total_net_d = total_net_d + net_d
 
         for dl in self.table_discount_leasing:
-            hitung_tax_dl = flt((dl.nominal) / tax,0)
+            # hitung_tax_dl = flt((dl.nominal) / tax,0)
+            hitung_tax_dl = flt((dl.nominal) / tax)
             net_dl = (dl.nominal) - hitung_tax_dl
             total_net_dl = total_net_dl + net_dl
 
-        nd = flt(self.nominal_diskon / tax,0)
+        # nd = flt(self.nominal_diskon / tax,0)
+        nd = flt(self.nominal_diskon / tax)
         net_nd = self.nominal_diskon - nd
         print(total_net_d, " total_net_d")
         print(total_net_dl, " total_net_dl")  
@@ -1290,8 +1318,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                     # "party": self.nama_leasing,
                     # "due_date": self.due_date,
                     "against": self.against_income_account,
-                    "debit": abs(flt(self.nominal_diskon/tax,0)),
-                    "debit_in_account_currency": abs(flt(self.nominal_diskon/tax,0)),
+                    # "debit": abs(flt(self.nominal_diskon/tax,0)),
+                    # "debit_in_account_currency": abs(flt(self.nominal_diskon/tax,0)),
+                    "debit": abs(flt(self.nominal_diskon/tax)),
+                    "debit_in_account_currency": abs(flt(self.nominal_diskon/tax)),
                     "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
                     "against_voucher_type": self.doctype,
                     "cost_center": self.cost_center,
@@ -1486,7 +1516,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         if self.table_discount:
             if len(self.table_discount):
                 for i in self.table_discount:
-                    diskon_setelah_pajak = flt(i.nominal / tax,0)
+                    diskon_setelah_pajak = flt(i.nominal / tax)
                     total_diskon_setelah_pajak += diskon_setelah_pajak
                     print(diskon_setelah_pajak)
         print(total_diskon_setelah_pajak, ' total_diskon_setelah_pajak')
@@ -1495,12 +1525,12 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         if self.table_discount_leasing:
             if len(self.table_discount_leasing):
                 for i in self.table_discount_leasing:
-                    diskon_leasing_setelah_pajak = flt(i.nominal / tax,0)
+                    diskon_leasing_setelah_pajak = flt(i.nominal / tax)
                     total_diskon_leasing_setelah_pajak += diskon_leasing_setelah_pajak
 
         print(total_diskon_leasing_setelah_pajak, ' total_diskon_leasing_setelah_pajak')
 
-        nominal_diskon_sp = flt(self.nominal_diskon / tax,0)
+        nominal_diskon_sp = flt(self.nominal_diskon / tax)
         print(nominal_diskon_sp, ' nominal_diskon_sp')
 
         # gl_entries.append(
@@ -1532,8 +1562,11 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 # "debit_in_account_currency": ((self.grand_total + tot_biaya) - tot_disc - tot_discl) + self.adj_discount,
                 # "debit": (self.harga - tot_disc - tot_discl) + self.adj_discount,
                 # "debit_in_account_currency": (self.harga - tot_disc - tot_discl) + self.adj_discount,
-                "debit": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
-                "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
+                # "debit": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
+                # "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
+                "debit": (self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon,
+                "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon,
+                
                 "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
                 "against_voucher_type": self.doctype,
                 "cost_center": self.cost_center,
@@ -2304,5 +2337,29 @@ def get_party_details(inv):
 
     return party_type, party
 
-
+@frappe.whitelist()
+def make_dp(name_dp):
+    data = frappe.db.sql(""" SELECT sinv.*,sum(tbm.amount) as nilai from `tabSales Invoice Penjualan Motor` sinv
+    left join `tabTabel Biaya Motor` tbm on tbm.parent = sinv.name and tbm.type in ('STNK','BPKB')
+    where sinv.name = '{}' """.format(name_dp),as_dict=1,debug=1)
+    target_doc = frappe.new_doc("Penerimaan DP")
+    frappe.msgprint(str(data)+ " data")
+    for i in data:
+        target_doc.cara_bayar = i.cara_bayar
+        if i.cara_bayar == 'Cash':
+            target_doc.customer = i.customer
+            target_doc.customer_name = i.customer_name
+            target_doc.debit_to = i.debit_to
+            target_doc.coa_bpkb_stnk = i.coa_bpkb_stnk
+            target_doc.piutang_bpkb_stnk = i.nilai
+            target_doc.piutang_motor = i.harga - i.nilai - i.nominal_diskon - i.total_advance
+        else:
+            target_doc.customer = i.customer
+            target_doc.customer_name = i.customer_name
+            target_doc.pemilik = i.pemilik
+            target_doc.nama_pemilik = i.nama_pemilik
+            target_doc.debit_to = i.debit_to
+            # target_doc.piutang_motor = i.harga - i.nilai - i.nominal_diskon - i.total_advance
+    # target_doc.set_advances()
+    return target_doc.as_dict()
 

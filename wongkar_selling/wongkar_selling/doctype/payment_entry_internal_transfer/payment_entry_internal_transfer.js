@@ -8,6 +8,9 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
 		}
 		frm.set_df_property("list_penerimaan_dp", "cannot_add_rows", true);
 
+		// list_form_pembayaran
+		// frm.set_df_property("list_form_pembayaran", "cannot_add_rows", true);
+
 		frm.set_query("account_paid_from", function() {
 			return {
 				filters: {
@@ -49,6 +52,11 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
 	to_date(frm){
 		cur_frm.clear_table("list_penerimaan_dp");
 		cur_frm.refresh_fields("list_penerimaan_dp");
+		
+		// list_form_pembayaran
+		// cur_frm.clear_table("list_form_pembayaran");
+		// cur_frm.refresh_fields("list_form_pembayaran");
+		
 		if(cur_frm.doc.to_date){
 			
 			// frappe.msgprint("test")
@@ -77,6 +85,33 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
 	             	
 		         }
 	        });
+
+			// list_form_pembayaran
+			// frappe.call({
+	        //      method: "wongkar_selling.wongkar_selling.doctype.payment_entry_internal_transfer.payment_entry_internal_transfer.get_fp",
+	        //      args: {
+	        //        name_pe : cur_frm.doc.name,
+	        //        paid_from: cur_frm.doc.account_paid_from,
+	        //        from_date: cur_frm.doc.from_date,
+	        //        to_date: cur_frm.doc.to_date
+	        //      },
+	        //      callback: function(data) {
+	        //      	if(data){
+	        //      		console.log(data,"data")
+			// 			for (let i = 0; i < data.message.length; i++) {
+			// 				//console.log(data)
+			// 				var child = cur_frm.add_child("list_form_pembayaran");
+			// 				frappe.model.set_value(child.doctype, child.name, "date", data.message[i].tanggal);
+			// 				frappe.model.set_value(child.doctype, child.name, "customer", data.message[i].customer);
+			// 				// frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);
+			// 				frappe.model.set_value(child.doctype, child.name, "form_pembayaran", data.message[i].name);
+			// 				frappe.model.set_value(child.doctype, child.name, "total", data.message[i].total);
+			// 			}
+			// 			cur_frm.refresh_field("list_form_pembayaran");
+	        //      	}
+	             	
+		    //      }
+	        // });
 
 		}
 	}

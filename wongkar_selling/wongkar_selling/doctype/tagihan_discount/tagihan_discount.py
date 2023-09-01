@@ -17,17 +17,25 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 
 class TagihanDiscount(Document):
 	def before_cancel(self):
-		cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
-			join `tabPayment Entry` pe on pe.name = per.parent
-			where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		# cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
+		# 	join `tabPayment Entry` pe on pe.name = per.parent
+		# 	where per.reference_name = '{}' and pe.docstatus != 2 GROUP by pe.name """.format(self.name),as_dict=1)
+		
+		cek = frappe.db.sql(""" SELECT fp.name from `tabList Doc Name` l 
+			join `tabForm Pembayaran` fp on fp.name = l.parent
+			where l.docname = '{}' and fp.docstatus != 2 GROUP by fp.name """.format(self.name),as_dict=1)
+		
 		if cek:
-			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Payment Entry "+cek[0]['name'])
+			frappe.throw("Tida Bisa Cancel karena terrhubung dengan Form Pembayaran "+cek[0]['name'])
 
 	def hitung_pph(self):
 		total = 0
 		if self.cek_pph:
 			for d in self.daftar_tagihan:
-				pph = d.nilai_diskon * self.pph / 100
+				rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}).rate
+				tax = (100+rate ) / 100
+				hitung_tax = d.nilai_diskon / tax
+				pph = hitung_tax * self.pph / 100
 				d.nilai = d.nilai_diskon - pph
 				d.terbayarkan = d.nilai
 				total += d.nilai
@@ -129,7 +137,11 @@ class TagihanDiscount(Document):
 		
 		for d in self.get('daftar_tagihan'):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")
-			pph = d.nilai_diskon * self.pph / 100
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}).rate
+			tax = (100+rate ) / 100
+			hitung_tax = d.nilai_diskon / tax
+			pph = hitung_tax * self.pph / 100
+			pajak = hitung_tax - pph
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": self.pph_account,
@@ -205,14 +217,19 @@ class TagihanDiscount(Document):
 		account = frappe.get_value("Rule",{"customer" : self.customer}, "coa_receivable")
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
 		
-		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable,td.rule FROM `tabDaftar Tagihan` cd
+		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable,td.rule,sinv.name FROM `tabDaftar Tagihan` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
 			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
 		
 		for d in data:
 			# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 			# cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
-			pph = d.nilai * self.pph / 100
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.name,'idx':1}).rate
+			tax = (100+rate ) / 100
+			hitung_tax = d.nilai / tax
+			pph = hitung_tax * self.pph /100
+			pajak = d.nilai - pph
+			# pph = d.nilai * self.pph / 100
 			pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
 			gl_entries.append(
 				self.get_gl_dict({
@@ -222,8 +239,8 @@ class TagihanDiscount(Document):
 					# "due_date": self.due_date,
 					"against": d.coa_receivable,
 					# "debit": d.nilai,
-					"debit": d.nilai - pph if self.cek_pph else d.nilai ,
-					"debit_in_account_currency": d.nilai - pph if self.cek_pph else d.nilai,
+					"debit": pajak if self.cek_pph else d.nilai ,
+					"debit_in_account_currency": pajak if self.cek_pph else d.nilai,
 					# "against_voucher": d.no_sinv,
 					# "against_voucher_type": "Sales Invoice Penjualan Motor",
 					"cost_center": d.cost_center

@@ -11,12 +11,25 @@
   "company",
   "tanggal",
   "cara_bayar",
+  "dp_ke_2",
   "section_break_pkua8",
   "customer",
   "customer_name",
   "column_break_rdpyr",
   "pemilik",
   "nama_pemilik",
+  "section_break_pydkj",
+  "paid_amount",
+  "section_break_xs1ng",
+  "territory",
+  "price_list",
+  "nama_promo",
+  "nominal_diskon",
+  "column_break_x46cs",
+  "item_code",
+  "item_group",
+  "harga",
+  "bpkb_stnk",
   "section_break_8iauq",
   "debit_to",
   "column_break_aww6w",
@@ -168,12 +181,85 @@
    "hidden": 1,
    "label": "cek_transfer",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_xs1ng",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "options": "Price List"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "nama_promo",
+   "fieldtype": "Link",
+   "label": "Nama Promo",
+   "mandatory_depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "options": "Category Discount Leasing"
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group"
+  },
+  {
+   "fieldname": "nominal_diskon",
+   "fieldtype": "Currency",
+   "label": "Nominal Diskon"
+  },
+  {
+   "fieldname": "column_break_x46cs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "harga",
+   "fieldtype": "Currency",
+   "label": "Harga",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_pydkj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fieldname": "bpkb_stnk",
+   "fieldtype": "Currency",
+   "label": "BPKB STNK",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "dp_ke_2",
+   "fieldtype": "Check",
+   "label": "DP ke 2"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-18 09:40:32.036528",
+ "modified": "2023-08-31 15:36:00.755531",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

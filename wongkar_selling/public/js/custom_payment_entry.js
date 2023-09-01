@@ -100,18 +100,19 @@ frappe.ui.form.on('Payment Entry', {
 	refresh(frm) {
 		// your code here
 		// frappe.msgprint("asasas")
-		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.pemilik){
-			frm.add_custom_button(__("Make SIPM"), function() {
-		        // When this button is clicked, do this
-		        frappe.xcall("wongkar_selling.custom_standard.custom_payment_entry.make_sipm",{
-					'name_pe': cur_frm.doc.name
-				}).then(sipm =>{
-					frappe.model.sync(sipm);
-					frappe.set_route('Form', sipm.doctype, sipm.name);
-				})
+		
+		// if(cur_frm.doc.docstatus == 1 && cur_frm.doc.pemilik){
+		// 	frm.add_custom_button(__("Make SIPM"), function() {
+		//         // When this button is clicked, do this
+		//         frappe.xcall("wongkar_selling.custom_standard.custom_payment_entry.make_sipm",{
+		// 			'name_pe': cur_frm.doc.name
+		// 		}).then(sipm =>{
+		// 			frappe.model.sync(sipm);
+		// 			frappe.set_route('Form', sipm.doctype, sipm.name);
+		// 		})
 		        
-		    });
-		}
+		//     });
+		// }
 		
 
 		cur_frm.set_query("doc_type", function() {

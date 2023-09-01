@@ -27,7 +27,8 @@
   "section_break_z1lhq",
   "tagihan_payment_table",
   "amended_from",
-  "company"
+  "company",
+  "cek_transfer"
  ],
  "fields": [
   {
@@ -165,12 +166,20 @@
    "fieldtype": "Select",
    "label": "Series",
    "options": "FP-.MM.-.YYYY.-."
+  },
+  {
+   "default": "0",
+   "fieldname": "cek_transfer",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "cek_transfer",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-18 09:07:34.730578",
+ "modified": "2023-08-28 09:34:41.655983",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",

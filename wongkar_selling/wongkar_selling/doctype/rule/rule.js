@@ -11,8 +11,7 @@ frappe.ui.form.on('Rule', {
 		frm.set_df_property("customer_group", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("territory", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("discount", "read_only", frm.is_new() ? 0 : 1);
-		// frm.set_df_property("coa_receivable", "read_only", frm.is_new() ? 0 : 1);
-
+		frm.set_df_property("coa_receivable", "read_only", frm.is_new() ? 0 : 1);
 	}
 });
 

@@ -40,36 +40,122 @@ frappe.ui.form.on('Penerimaan DP', {
 			}
 		});
 
-		// if(cur_frm.doc.docstatus == 1){
-		// 	frm.add_custom_button(__("Make SIPM"), function() {
-		//         // When this button is clicked, do this
-		//         frappe.xcall("wongkar_selling.wongkar_selling.doctype.penerimaan_dp.penerimaan_dp.make_sipm",{
-		// 			'name_dp': cur_frm.doc.name
-		// 		}).then(sipm =>{
-		// 			frappe.model.sync(sipm);
-		// 			frappe.set_route('Form', sipm.doctype, sipm.name);
-		// 		})
+		if(cur_frm.doc.docstatus == 1 && !cur_frm.doc.dp_ke_2){
+			frm.add_custom_button(__("Make SIPM"), function() {
+		        // When this button is clicked, do this
+		        frappe.xcall("wongkar_selling.wongkar_selling.doctype.penerimaan_dp.penerimaan_dp.make_sipm",{
+					'name_dp': cur_frm.doc.name
+				}).then(sipm =>{
+					frappe.model.sync(sipm);
+					frappe.set_route('Form', sipm.doctype, sipm.name);
+				})
 		        
-		//     });
-		// }
+		    });
+		}
 		
 	},
 	customer(frm) {
 		console.log("llooo")
-		if(cur_frm.doc.customer)
-		erpnext.utils.get_party_details(cur_frm,
-		"wongkar_selling.custom_standard.custom_party.get_party_details", {
-		// "erpnext.accounts.party.get_party_details", {
-			posting_date: cur_frm.doc.tanggal,
-			party: cur_frm.doc.customer,
-			party_type: "Customer",
-			account: cur_frm.doc.debit_to,
-			company: 'BJM Group',
-			// price_list: cur_frm.doc.selling_price_list,
-			// pos_profile: pos_profile
-		}, function() {
-			// apply_pricing_rule();
-		});
+		if(cur_frm.doc.cara_bayar == 'Cash'){
+			
+			if(cur_frm.doc.customer){
+				cur_frm.add_fetch('customer','territory','territory')
+				erpnext.utils.get_party_details(cur_frm,
+				"wongkar_selling.custom_standard.custom_party.get_party_details", {
+				// "erpnext.accounts.party.get_party_details", {
+					posting_date: cur_frm.doc.tanggal,
+					party: cur_frm.doc.customer,
+					party_type: "Customer",
+					account: cur_frm.doc.debit_to,
+					company: 'BJM Group',
+					// price_list: cur_frm.doc.selling_price_list,
+					// pos_profile: pos_profile
+				}, function() {
+					// apply_pricing_rule();
+				});
+			}
+		}
+		
+	},
+	pemilik(frm) {
+		console.log("llooo")
+		if(cur_frm.doc.cara_bayar == 'Credit'){
+			if(cur_frm.doc.pemilik){
+				cur_frm.add_fetch('pemilik','territory','territory')
+			}
+		}
+	},
+	item_code(frm){
+		if(cur_frm.doc.item_code){
+			frappe.call({
+				method: "wongkar_selling.wongkar_selling.get_invoice.get_item_price",
+				args: {
+					item_code: cur_frm.doc.item_code,
+					price_list: cur_frm.doc.price_list,
+					posting_date: cur_frm.doc.tanggal
+				},
+				callback: function(r) {
+					console.log(r,"safasf")
+					if(r.message[0].price_list_rate){
+			    		cur_frm.set_value('harga',r.message[0].price_list_rate)
+			    	}
+				}
+			});
+
+			frappe.call({
+				method: "wongkar_selling.wongkar_selling.get_invoice.get_biaya",
+				args: {
+					// item_group: cur_frm.doc.item_group,
+					item_code: cur_frm.doc.item_code,
+					territory: cur_frm.doc.territory,
+					posting_date: cur_frm.doc.tanggal,
+					from_group: 1
+				},
+				callback: function(r) {
+					console.log(r.message,"get_biaya")
+					var total = 0
+					if(r.message){
+						if(r.message.length >0){
+							for(var i =0;i<r.message.length;i++){
+								if(r.message[i].type == 'STNK' || r.message[i].type == 'BPKB'){
+									total = total + r.message[i].amount
+								}
+							}
+						}
+					}
+					cur_frm.set_value("bpkb_stnk",total)
+				   console.log(total,' total')
+				}
+			});
+
+
+			frappe.call({
+					method: "wongkar_selling.wongkar_selling.get_invoice.get_leasing",
+					args: {
+						// item_group: cur_frm.doc.item_group,
+						item_code: cur_frm.doc.item_code,
+						nama_promo: cur_frm.doc.nama_promo,
+						territory_real: cur_frm.doc.territory,
+						posting_date: cur_frm.doc.tanggal,
+						from_group:1
+					},
+					callback: function(r) {
+						console.log(r,"leasing")
+						if(r.message.length>0){
+							for (let i = 0; i < r.message.length; i++) {
+								cur_frm.set_value("nominal_diskon",r.message[i].beban_dealer)
+							}
+							cur_frm.refresh_fields("nominal_diskon")
+						}
+					}
+				});
+		}
+		
+	},
+	dp_ke_2(frm){
+		if(cur_frm.doc.dp_ke_2){
+			frappe.msgprint("Lakukan Perhitungan Secara Manual !!!")
+		}
 	},
 	cara_bayar(frm){
 		cur_frm.set_value('customer',null)
@@ -79,6 +165,7 @@ frappe.ui.form.on('Penerimaan DP', {
 		cur_frm.set_value('piutang_bpkb_stnk',0)
 		cur_frm.set_value('paid_to',null)
 		cur_frm.set_value('pemilik',null)
+		cur_frm.set_value("item_code",null)
 	},
 	company(frm) {
 		erpnext.accounts.dimensions.update_dimension(cur_frm, cur_frm.doctype);
@@ -97,5 +184,20 @@ frappe.ui.form.on('Penerimaan DP', {
 				},
 			});
 		}
-	}
+	},
+	tanggal(frm){
+		cur_frm.set_value("item_code",null)
+	},
+	territory(frm){
+		cur_frm.set_value("item_code",null)
+	},
+	price_list(frm){
+		cur_frm.set_value("item_code",null)
+	},
+	nama_promo(frm){
+		cur_frm.set_value("item_code",null)
+	},
+	nominal_diskon(frm){
+		cur_frm.set_value("item_code",null)
+	},
 });
