@@ -128,8 +128,8 @@ frappe.ui.form.on('Penerimaan DP', {
 				}
 			});
 
-
-			frappe.call({
+			if(cur_frm.doc.nama_promo){
+				frappe.call({
 					method: "wongkar_selling.wongkar_selling.get_invoice.get_leasing",
 					args: {
 						// item_group: cur_frm.doc.item_group,
@@ -149,6 +149,8 @@ frappe.ui.form.on('Penerimaan DP', {
 						}
 					}
 				});
+			}
+			
 		}
 		
 	},
