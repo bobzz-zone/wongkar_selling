@@ -138,7 +138,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 	    	cur_frm.refresh_field("table_discount_leasing");
 	    	//cur_frm.refresh_field();
 	    }
-	    if(cur_frm.doc.nama_promo){
+	    if(cur_frm.doc.nama_promo && !cur_frm.doc.ignore_rule_discount){
 	    	if(cur_frm.doc.cara_bayar == "Credit"){
 		    	let today = cur_frm.doc.posting_date;
 		    	frappe.call({
