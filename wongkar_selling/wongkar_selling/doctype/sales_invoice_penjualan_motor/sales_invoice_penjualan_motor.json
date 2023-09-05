@@ -17,6 +17,7 @@
   "pemilik",
   "nama_pemilik",
   "marketing",
+  "sales_man",
   "nama_penjualan",
   "bypass_biaya",
   "from_group",
@@ -2411,12 +2412,18 @@
    "fieldname": "ignore_rule_discount",
    "fieldtype": "Check",
    "label": "ignore rule discount"
+  },
+  {
+   "fieldname": "sales_man",
+   "fieldtype": "Link",
+   "label": "Sales Man",
+   "options": "Sales Person"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-05 11:15:37.381039",
+ "modified": "2023-09-05 13:16:04.549260",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

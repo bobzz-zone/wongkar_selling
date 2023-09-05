@@ -154,21 +154,22 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "allow_on_submit": 1,
    "description": "Nama Customer yang membeli",
    "fieldname": "pemilik",
    "fieldtype": "Link",
    "label": "Pemilik",
-   "mandatory_depends_on": "eval:doc.cara_bayar == 'Credit'",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
-   "depends_on": "eval:doc.cara_bayar == 'Credit'",
+   "allow_on_submit": 1,
    "fetch_from": "pemilik.customer_name",
    "fetch_if_empty": 1,
    "fieldname": "nama_pemilik",
    "fieldtype": "Data",
-   "label": "Nama Pemilik"
+   "label": "Nama Pemilik",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_rdpyr",
@@ -259,7 +260,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-31 15:36:00.755531",
+ "modified": "2023-09-05 13:12:09.938916",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",
