@@ -11,9 +11,9 @@ frappe.provide("erpnext.accounts");
 
 erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 	posting_date(frm){
-		cur_frm.set_value("no_rangka","")
-		cur_frm.set_value("nama_promo","")
-		cur_frm.set_value("nama_diskon")
+		cur_frm.set_value("no_rangka",null)
+		cur_frm.set_value("nama_promo",null)
+		cur_frm.set_value("nama_diskon",null)
 		cur_frm.refresh_fields("no_rangka")
 		cur_frm.refresh_fields("nama_promo")
 		cur_frm.refresh_fields("nama_diskon")
@@ -25,6 +25,10 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 		cur_frm.set_value('harga',0)
 		cur_frm.clear_table("tabel_biaya_motor");
 		cur_frm.refresh_field("tabel_biaya_motor");
+		cur_frm.set_value('nama_promo','')
+		cur_frm.set_value('nama_leasing','')
+		cur_frm.set_value('no_po_leasing','')
+		cur_frm.set_value('nama_diskon','')
 		if(cur_frm.doc.cara_bayar == 'Cash'){
 			cur_frm.set_value('nama_promo','')
 			cur_frm.set_value('nama_leasing','')

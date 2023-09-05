@@ -136,6 +136,28 @@ def make_sipm(name_dp):
 		target_doc.set_posting_time = 1
 		target_doc.posting_date = data[0].tanggal
 		target_doc.nama_promo = data[0].nama_promo
+
+		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
+		total_discount_leasing = 0
+
+		list_table_discount_leasing = get_leasing(target_doc.item_code,target_doc.nama_promo,target_doc.territory_real,target_doc.posting_date,target_doc.from_group)
+		# get_leasing(self.item_code,self.nama_promo,self.territory_real,self.posting_date)
+		frappe.msgprint(str(list_table_discount_leasing)+ ' list_table_discount_leasing')
+		nominal_diskon = 0
+		if list_table_discount_leasing:
+			for row in list_table_discount_leasing:
+				target_doc.append("table_discount_leasing",{
+						"rule":row.name,
+						"coa":row.coa,
+						"coa_lawan":row.coa_lawan,
+						"nominal":row.amount,
+						"nama_leasing":row.leasing
+					})
+				total_discount_leasing += row.amount
+                
+        
+		target_doc.total_discoun_leasing = total_discount_leasing
+
 		# target_doc.set_advances()
 		return target_doc.as_dict()
 	else:
