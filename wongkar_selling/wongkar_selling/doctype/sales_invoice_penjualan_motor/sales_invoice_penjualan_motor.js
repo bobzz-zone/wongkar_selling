@@ -326,8 +326,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 		if (this.frm.doc.is_return) {
 			this.frm.return_print_format = "Sales Invoice Return";
 		}
-		frm.set_df_property("table_discount_leasing", "cannot_add_rows", true);
-		frm.set_df_property("table_discount_leasing", "cannot_delete_rows", true);
+		
 		this.show_general_ledger();
 
 		if(doc.update_stock) this.show_stock_ledger();
