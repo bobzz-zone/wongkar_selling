@@ -2118,8 +2118,7 @@
    "fieldname": "table_discount_leasing",
    "fieldtype": "Table",
    "label": "Table Discount Leasing",
-   "options": "Table Disc Leasing",
-   "read_only": 1
+   "options": "Table Disc Leasing"
   },
   {
    "fieldname": "account_adj_discount",
@@ -2417,7 +2416,7 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-04 09:20:02.842618",
+ "modified": "2023-09-05 11:15:37.381039",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

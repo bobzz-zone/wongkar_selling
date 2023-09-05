@@ -73,7 +73,8 @@
    "fieldname": "territory",
    "fieldtype": "Link",
    "label": "Territory",
-   "options": "Territory"
+   "options": "Territory",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -103,7 +104,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-24 09:28:25.351692",
+ "modified": "2023-09-04 10:58:27.627157",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Biaya",

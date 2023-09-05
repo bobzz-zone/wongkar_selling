@@ -138,7 +138,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 	    	cur_frm.refresh_field("table_discount_leasing");
 	    	//cur_frm.refresh_field();
 	    }
-	    if(cur_frm.doc.nama_promo && !cur_frm.doc.ignore_rule_discount){
+	    if(cur_frm.doc.nama_promo){
 	    	if(cur_frm.doc.cara_bayar == "Credit"){
 		    	let today = cur_frm.doc.posting_date;
 		    	frappe.call({
@@ -322,7 +322,8 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 		if (this.frm.doc.is_return) {
 			this.frm.return_print_format = "Sales Invoice Return";
 		}
-
+		frm.set_df_property("table_discount_leasing", "cannot_add_rows", true);
+		frm.set_df_property("table_discount_leasing", "cannot_delete_rows", true);
 		this.show_general_ledger();
 
 		if(doc.update_stock) this.show_stock_ledger();
@@ -1425,7 +1426,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 
 	refresh: function(frm) {
 		// frappe.msgprint("sadasdsa")
-
+		frm.set_df_property("table_discount_leasing", "cannot_add_rows", true);
+		frm.set_df_property("table_discount_leasing", "cannot_delete_rows", true);
 		cur_frm.set_value("update_stock",1)
 		cur_frm.refresh_fields("update_stock")
 		if(frm.doc.__islocal){

@@ -72,7 +72,8 @@
    "fieldname": "territory",
    "fieldtype": "Link",
    "label": "Territory",
-   "options": "Territory"
+   "options": "Territory",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -120,7 +121,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-18 10:03:22.693122",
+ "modified": "2023-09-04 10:59:04.609928",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",

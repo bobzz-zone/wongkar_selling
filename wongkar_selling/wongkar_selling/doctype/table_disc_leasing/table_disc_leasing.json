@@ -2,12 +2,12 @@
  "actions": [],
  "creation": "2021-09-18 09:36:14.776607",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "rule",
   "coa",
   "coa_lawan",
+  "column_break_gafph",
   "nama_leasing",
   "nominal",
   "tertagih"
@@ -18,44 +18,55 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "COA",
-   "options": "Account"
+   "options": "Account",
+   "read_only": 1
   },
   {
    "fieldname": "nominal",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Nominal"
+   "label": "Nominal",
+   "read_only_depends_on": "eval:!parent.ignore_rule_discount"
   },
   {
    "fieldname": "nama_leasing",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Nama Leasing",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "tertagih",
    "fieldtype": "Check",
-   "label": "Tertagih"
+   "label": "Tertagih",
+   "read_only": 1
   },
   {
    "fieldname": "rule",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Rule"
+   "label": "Rule",
+   "read_only": 1
   },
   {
    "fieldname": "coa_lawan",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "COA Lawan",
-   "options": "Account"
+   "options": "Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gafph",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-08-01 14:46:05.876625",
+ "modified": "2023-09-05 11:27:44.745734",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Table Disc Leasing",

@@ -14,7 +14,7 @@ class PenerimaanDP(Document):
 		self.hitung_bayar()
 
 	def hitung_bayar(self):
-		frappe.msgprint(str(getdate(self.tanggal)))
+		# frappe.msgprint(str(getdate(self.tanggal)))
 		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
 		
 		if self.paid_amount > 0 and not self.dp_ke_2:
@@ -139,5 +139,5 @@ def make_sipm(name_dp):
 		# target_doc.set_advances()
 		return target_doc.as_dict()
 	else:
-		frappe.throw(_(' Sudah ada di {0} !').format(frappe.utils.get_link_to_form('Sales Invoice Penjualan Motor', cek)))
+		frappe.throw((' Sudah ada di {0} !').format(frappe.utils.get_link_to_form('Sales Invoice Penjualan Motor', cek)))
 
