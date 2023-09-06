@@ -113,6 +113,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "piutang_motor",
    "fieldtype": "Currency",
    "label": "Piutang Motor",
@@ -128,6 +129,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "piutang_bpkb_stnk",
    "fieldtype": "Currency",
    "label": "Piutang BPKB STNK",
@@ -215,6 +217,7 @@
    "options": "Item Group"
   },
   {
+   "default": "0",
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
    "label": "Nominal Diskon"
@@ -260,7 +263,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-05 13:12:09.938916",
+ "modified": "2023-09-06 10:45:50.166460",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

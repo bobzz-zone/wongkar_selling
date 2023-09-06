@@ -31,7 +31,7 @@ class PenerimaanDP(Document):
 			else:
 				self.piutang_motor = self.harga - total_biaya_tanpa_dealer - self.nominal_diskon
 				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
-			frappe.msgprint(str(total_biaya_tanpa_dealer)+" total_biaya_tanpa_dealer")
+			# frappe.msgprint(str(total_biaya_tanpa_dealer)+" total_biaya_tanpa_dealer")
 
 
 
@@ -112,7 +112,7 @@ def make_sipm(name_dp):
 
 
 	if data[0].cara_bayar == "Cash":
-		pemilik = data[0].customer
+		pemilik = data[0].pemilik
 		customer = data[0].customer
 	else:
 		pemilik = data[0].pemilik
