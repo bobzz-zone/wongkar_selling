@@ -96,9 +96,13 @@ frappe.ui.form.on('Penerimaan DP', {
 				},
 				callback: function(r) {
 					console.log(r,"safasf")
-					if(r.message[0].price_list_rate){
-			    		cur_frm.set_value('harga',r.message[0].price_list_rate)
-			    	}
+					if(r.message.length > 0){
+						if(r.message[0].price_list_rate){
+				    		cur_frm.set_value('harga',r.message[0].price_list_rate)
+				    	}
+					}else{
+						cur_frm.set_value('harga',0)
+					}
 				}
 			});
 
@@ -145,8 +149,10 @@ frappe.ui.form.on('Penerimaan DP', {
 							for (let i = 0; i < r.message.length; i++) {
 								cur_frm.set_value("nominal_diskon",r.message[i].beban_dealer)
 							}
-							cur_frm.refresh_fields("nominal_diskon")
+						}else{
+							cur_frm.set_value("nominal_diskon",0)
 						}
+						cur_frm.refresh_fields("nominal_diskon")
 					}
 				});
 			}
@@ -200,6 +206,6 @@ frappe.ui.form.on('Penerimaan DP', {
 		cur_frm.set_value("item_code",null)
 	},
 	nominal_diskon(frm){
-		cur_frm.set_value("item_code",null)
+		// cur_frm.set_value("item_code",null)
 	},
 });

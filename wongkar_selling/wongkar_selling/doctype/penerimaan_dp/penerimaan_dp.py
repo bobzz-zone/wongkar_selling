@@ -39,7 +39,7 @@ class PenerimaanDP(Document):
 
 	def missing_value(self):
 		if self.piutang_motor <= 0:
-			frappe.throw("Silahkan Cek apakaha Harga Motor sudah Ter set atau paid amoutn sudah terisi !!")
+			frappe.throw("Silahkan Cek apakaha Harga Motor sudah Ter set atau paid amount sudah terisi !!")
 
 	def on_cancel(self):
 		data = frappe.db.sql(""" SELECT name,docstatus from `tabJournal Entry` where penerimaan_dp = '{}' """.format(self.name),as_dict=1)
