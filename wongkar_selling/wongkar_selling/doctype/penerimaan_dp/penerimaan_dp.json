@@ -45,10 +45,40 @@
  ],
  "fields": [
   {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FDP-.MM.-.YYYY.-."
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
    "default": "Today",
    "fieldname": "tanggal",
    "fieldtype": "Date",
    "label": "Tanggal"
+  },
+  {
+   "default": "Cash",
+   "description": "untuk cara bayar cash hanya perlu memasukkan nama customernya saja. unttuk pembayaran credit perlu memasukkan leasing dan pemilik",
+   "fieldname": "cara_bayar",
+   "fieldtype": "Select",
+   "label": "Cara Bayar",
+   "options": "Cash\nCredit"
+  },
+  {
+   "default": "0",
+   "fieldname": "dp_ke_2",
+   "fieldtype": "Check",
+   "label": "DP ke 2"
+  },
+  {
+   "fieldname": "section_break_pkua8",
+   "fieldtype": "Section Break"
   },
   {
    "description": "Untuk Pembayaran Credit Yang di masukkan Customer Leasingnya\nUntuk Cash menggunkan nama Customer langsung",
@@ -60,44 +90,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "debit_to",
-   "fieldtype": "Link",
-   "label": "Debit To",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
-   "fieldname": "coa_bpkb_stnk",
-   "fieldtype": "Link",
-   "label": "Coa Biaya BPKB & STNK",
-   "mandatory_depends_on": "eval:doc.cara_bayar == 'Cash'",
-   "options": "Account"
-  },
-  {
-   "fieldname": "paid_to",
-   "fieldtype": "Link",
-   "label": "Paid To",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Penerimaan DP",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "default": "Cash",
-   "description": "untuk cara bayar cash hanya perlu memasukkan nama customernya saja. unttuk pembayaran credit perlu memasukkan leasing dan pemilik",
-   "fieldname": "cara_bayar",
-   "fieldtype": "Select",
-   "label": "Cara Bayar",
-   "options": "Cash\nCredit"
-  },
-  {
    "fetch_from": "customer.customer_name",
    "fetch_if_empty": 1,
    "fieldname": "customer_name",
@@ -105,55 +97,8 @@
    "label": "Customer Name"
   },
   {
-   "fieldname": "section_break_8iauq",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_aww6w",
+   "fieldname": "column_break_rdpyr",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "piutang_motor",
-   "fieldtype": "Currency",
-   "label": "Piutang Motor",
-   "reqd": 1
-  },
-  {
-   "depends_on": "eval:doc.cara_bayar == 'Cash'",
-   "fieldname": "section_break_idvpn",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_6lwn8",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "piutang_bpkb_stnk",
-   "fieldtype": "Currency",
-   "label": "Piutang BPKB STNK",
-   "mandatory_depends_on": "eval:doc.cara_bayar == 'Cash'"
-  },
-  {
-   "fieldname": "section_break_ofo88",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "label": "Company",
-   "options": "Company"
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Series",
-   "options": "FDP-.MM.-.YYYY.-."
-  },
-  {
-   "fieldname": "section_break_pkua8",
-   "fieldtype": "Section Break"
   },
   {
    "allow_on_submit": 1,
@@ -170,21 +115,17 @@
    "fetch_if_empty": 1,
    "fieldname": "nama_pemilik",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Nama Pemilik",
    "read_only": 1
   },
   {
-   "fieldname": "column_break_rdpyr",
-   "fieldtype": "Column Break"
+   "fieldname": "section_break_pydkj",
+   "fieldtype": "Section Break"
   },
   {
-   "default": "0",
-   "fieldname": "cek_transfer",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "cek_transfer",
-   "read_only": 1
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount"
   },
   {
    "fieldname": "section_break_xs1ng",
@@ -211,13 +152,6 @@
    "options": "Category Discount Leasing"
   },
   {
-   "fetch_from": "item_code.item_group",
-   "fieldname": "item_group",
-   "fieldtype": "Link",
-   "label": "Item Group",
-   "options": "Item Group"
-  },
-  {
    "default": "0",
    "fieldname": "nominal_diskon",
    "fieldtype": "Currency",
@@ -228,25 +162,23 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "harga",
-   "fieldtype": "Currency",
-   "label": "Harga",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_pydkj",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "paid_amount",
-   "fieldtype": "Currency",
-   "label": "Paid Amount"
-  },
-  {
    "fieldname": "item_code",
    "fieldtype": "Link",
    "label": "Item Code",
    "options": "Item"
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group"
+  },
+  {
+   "fieldname": "harga",
+   "fieldtype": "Currency",
+   "label": "Harga",
+   "read_only": 1
   },
   {
    "fieldname": "bpkb_stnk",
@@ -255,20 +187,81 @@
    "read_only": 1
   },
   {
+   "fieldname": "section_break_8iauq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "debit_to",
+   "fieldtype": "Link",
+   "label": "Debit To",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_aww6w",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
-   "fieldname": "dp_ke_2",
+   "fieldname": "piutang_motor",
+   "fieldtype": "Currency",
+   "label": "Piutang Motor"
+  },
+  {
+   "depends_on": "eval:doc.cara_bayar == 'Cash'",
+   "fieldname": "section_break_idvpn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "coa_bpkb_stnk",
+   "fieldtype": "Link",
+   "label": "Coa Biaya BPKB & STNK",
+   "mandatory_depends_on": "eval:doc.cara_bayar == 'Cash'",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_6lwn8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "piutang_bpkb_stnk",
+   "fieldtype": "Currency",
+   "label": "Piutang BPKB STNK"
+  },
+  {
+   "fieldname": "section_break_ofo88",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "paid_to",
+   "fieldtype": "Link",
+   "label": "Paid To",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Penerimaan DP",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cek_transfer",
    "fieldtype": "Check",
-   "label": "DP ke 2"
+   "hidden": 1,
+   "label": "cek_transfer",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-09-06 10:45:50.166460",
-=======
- "modified": "2023-09-06 10:06:40.708331",
->>>>>>> 579251127c6a7e5d92413805fcd2289dfadcc110
+ "modified": "2023-09-06 11:06:06.215299",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

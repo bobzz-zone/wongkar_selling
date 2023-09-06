@@ -12,7 +12,9 @@ class PenerimaanDP(Document):
 
 	def validate(self):
 		self.hitung_bayar()
+		self.missing_value()
 
+	@frappe.whitelist()
 	def hitung_bayar(self):
 		# frappe.msgprint(str(getdate(self.tanggal)))
 		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
@@ -35,6 +37,9 @@ class PenerimaanDP(Document):
 			# frappe.msgprint(str(total_biaya_tanpa_dealer)+" total_biaya_tanpa_dealer")
 
 
+	def missing_value(self):
+		if self.piutang_motor <= 0:
+			frappe.throw("Silahkan Cek apakaha Harga Motor sudah Ter set atau paid amoutn sudah terisi !!")
 
 	def on_cancel(self):
 		data = frappe.db.sql(""" SELECT name,docstatus from `tabJournal Entry` where penerimaan_dp = '{}' """.format(self.name),as_dict=1)
