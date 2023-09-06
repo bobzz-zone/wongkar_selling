@@ -16,7 +16,8 @@ class PenerimaanDP(Document):
 	def hitung_bayar(self):
 		# frappe.msgprint(str(getdate(self.tanggal)))
 		from wongkar_selling.wongkar_selling.get_invoice import get_item_price, get_leasing, get_biaya,get_rule
-		
+		if not self.nominal_diskon:
+			self.nominal_diskon=0
 		if self.paid_amount > 0 and not self.dp_ke_2:
 			list_tabel_biaya = get_biaya(self.item_code,self.territory,self.tanggal,1)
 			total_biaya_tanpa_dealer = 0
