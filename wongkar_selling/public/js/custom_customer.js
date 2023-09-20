@@ -5,13 +5,13 @@ frappe.ui.form.on('Customer', {
   //           sync_document();
   //       });
 
-  cur_frm.set_query("kelurahan_2", function() {
-         return {
-             filters: {
-                "parent": cur_frm.doc.kecamatan2
+      cur_frm.set_query("kelurahan_2", function() {
+             return {
+                 filters: {
+                    "parent": cur_frm.doc.kecamatan2
+                 }
              }
-         }
-    });
+        });
 	},
     nama_kecamatan(frm){
         // cur_frm.set_value("kecamatan2","")
@@ -20,6 +20,20 @@ frappe.ui.form.on('Customer', {
          // cur_frm.refresh_fields("kecamatan2")
         cur_frm.refresh_fields("nama_kelurahan")
         cur_frm.refresh_fields("kelurahan_2")
+    },
+    kelurahan_2(frm){
+        if(cur_frm.doc.kelurahan_2){
+            frappe.call({
+                  method: "wongkar_selling.custom_standard.custom_customer.get_kelurahan",
+                  args: { 
+                      kel: cur_frm.doc.kelurahan_2
+                  },
+                  callback: function(r) {
+                        console.log(r.message)
+                        cur_frm.set_value("nama_kelurahan",r.message)
+                  }
+            })
+        }
     }
 })
 
