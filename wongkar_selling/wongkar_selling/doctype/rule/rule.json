@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "DISC-.MM.-.YY.-.#####",
  "creation": "2021-09-08 11:44:45.487096",
  "doctype": "DocType",
@@ -134,7 +135,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-04 10:59:28.933674",
+ "modified": "2023-09-12 09:37:55.101210",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",

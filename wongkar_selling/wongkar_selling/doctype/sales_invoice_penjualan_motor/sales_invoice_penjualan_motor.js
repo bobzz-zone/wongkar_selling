@@ -860,6 +860,11 @@ cur_frm.set_query("asset", "items", function(doc, cdt, cdn) {
 });
 
 frappe.ui.form.on('Sales Invoice Penjualan Motor', {
+	off_the_road(frm){
+		if(!cur_frm.doc.off_the_road){
+			cur_frm.set_value("no_rangka",null)
+		}
+	},
 	customer(frm) {
 		console.log("llooo")
 		if (cur_frm.doc.is_pos){
@@ -1881,10 +1886,14 @@ var hitung_item_rate = function(frm){
 	let sum = 0;
 	let sum2 = 0;
 	
-	for (let z = 0; z < cur_frm.doc.tabel_biaya_motor.length; z++) {
-		sum += cur_frm.doc.tabel_biaya_motor[z].amount;
-		if(cur_frm.doc.tabel_biaya_motor[z].type == "STNK" || cur_frm.doc.tabel_biaya_motor[z].type == "BPKB"){
-			total_biaya_tanpa_dealer += cur_frm.doc.tabel_biaya_motor[z].amount;
+	if(cur_frm.doc.tabel_biaya_motor){
+		if(cur_frm.doc.tabel_biaya_motor.length > 0){
+			for (let z = 0; z < cur_frm.doc.tabel_biaya_motor.length; z++) {
+				sum += cur_frm.doc.tabel_biaya_motor[z].amount;
+				if(cur_frm.doc.tabel_biaya_motor[z].type == "STNK" || cur_frm.doc.tabel_biaya_motor[z].type == "BPKB"){
+					total_biaya_tanpa_dealer += cur_frm.doc.tabel_biaya_motor[z].amount;
+				}
+			}
 		}
 	}
 	cur_frm.set_value("total_biaya",sum)
@@ -1920,6 +1929,10 @@ var hitung_item_rate = function(frm){
 	console.log(nominal_diskon_sp, ' nominal_diskon_sp')
 	// var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
 	// var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer - cur_frm.doc.nominal_diskon
+	if(cur_frm.doc.off_the_road){
+		total_biaya_tanpa_dealer = 0
+	}
+	
 	var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer 
 	
    

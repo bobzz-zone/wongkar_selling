@@ -20,6 +20,7 @@
   "sales_man",
   "nama_penjualan",
   "bypass_biaya",
+  "off_the_road",
   "from_group",
   "tax_id",
   "pos_profile",
@@ -57,6 +58,11 @@
   "shipping_address",
   "company_address",
   "company_address_display",
+  "customer_detail_section",
+  "no_hp",
+  "no_hp_2",
+  "no_kk",
+  "no_ktp",
   "currency_and_price_list",
   "currency",
   "conversion_rate",
@@ -79,6 +85,8 @@
   "nama_promo",
   "nama_leasing",
   "no_rangka",
+  "foto_gesekan",
+  "foto_gesekan_no_rangka",
   "foto_invoice",
   "foto_surat_jalan",
   "foto_kwitansi_uang_muka",
@@ -93,6 +101,7 @@
   "otr",
   "cb_sinvm0",
   "no_po_leasing",
+  "tanggal_po",
   "po_attch",
   "dp_gross",
   "dp_gross_hitung",
@@ -2403,8 +2412,8 @@
    "fieldname": "coa_bpkb_stnk",
    "fieldtype": "Link",
    "label": "Coa Biaya BPKB & STNK",
-   "options": "Account",
-   "reqd": 1
+   "mandatory_depends_on": "eval:!doc.off_the_road",
+   "options": "Account"
   },
   {
    "default": "0",
@@ -2418,12 +2427,66 @@
    "fieldtype": "Link",
    "label": "Sales Man",
    "options": "Sales Person"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.cara_bayar == \"Credit\"",
+   "fieldname": "tanggal_po",
+   "fieldtype": "Date",
+   "label": "Tanggal PO"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "foto_gesekan",
+   "fieldtype": "Attach Image",
+   "label": "Foto Gesekan No Mesin"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "foto_gesekan_no_rangka",
+   "fieldtype": "Attach Image",
+   "label": "Foto Gesekan No Rangka"
+  },
+  {
+   "fieldname": "customer_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Detail"
+  },
+  {
+   "fetch_from": "pemilik.no_hp",
+   "fieldname": "no_hp",
+   "fieldtype": "Data",
+   "label": "No HP"
+  },
+  {
+   "fetch_from": "pemilik.no_hp_2",
+   "fieldname": "no_hp_2",
+   "fieldtype": "Data",
+   "label": "No HP 2"
+  },
+  {
+   "fetch_from": "pemilik.no_kk",
+   "fieldname": "no_kk",
+   "fieldtype": "Data",
+   "label": "No KK"
+  },
+  {
+   "fetch_from": "pemilik.no_ktp",
+   "fieldname": "no_ktp",
+   "fieldtype": "Data",
+   "label": "No KTP"
+  },
+  {
+   "default": "0",
+   "fieldname": "off_the_road",
+   "fieldtype": "Check",
+   "label": "Off The Road"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-05 13:16:04.549260",
+ "modified": "2023-09-22 14:26:38.936214",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

@@ -234,12 +234,21 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         print(dp)
         self.dp_gross_hitung = dp
 
+    def cek_off(self):
+        if self.off_the_road:
+            self.coa_bpkb_stnk = None
+            self.tabel_biaya_motor = []
+            self.total_biaya = 0
+            if self.adjustment_harga <= 0 or self.adjustment_harga == None:
+                frappe.throw("Masukkan Nilai adjusment otr tanpa biya bpkb dan stnk !!!")
+
     # @frappe.whitelist()
     def validate(self):
         # frappe.msgprint('sads')
         self.cek_no_po_leasing()
         self.cek_rdl()
         self.cek_rule()
+        self.cek_off()
 
         if self.no_rangka != self.items[0].serial_no:
             frappe.throw("No rangka tidak sama dengan item !")

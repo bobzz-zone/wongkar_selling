@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2023-08-02 09:11:58.887515",
@@ -12,6 +13,7 @@
   "tanggal",
   "cara_bayar",
   "dp_ke_2",
+  "off_the_road",
   "section_break_pkua8",
   "customer",
   "customer_name",
@@ -256,12 +258,18 @@
    "hidden": 1,
    "label": "cek_transfer",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "off_the_road",
+   "fieldtype": "Check",
+   "label": "Off The Road"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-06 11:06:06.215299",
+ "modified": "2023-09-22 14:28:28.756042",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

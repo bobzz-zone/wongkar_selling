@@ -268,7 +268,7 @@ override_whitelisted_methods = {
 	#"frappe.desk.doctype.event.event.get_events": "wongkar_selling.event.get_events"
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.make_payment_order": "wongkar_selling.wongkar_selling.selling.make_payment_order",
 	"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry": "wongkar_selling.wongkar_selling.selling.get_payment_entry_custom",
-	"erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents": "wongkar_selling.wongkar_selling.selling.get_outstanding_reference_documents_custom",
+	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents": "wongkar_selling.wongkar_selling.selling.get_outstanding_reference_documents_custom",
 	"erpnext.controllers.taxes_and_totals.calculate_totals": "wongkar_selling.wongkar_selling.override_controler.calculate_totals_custom"
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_reference_details": "wongkar_selling.custom_payment_entry.get_reference_details_chandra",
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.set_missing_values": "wongkar_selling.wongkar_selling.selling.set_missing_values_custom",
