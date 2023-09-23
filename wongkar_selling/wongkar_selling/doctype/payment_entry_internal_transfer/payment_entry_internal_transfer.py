@@ -80,7 +80,9 @@ class PaymentEntryInternalTransfer(Document):
 					doc_pe.ignore_linked_doctypes = ('Payment Entry Internal Transfer')
 					print(doc_pe.payment_entry_internal_transfer,' payment_entry_internal_transfer')
 					doc_pe.cancel()
-					doc_pe.delete()
+					doc_pe = frappe.get_doc("Payment Entry",d['name'])
+					if doc_pe.docstatus == 2:
+						doc_pe.delete()
 				else:
 					doc_pe.delete()
 

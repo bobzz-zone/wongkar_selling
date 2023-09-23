@@ -131,8 +131,10 @@ def get_data(filters):
 		i['piutangleasing'] = i['piutangleasing'] + bl +tam_les+tam_lain
 		i['piutangkonsumen'] = i['piutangleasing']
 		i['selisihcair'] =  i['piutangleasing']  - (i['cair']+i['cairlain'])
-		i['foto_nosin'] = "<a href='"+frappe.utils.get_url()+i['foto_nosin']+"'>"+frappe.utils.get_url()+i['foto_nosin']+"</a>"
-		i['foto_rangka'] = "<a href='"+frappe.utils.get_url()+i['foto_rangka']+"'>"+frappe.utils.get_url()+i['foto_rangka']+"</a>"
+		if i['foto_nosin']:
+			i['foto_nosin'] = "<a href='"+frappe.utils.get_url()+i['foto_nosin']+"'>"+frappe.utils.get_url()+i['foto_nosin']+"</a>"
+		if i['foto_rangka']:
+			i['foto_rangka'] = "<a href='"+frappe.utils.get_url()+i['foto_rangka']+"'>"+frappe.utils.get_url()+i['foto_rangka']+"</a>"
 		if i['foto_po']:
 			i['foto_po'] = "<a href='"+frappe.utils.get_url()+i['foto_po']+"'>"+frappe.utils.get_url()+i['foto_po']+"</a>"
 		
@@ -160,7 +162,7 @@ def get_data(filters):
 				'tambahanLain': tam_lain
 			})
 	
-	frappe.msgprint(str(data)+" data")
+	# frappe.msgprint(str(data)+" data")
 	
 	return data
 
