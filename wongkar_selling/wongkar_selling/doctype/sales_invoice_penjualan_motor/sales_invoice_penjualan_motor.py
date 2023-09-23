@@ -1249,22 +1249,38 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         print(net_total, " net_total")
 
+        # untuk pajak lebih dari 1 baris
         for tax in self.get("taxes"):
             if flt(tax.base_tax_amount_after_discount_amount):
                 account_currency = get_account_currency(tax.account_head)
-                gl_entries.append(
-                    self.get_gl_dict({
-                        "account": tax.account_head,
-                        "against": self.customer,
-                        "credit": (flt(tax.base_tax_amount_after_discount_amount-net_nd,
-                            tax.precision("tax_amount_after_discount_amount"))),
-                        "credit_in_account_currency": ((flt(tax.base_tax_amount_after_discount_amount-net_nd,
-                            tax.precision("base_tax_amount_after_discount_amount")))  if account_currency==self.company_currency else
-                            (flt(tax.tax_amount_after_discount_amount-net_nd, tax.precision("tax_amount_after_discount_amount")))),
-                        "cost_center": tax.cost_center,
-                        # "remarks": "coba Lutfi pajak!"
-                    }, account_currency, item=tax)
-                )
+                if tax.idx == 1:
+                    gl_entries.append(
+                        self.get_gl_dict({
+                            "account": tax.account_head,
+                            "against": self.customer,
+                            "credit": (flt(tax.base_tax_amount_after_discount_amount-net_nd,
+                                tax.precision("tax_amount_after_discount_amount"))),
+                            "credit_in_account_currency": ((flt(tax.base_tax_amount_after_discount_amount-net_nd,
+                                tax.precision("base_tax_amount_after_discount_amount")))  if account_currency==self.company_currency else
+                                (flt(tax.tax_amount_after_discount_amount-net_nd, tax.precision("tax_amount_after_discount_amount")))),
+                            "cost_center": tax.cost_center,
+                            # "remarks": "coba Lutfi pajak!"
+                        }, account_currency, item=tax)
+                    )
+                else:
+                    gl_entries.append(
+                        self.get_gl_dict({
+                            "account": tax.account_head,
+                            "against": self.customer,
+                            "credit": (flt(tax.base_tax_amount_after_discount_amount,
+                                tax.precision("tax_amount_after_discount_amount"))),
+                            "credit_in_account_currency": ((flt(tax.base_tax_amount_after_discount_amount,
+                                tax.precision("base_tax_amount_after_discount_amount")))  if account_currency==self.company_currency else
+                                (flt(tax.tax_amount_after_discount_amount-net_nd, tax.precision("tax_amount_after_discount_amount")))),
+                            "cost_center": tax.cost_center,
+                            # "remarks": "coba Lutfi pajak!"
+                        }, account_currency, item=tax)
+                    )
 
                 # gl_entries.append(
                 #   self.get_gl_dict({
@@ -1560,6 +1576,11 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         #   }, self.party_account_currency, item=self)
         # )
 
+        # lebih dari 1 baris
+        total_pajak = self.base_rounded_total - (((self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon)+tot_biaya)
+        # print(((self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon)+tot_biaya," piutang_motor")
+        print(total_pajak, ' total_pajak')
+
         gl_entries.append(
             self.get_gl_dict({
                 "account": self.debit_to,
@@ -1573,8 +1594,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 # "debit_in_account_currency": (self.harga - tot_disc - tot_discl) + self.adj_discount,
                 # "debit": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
                 # "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp,
-                "debit": (self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon,
-                "debit_in_account_currency": (self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon,
+                "debit": ((self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon)+total_pajak,
+                "debit_in_account_currency": ((self.harga + self.adj_discount) - tot_biaya - self.nominal_diskon)+total_pajak,
                 
                 "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
                 "against_voucher_type": self.doctype,
