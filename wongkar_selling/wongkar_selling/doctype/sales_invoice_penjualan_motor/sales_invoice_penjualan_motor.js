@@ -1933,7 +1933,6 @@ var hitung_item_rate = function(frm){
 	if(cur_frm.doc.off_the_road){
 		total_biaya_tanpa_dealer = 0
 	}
-
 	var harga_asli = cur_frm.doc.harga - total_biaya_tanpa_dealer 
 	
    

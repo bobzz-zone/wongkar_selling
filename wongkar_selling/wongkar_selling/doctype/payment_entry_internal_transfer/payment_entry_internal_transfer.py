@@ -77,7 +77,8 @@ class PaymentEntryInternalTransfer(Document):
 				frappe.db.sql(""" UPDATE `tabPayment Entry` set payment_entry_internal_transfer = null where name = '{}' """.format(d['name']),debug=1)
 				doc_pe = frappe.get_doc("Payment Entry",d['name'])
 				if doc_pe.docstatus == 1:
-					doc_pe.ignore_linked_doctypes = ('Payment Entry Internal Transfer')
+					# doc_pe.ignore_linked_doctypes = ('Payment Entry Internal Transfer')
+					doc_pe.ignore_linked_doctypes = ('Payment Entry Internal Transfer',"GL Entry", "Stock Ledger Entry")
 					print(doc_pe.payment_entry_internal_transfer,' payment_entry_internal_transfer')
 					doc_pe.cancel()
 					doc_pe = frappe.get_doc("Payment Entry",d['name'])

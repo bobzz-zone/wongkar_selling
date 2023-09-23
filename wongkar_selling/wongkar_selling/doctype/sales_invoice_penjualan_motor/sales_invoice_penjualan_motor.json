@@ -58,7 +58,7 @@
   "shipping_address",
   "company_address",
   "company_address_display",
-  "customer_detail",
+  "customer_detail_section",
   "no_hp",
   "no_hp_2",
   "no_kk",
@@ -2448,7 +2448,7 @@
    "label": "Foto Gesekan No Rangka"
   },
   {
-   "fieldname": "customer_detail",
+   "fieldname": "customer_detail_section",
    "fieldtype": "Section Break",
    "label": "Customer Detail"
   },
@@ -2486,7 +2486,7 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-22 14:28:05.985198",
+ "modified": "2023-09-22 14:26:38.936214",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

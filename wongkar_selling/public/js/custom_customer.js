@@ -5,13 +5,13 @@ frappe.ui.form.on('Customer', {
   //           sync_document();
   //       });
 
-  cur_frm.set_query("kelurahan_2", function() {
-         return {
-             filters: {
-                "parent": cur_frm.doc.kecamatan2
+      cur_frm.set_query("kelurahan_2", function() {
+             return {
+                 filters: {
+                    "parent": cur_frm.doc.kecamatan2
+                 }
              }
-         }
-    });
+        });
 	},
     nama_kecamatan(frm){
         // cur_frm.set_value("kecamatan2","")
