@@ -20,6 +20,7 @@
   "sales_man",
   "nama_penjualan",
   "bypass_biaya",
+  "off_the_road",
   "from_group",
   "tax_id",
   "pos_profile",
@@ -2411,8 +2412,8 @@
    "fieldname": "coa_bpkb_stnk",
    "fieldtype": "Link",
    "label": "Coa Biaya BPKB & STNK",
-   "options": "Account",
-   "reqd": 1
+   "mandatory_depends_on": "eval:!doc.off_the_road",
+   "options": "Account"
   },
   {
    "default": "0",
@@ -2474,12 +2475,18 @@
    "fieldname": "no_ktp",
    "fieldtype": "Data",
    "label": "No KTP"
+  },
+  {
+   "default": "0",
+   "fieldname": "off_the_road",
+   "fieldtype": "Check",
+   "label": "Off The Road"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-08 15:57:05.535996",
+ "modified": "2023-09-22 11:00:28.961588",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

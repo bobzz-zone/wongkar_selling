@@ -1,13 +1,14 @@
 import frappe
 
 def isi_nosin(self,method):
-	split = self.name.split("--")
-	self.no_rangka = split[1]
-	self.no_mesin = split[0]
-	if self.delivery_document_type == 'Sales Invoice Penjualan Motor':
-		frappe.db.sql(""" UPDATE `tabSerial No` set sales_invoice_penjualan_motor='{}',sales_invoice=Null where name = '{}' """.format(self.delivery_document_no,self.name))
-	frappe.db.sql(""" UPDATE `tabSerial No` set no_rangka='{}',no_mesin = '{}' where name = '{}' """.format(split[1],split[0],self.name))
-	frappe.db.commit()
+	if "--" in self.name:
+		split = self.name.split("--")
+		self.no_rangka = split[1]
+		self.no_mesin = split[0]
+		if self.delivery_document_type == 'Sales Invoice Penjualan Motor':
+			frappe.db.sql(""" UPDATE `tabSerial No` set sales_invoice_penjualan_motor='{}',sales_invoice=Null where name = '{}' """.format(self.delivery_document_no,self.name))
+		frappe.db.sql(""" UPDATE `tabSerial No` set no_rangka='{}',no_mesin = '{}' where name = '{}' """.format(split[1],split[0],self.name))
+		frappe.db.commit()
 
 def rem_sinv(self,method):
 	# frappe.msgprint("s")
@@ -125,12 +126,14 @@ def rem_sinv(self,method):
 		tanggal_beli = data[0]['tanggal_beli']
 
 	if data_blm:
-		if 'BJM' in data_blm[0]['cc_beli']:
-			asal_beli = 'BJM'
-		else:
-			asal_beli = 'IFMI'
+		frappe.msgprint(str(data_blm)+" data_blm")
+		if data_blm[0]['cc_beli']:
+			if 'BJM' in data_blm[0]['cc_beli']:
+				asal_beli = 'BJM'
+			else:
+				asal_beli = 'IFMI'
 
-		tanggal_beli = data_blm[0]['tanggal_beli']
+			tanggal_beli = data_blm[0]['tanggal_beli']
 		
 
 	if data_repack_jual:

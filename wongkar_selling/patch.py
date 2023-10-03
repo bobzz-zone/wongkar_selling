@@ -115,9 +115,12 @@ def isi_warehouse(nomor_do):
 					serial_doc.db_update()
 
 @frappe.whitelist()
-def repair_gl_entry():
-	doctype = "Sales Invoice Penjualan Motor"
-	docname = "ACC-SINVM-2022-02135"
+def repair_gl_sle_entry():
+	# doctype = "Sales Invoice Penjualan Motor"
+	# docname = "ACC-SINVM-2023-00261"
+	doctype = "Purchase Receipt"
+	docname = "MAT-PRE-2023-00073"
+	print(docname)
 	docu = frappe.get_doc(doctype, docname)
 	
 	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(docname))
@@ -131,10 +134,12 @@ def repair_gl_entry():
 	# print("sle", docu.items[0].basic_rate)
 
 	docu.make_gl_entries()
+	docu.repost_future_sle_and_gle()
 	
 	# docu = frappe.get_doc("Stock Entry", docname)
 	# print("accountings", docu.items[0].basic_rate)
 	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
+	frappe.db.commit()
 
 
 @frappe.whitelist()

@@ -4,6 +4,11 @@
 frappe.ui.form.on('Form Pembayaran', {
 	refresh: function(frm) {
 		show_general_ledger();
+		
+		if(cur_frm.doc.docstatus==1){
+			frm.set_df_property("tagihan_payment_table", "cannot_add_rows", true);
+			frm.set_df_property("tagihan_payment_table", "cannot_delete_rows", true);
+		}
 
 		frm.set_query("paid_from", function() {
 			if(cur_frm.doc.customer){

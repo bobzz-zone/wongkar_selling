@@ -39,7 +39,7 @@ frappe.ui.form.on('Pembayaran Tagihan Motor', {
 	},
 	refresh: function(frm){
 		frm.set_df_property("tagihan_biaya_motor", "cannot_add_rows", true);
-		frm.set_df_property("tagihan_biaya_motor", "cannot_delete_rows", true);
+		// frm.set_df_property("tagihan_biaya_motor", "cannot_delete_rows", true);
 		if(cur_frm.doc.__islocal){
 			cur_frm.set_value('supplier_stnk',null)
 			cur_frm.set_value('supplier_bpkb',null)

@@ -34,6 +34,8 @@ class PenerimaanDP(Document):
 			else:
 				self.piutang_motor = self.harga - total_biaya_tanpa_dealer - self.nominal_diskon
 				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
+		if self.off_the_road:
+			self.piutang_bpkb_stnk = 0
 			# frappe.msgprint(str(total_biaya_tanpa_dealer)+" total_biaya_tanpa_dealer")
 
 
@@ -129,6 +131,7 @@ def make_sipm(name_dp):
 		target_doc = frappe.new_doc("Sales Invoice Penjualan Motor")
 		target_doc.pemilik = pemilik
 		target_doc.customer = customer
+		target_doc.off_the_road = data[0].off_the_road
 		target_doc.cara_bayar = data[0].cara_bayar
 		target_doc.territory_real = data[0].territory
 		target_doc.territory_biaya = data[0].territory
