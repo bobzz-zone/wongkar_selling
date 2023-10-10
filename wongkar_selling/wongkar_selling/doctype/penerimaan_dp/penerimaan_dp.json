@@ -269,7 +269,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-09-22 10:46:06.729946",
+=======
+ "modified": "2023-09-22 14:28:57.189767",
+>>>>>>> 602722f90fe1e7e61c57be38263dd65c271affa3
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

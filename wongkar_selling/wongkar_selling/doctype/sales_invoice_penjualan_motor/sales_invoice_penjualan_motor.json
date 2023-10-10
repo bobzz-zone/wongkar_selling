@@ -58,7 +58,7 @@
   "shipping_address",
   "company_address",
   "company_address_display",
-  "customer_detail",
+  "customer_detail_section",
   "no_hp",
   "no_hp_2",
   "no_kk",
@@ -2437,18 +2437,18 @@
   },
   {
    "allow_on_submit": 1,
-   "fieldname": "foto_gesekan_no_rangka",
-   "fieldtype": "Attach Image",
-   "label": "Foto Gesekan No Rangka"
-  },
-  {
-   "allow_on_submit": 1,
    "fieldname": "foto_gesekan",
    "fieldtype": "Attach Image",
    "label": "Foto Gesekan No Mesin"
   },
   {
-   "fieldname": "customer_detail",
+   "allow_on_submit": 1,
+   "fieldname": "foto_gesekan_no_rangka",
+   "fieldtype": "Attach Image",
+   "label": "Foto Gesekan No Rangka"
+  },
+  {
+   "fieldname": "customer_detail_section",
    "fieldtype": "Section Break",
    "label": "Customer Detail"
   },
@@ -2486,7 +2486,11 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-09-22 11:00:28.961588",
+=======
+ "modified": "2023-09-22 14:26:38.936214",
+>>>>>>> 602722f90fe1e7e61c57be38263dd65c271affa3
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
