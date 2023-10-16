@@ -11,8 +11,16 @@ import time
 import datetime
 
 class Rule(Document):
+	def cek_akun(self):
+		if self.coa_receivable:
+			cek = frappe.get_doc("Account",self.coa_receivable).account_type
+
+			if cek == 'Receivable':
+				frappe.throw("Tidak boleh menggunkan akun Receivable ! ")
+
 	def validate(self):
 		# return
+		self.cek_akun()
 		today = date.today()
 		if self.discount:
 			pass
@@ -85,6 +93,7 @@ class Rule(Document):
 
 	def before_insert(self):
 		# return
+		self.cek_akun()
 		cek = frappe.db.sql(""" SELECT * from `tabRule` where item_group = '{0}' and category_discount = '{1}' 
 			and territory = '{2}' and customer = '{3}' 
 			and (valid_to = '{4}' or valid_from= '{4}') 

@@ -76,7 +76,15 @@
    "default": "0",
    "fieldname": "dp_ke_2",
    "fieldtype": "Check",
-   "label": "DP ke 2"
+   "label": "DP ke 2",
+   "no_copy": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "off_the_road",
+   "fieldtype": "Check",
+   "label": "Off The Road",
+   "no_copy": 1
   },
   {
    "fieldname": "section_break_pkua8",
@@ -257,23 +265,14 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "cek_transfer",
+   "no_copy": 1,
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "off_the_road",
-   "fieldtype": "Check",
-   "label": "Off The Road"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-09-22 10:46:06.729946",
-=======
- "modified": "2023-09-22 14:28:57.189767",
->>>>>>> 602722f90fe1e7e61c57be38263dd65c271affa3
+ "modified": "2023-10-10 11:01:02.354377",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

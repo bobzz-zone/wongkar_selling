@@ -57,7 +57,7 @@ def get_data(filters):
 			left join `tabPenerimaan DP` dp on dp.name = je.penerimaan_dp
 			left join `tabList Penerimaan DP` ldp on ldp.penerimaan_dp  = je.penerimaan_dp
 			left join `tabPayment Entry Internal Transfer` peit on peit.name = ldp.parent
-			WHERE sipm.docstatus = 1 AND sipm.cara_bayar = "Credit" AND sipm.posting_date BETWEEN '{}' AND '{}'
+			WHERE sipm.docstatus = 1 AND sipm.cara_bayar = "Credit" AND sipm.posting_date BETWEEN '{}' AND '{}' group by sipm.name
 		 """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
 
 	frappe.msgprint(str(data))

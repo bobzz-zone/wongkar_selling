@@ -8,9 +8,16 @@ import frappe
 from frappe.model.document import Document
 
 class RuleDiscountLeasing(Document):
+	def cek_akun(self):
+		if self.coa:
+			cek = frappe.get_doc("Account",self.coa).account_type
+
+			if cek == 'Receivable':
+				frappe.throw("Tidak boleh menggunkan akun Receivable ! ")
+				
 	def before_insert(self):
 		# pass
-		
+		self.cek_akun()
 		cek	= frappe.db.sql(""" SELECT * from `tabRule Discount Leasing` where item_group = '{0}' and nama_promo = '{1}' 
 			and territory = '{2}' and leasing = '{3}' 
 			and (valid_to = '{4}' or valid_from = '{4}')
@@ -44,7 +51,7 @@ class RuleDiscountLeasing(Document):
 
 	def validate(self):
 		# return
-		
+		self.cek_akun()
 		# item_code
 		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,
 		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")

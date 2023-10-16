@@ -29,6 +29,21 @@ class FormPembayaran(Document):
 		self.calcutale_outstanding()
 		self.calculate_advance_leasing()
 
+	def validate(self):
+		self.hitung_total()
+
+	# def onload(self):
+	# 	if self.total == 0 and self.docstatus == 1:
+	# 		self.hitung_total()
+	# 		self.db_set("total",self.total)
+	# 		frappe.db.commit()
+
+	def hitung_total(self):
+		total = 0
+		for i in self.tagihan_payment_table:
+			total += i.nilai
+		self.total = total
+		
 	def add_tanggalcair(self):
 		if self.type == 'Pembayaran Tagihan Leasing':
 			for i in self.tagihan_payment_table:

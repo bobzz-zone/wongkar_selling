@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2023-08-07 15:24:41.200209",
@@ -26,6 +27,7 @@
   "get_data",
   "section_break_z1lhq",
   "tagihan_payment_table",
+  "total",
   "amended_from",
   "company",
   "cek_transfer"
@@ -174,12 +176,19 @@
    "hidden": 1,
    "label": "cek_transfer",
    "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-28 09:34:41.655983",
+ "modified": "2023-10-11 09:18:09.713833",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",
