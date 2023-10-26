@@ -28,6 +28,7 @@ from erpnext.stock.doctype.serial_no.serial_no import (
     get_serial_nos,
     update_serial_nos_after_submit,
 )
+from frappe import _, scrub, ValidationError
 
 # from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
 from wongkar_selling.custom_standard.custom_taxes_and_total import calculate_taxes_and_totals_custom
@@ -243,12 +244,28 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                 frappe.throw("Masukkan Nilai adjusment otr tanpa biya bpkb dan stnk !!!")
 
     # @frappe.whitelist()
+    def cek_advance(self):
+        if self.advances:
+            if len(self.advances) <= 0:
+                frappe.throw("Advance Belum Ada !")
+            else:
+                if self.nama_promo:
+                    for i in self.advances:
+                        cek = frappe.get_doc("Journal Entry",i.reference_name).penerimaan_dp
+                        cek_promo = frappe.get_doc("Penerimaan DP",cek)
+                        if not cek_promo.dp_ke_2:
+                            if self.nama_promo != cek_promo.nama_promo:
+                                frappe.throw(_(' Nama Promo tidak sama di {0} !').format(frappe.utils.get_link_to_form('Penerimaan DP', cek_promo.name)))
+        else:
+            frappe.throw("Advance Belum Ada !")
+
     def validate(self):
         # frappe.msgprint('sads')
         self.cek_no_po_leasing()
         self.cek_rdl()
         self.cek_rule()
         self.cek_off()
+        self.cek_advance()
 
         if self.no_rangka != self.items[0].serial_no:
             frappe.throw("No rangka tidak sama dengan item !")

@@ -32,10 +32,10 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 	},
 	refresh: function(frm){
 		show_general_ledger();
-
-		if(cur_frm.doc.__islocal){
-			cur_frm.set_value('customer',null)
-		}
+		frm.set_df_property("daftar_tagihan_leasing", "cannot_add_rows", true);
+		// if(cur_frm.doc.__islocal){
+		// 	cur_frm.set_value('customer',null)
+		// }
 		
 		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
 			cur_frm.add_custom_button(__('Payment Tagihan Discount'),

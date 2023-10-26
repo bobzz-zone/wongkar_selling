@@ -1450,7 +1450,7 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		};
 		cur_frm.refresh_fields("taxes");
 		cur_frm.add_fetch('pemilik',  'territory',  'territory_real');
-		cur_frm.add_fetch('pemilik',  'territory',  'territory_biaya');
+		cur_frm.add_fetch('pemilik',  'territory_ktp',  'territory_biaya');
 		// frappe.msgprint("test 123")
 		cur_frm.set_query("no_rangka", function() {
 			var wh = ''

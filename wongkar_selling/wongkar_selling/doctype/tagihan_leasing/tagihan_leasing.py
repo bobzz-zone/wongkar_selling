@@ -262,6 +262,13 @@ class TagihanLeasing(Document):
 		self.set_status()
 		self.validasi_get()
 
+	def cek_amend(self):
+		if self.amended_from:
+			if self.list_tagihan_piutang_leasing:
+				if len(self.list_tagihan_piutang_leasing) > 0:
+					for i in self.list_tagihan_piutang_leasing:
+						pass
+
 	def validasi_get(self):
 		for i in self.list_tagihan_piutang_leasing:
 			cek = frappe.db.sql(""" SELECT a.name,b.no_invoice from `tabTagihan Leasing` a 

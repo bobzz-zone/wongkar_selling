@@ -133,7 +133,7 @@ def make_sipm(name_dp):
 		target_doc.customer = customer
 		target_doc.off_the_road = data[0].off_the_road
 		target_doc.cara_bayar = data[0].cara_bayar
-		target_doc.territory_real = data[0].territory
+		target_doc.territory_real = frappe.get_doc("Customer",pemilik).territory
 		target_doc.territory_biaya = data[0].territory
 		target_doc.debit_to = data[0].debit_to
 		target_doc.item_code = data[0].item_code

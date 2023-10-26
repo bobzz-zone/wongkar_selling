@@ -866,3 +866,35 @@ def patch_rdl2():
 		print(i, " --Done")
 		conter = conter + 1
 		
+
+
+@frappe.whitelist()
+def patch_coa():
+	rule = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,td.`name` AS td_name,td.`rule` AS td_rule,td.`coa_receivable`
+		FROM `tabSales Invoice Penjualan Motor` sipm
+		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.`name`
+		WHERE sipm.`docstatus` < 2 AND td.`rule` IS NOT NULL
+		ORDER BY sipm.`name` DESC """,as_dict=1)
+
+	rdl = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,tdl.name AS tdl_name,tdl.`rule` AS tdl_rule,tdl.coa
+		FROM `tabSales Invoice Penjualan Motor` sipm
+		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.`parent` = sipm.`name`
+		WHERE sipm.`docstatus` < 2 AND tdl.`rule` IS NOT NULL
+		ORDER BY sipm.`name` DESC """,as_dict=1)
+
+	# rule
+	for i in rule:
+		coa = frappe.get_doc("Rule",i['td_rule']).coa_receivable
+		if i['coa_receivable'] != coa:
+			print(i['name']," | ",coa)
+			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable = '{}' where name = '{}' """.format(coa,i['td_name']))
+			frappe.db.commit()
+
+	# rdl
+	for i in rdl:
+		coa = frappe.get_doc("Rule Discount Leasing",i['tdl_rule']).coa
+		if i['coa'] != coa:
+			print(i['name']," | ",coa)
+			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa = '{}' where name = '{}' """.format(coa,i['tdl_name']))
+			frappe.db.commit()
+

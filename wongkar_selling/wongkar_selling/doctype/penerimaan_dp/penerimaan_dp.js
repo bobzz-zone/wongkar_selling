@@ -163,6 +163,9 @@ frappe.ui.form.on('Penerimaan DP', {
 	dp_ke_2(frm){
 		if(cur_frm.doc.dp_ke_2){
 			frappe.msgprint("Lakukan Perhitungan Secara Manual !!!")
+		}else{
+			cur_frm.set_value("nominal_diskon",0)
+			cur_frm.refresh_fields("nominal_diskon")
 		}
 	},
 	cara_bayar(frm){

@@ -65,8 +65,8 @@ def get_invd_l(customer,date_from,date_to):
 	# 	and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,
 		sinv.item_code,
-		IF(sn.pemilik or sn.pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`pemilik`) as pemilik,
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`nama_pemilik`) as nama_pemilik,
+		IF(sn.pemilik AND (sn.pemilik IS NOT NULL OR sn.pemilik !=""),sn.`pemilik`,sinv.`pemilik`) AS pemilik,
+		IF(sn.nama_pemilik AND (sn.nama_pemilik IS NOT NULL OR sn.nama_pemilik !=""),sn.`nama_pemilik`,sinv.`nama_pemilik`) AS nama_pemilik,
 		tdl.nama_leasing,
 		sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 
@@ -92,8 +92,8 @@ def get_piutang_leasing(customer,date_from,date_to):
 	# 	and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	data = frappe.db.sql(""" SELECT sinv.name,sinv.posting_date,sinv.no_rangka,sinv.nama_promo,
 		sinv.item_code,
-		IF(sn.pemilik or sn.pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`pemilik`) as pemilik,
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.pemilik !="",sn.`pemilik`,sinv.`nama_pemilik`) as nama_pemilik,
+		IF(sn.pemilik AND (sn.pemilik IS NOT NULL OR sn.pemilik !=""),sn.`pemilik`,sinv.`pemilik`) AS pemilik,
+		IF(sn.nama_pemilik AND (sn.nama_pemilik IS NOT NULL OR sn.nama_pemilik !=""),sn.`nama_pemilik`,sinv.`nama_pemilik`) AS nama_pemilik,
 		tdl.nama_leasing,
 		sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 

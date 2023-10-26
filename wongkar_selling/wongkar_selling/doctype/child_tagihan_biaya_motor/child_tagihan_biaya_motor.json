@@ -27,25 +27,29 @@
    "fieldname": "no_invoice",
    "fieldtype": "Link",
    "label": "No Invoice",
-   "options": "Sales Invoice Penjualan Motor"
+   "options": "Sales Invoice Penjualan Motor",
+   "read_only": 1
   },
   {
    "fieldname": "tanggal_inv",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Tanggal Inv"
+   "label": "Tanggal Inv",
+   "read_only": 1
   },
   {
    "fieldname": "no_rangka",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "No Rangka",
-   "options": "Serial No"
+   "options": "Serial No",
+   "read_only": 1
   },
   {
    "fieldname": "type",
    "fieldtype": "Data",
-   "label": "Type"
+   "label": "Type",
+   "read_only": 1
   },
   {
    "depends_on": "eval:parent.type == \"Diskon Dealer\"",
@@ -66,14 +70,16 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Item",
-   "options": "Item"
+   "options": "Item",
+   "read_only": 1
   },
   {
    "fieldname": "pemilik",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Pemilik",
-   "options": "Customer"
+   "options": "Customer",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_6",
@@ -120,13 +126,14 @@
    "fieldname": "nama_pemilik",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Nama Pemilik"
+   "label": "Nama Pemilik",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-03 09:04:57.581564",
+ "modified": "2023-10-20 09:47:38.739868",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Child Tagihan Biaya Motor",

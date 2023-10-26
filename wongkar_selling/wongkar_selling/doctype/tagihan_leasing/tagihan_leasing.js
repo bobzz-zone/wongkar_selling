@@ -4,6 +4,7 @@
 frappe.ui.form.on('Tagihan Leasing', {
 	refresh: function(frm) {
 		show_general_ledger();
+		frm.set_df_property("list_tagihan_piutang_leasing", "cannot_add_rows", true);
 		frm.set_query("coa_lawan", function() {
 			return {
 				filters: {
@@ -23,55 +24,15 @@ frappe.ui.form.on('Tagihan Leasing', {
 			
 		}
 
-		if(cur_frm.doc.__islocal){
-			cur_frm.set_value("customer",null)
-		}
+		// if(cur_frm.doc.__islocal){
+		// 	cur_frm.set_value("customer",null)
+		// }
 	},
 	customer(frm){
-		if(cur_frm.doc.customer){
-	    	frappe.call({
-	             method: "wongkar_selling.wongkar_selling.get_invoice.get_piutang_leasing",
-	             args: {
-	                //leasing: cur_frm.doc.leasing,
-	                customer: cur_frm.doc.customer,
-	                date_from: cur_frm.doc.date_from,
-	                date_to: cur_frm.doc.date_to
-	             },
-	             callback: function(data) {
-	             	console.log(data,"data")
-						cur_frm.clear_table("list_tagihan_piutang_leasing");
-			        	cur_frm.refresh_fields("list_tagihan_piutang_leasing");
-						for (let i = 0; i < data.message.length; i++) {
-							//console.log(data)
-							var child = cur_frm.add_child("list_tagihan_piutang_leasing");
-							frappe.model.set_value(child.doctype, child.name, "no_invoice", data.message[i].name);
-							frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
-							frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
-							frappe.model.set_value(child.doctype, child.name, "nama_promo", data.message[i].nama_promo);
-							// frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].total_discoun_leasing);
-							// frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].total_discoun_leasing);
-							// frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
-							// frappe.model.set_value(child.doctype, child.name, "outstanding_discount", data.message[i].nominal);
-							frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
-							frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
-							frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
-							frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik); 
-							frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);       
-						}
-						cur_frm.refresh_field("list_tagihan_piutang_leasing");
-		         }
-	        });
-	    }
-	    if(!cur_frm.doc.customer){
-			cur_frm.clear_table("list_tagihan_piutang_leasing");
-			//frm.set_value("name_leasing",""); 
-			//frm.set_value("customer",""); 
-	    	//frm.set_value("nama_promo","");
-	    	//frm.set_value("territory","");
-	        cur_frm.refresh_fields("list_tagihan_piutang_leasing");
-	    }
+		add_table()
 	},
 	validate: function(frm) {
+		// add_table()
 		let total = 0
 		let total_sipm = 0
 		if(cur_frm.doc.list_tagihan_piutang_leasing){
@@ -127,4 +88,45 @@ var make_payment_entry= async function() {
 			// cur_frm.refresh_fields()
 		}
 	});
+}
+
+var add_table =  function(){
+	if(cur_frm.doc.customer){
+    	frappe.call({
+             method: "wongkar_selling.wongkar_selling.get_invoice.get_piutang_leasing",
+             args: {
+                //leasing: cur_frm.doc.leasing,
+                customer: cur_frm.doc.customer,
+                date_from: cur_frm.doc.date_from,
+                date_to: cur_frm.doc.date_to
+             },
+             callback: function(data) {
+             	console.log(data,"data")
+					cur_frm.clear_table("list_tagihan_piutang_leasing");
+		        	cur_frm.refresh_fields("list_tagihan_piutang_leasing");
+					for (let i = 0; i < data.message.length; i++) {
+						//console.log(data)
+						var child = cur_frm.add_child("list_tagihan_piutang_leasing");
+						frappe.model.set_value(child.doctype, child.name, "no_invoice", data.message[i].name);
+						frappe.model.set_value(child.doctype, child.name, "tanggal_inv", data.message[i].posting_date);
+						frappe.model.set_value(child.doctype, child.name, "no_rangka", data.message[i].no_rangka);
+						frappe.model.set_value(child.doctype, child.name, "nama_promo", data.message[i].nama_promo);
+						// frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].total_discoun_leasing);
+						// frappe.model.set_value(child.doctype, child.name, "terbayarkan", data.message[i].total_discoun_leasing);
+						// frappe.model.set_value(child.doctype, child.name, "nilai", data.message[i].nominal);
+						// frappe.model.set_value(child.doctype, child.name, "outstanding_discount", data.message[i].nominal);
+						frappe.model.set_value(child.doctype, child.name, "tagihan_sipm", data.message[i].outstanding_amount);
+						frappe.model.set_value(child.doctype, child.name, "outstanding_sipm", data.message[i].outstanding_amount);
+						frappe.model.set_value(child.doctype, child.name, "item", data.message[i].item_code);
+						frappe.model.set_value(child.doctype, child.name, "pemilik", data.message[i].pemilik); 
+						frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);       
+					}
+					cur_frm.refresh_field("list_tagihan_piutang_leasing");
+	         }
+        });
+    }
+    if(!cur_frm.doc.customer){
+		cur_frm.clear_table("list_tagihan_piutang_leasing");
+		cur_frm.refresh_fields("list_tagihan_piutang_leasing");
+    }
 }

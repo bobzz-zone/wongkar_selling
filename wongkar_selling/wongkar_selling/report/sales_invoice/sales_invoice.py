@@ -29,8 +29,8 @@ def get_data(filters):
 				sle2.name,
 				se.`purpose`,
 				IF(sle.name IS NOT NULL,sle.`warehouse`,sle2.`warehouse`)  AS cabasal_unit,
-				w2.parent_warehouse AS cabid_jual,
-				w.parent_warehouse AS cab_area_jual,
+				cc2.parent_cost_center AS cabid_jual,
+				cc.parent_cost_center AS cab_area_jual,
 				sipm.`cost_center` AS namaarea,
 				sipm.`posting_date` AS tanggaljual,
 				sipm.`nama_pemilik` AS nama_pemilik,
@@ -97,7 +97,7 @@ def get_data(filters):
 			JOIN `tabCustomer` c ON c.name = sipm.`pemilik`
 			JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
 			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name AND td.customer = 'AHM'
-			LEFT JOIN `tabTable Discount` td2 ON td2.`parent` = sipm.name AND td2.customer = 'Anugerah Perdana'
+			LEFT JOIN `tabTable Discount` td2 ON td2.`parent` = sipm.name AND td2.customer = 'MD'
 			LEFT JOIN `tabTable Discount` td3 ON td3.`parent` = sipm.name AND td3.customer = 'Dealer'
 			LEFT JOIN `tabList Tagihan Piutang Leasing` ltpl ON ltpl.docstatus = 1 AND ltpl.no_invoice = sipm.name
 			LEFT JOIN `tabDaftar Tagihan Leasing` dtl ON dtl.docstatus = 1 AND dtl.no_invoice = sipm.name
@@ -106,8 +106,10 @@ def get_data(filters):
 			LEFT JOIN `tabWarehouse` w ON w.name = sipm.`set_warehouse`
 			LEFT JOIN `tabWarehouse` w2 ON w2.name = w.parent_warehouse
 			LEFT JOIN `tabStock Ledger Entry` sle ON sle.voucher_type = "Purchase Receipt" AND  sle.serial_no LIKE CONCAT("%",sn.name,"%")
-			LEFT JOIN `tabStock Ledger Entry` sle2 ON sle2.voucher_type = "Stock Entry" AND sle2.serial_no = sn.`name`
+			LEFT JOIN `tabStock Ledger Entry` sle2 ON sle2.voucher_type = "Stock Entry" AND sle2.serial_no LIKE CONCAT("%",sn.name,"%")
 			LEFT JOIN `tabStock Entry` se ON se.`name` = sle2.`voucher_no` AND se.`purpose` = 'Material Receipt'
+			LEFT JOIN `tabCost Center` cc on cc.name = sipm.cost_center
+			LEFT JOIN `tabCost Center` cc2 on cc2.name = cc.parent_cost_center
 			WHERE sipm.docstatus = 1 
 			AND sipm.posting_date BETWEEN '{}' AND '{}'
 			GROUP BY sipm.name ORDER BY sipm.posting_date ASC 
