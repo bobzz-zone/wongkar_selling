@@ -29,12 +29,17 @@ def get_data(filters):
 			SUBSTRING_INDEX(sn.item_code," - ", 1) AS type,
 			i.`warna`,
 			i.`tahun_rakitan` AS tahun,
-			sle.`valuation_rate` AS hpp,
-			prec.`posting_date` AS tanggal
-			FROM `tabStock Ledger Entry` sle
+			pri.`rate` AS hpp,
+			prec.`posting_date` AS tanggal,
+			pii.`parent`,
+			pinv.`bill_no` as no_invoice
+		FROM `tabStock Ledger Entry` sle
 		JOIN `tabPurchase Receipt` prec ON prec.name = sle.voucher_no
+		JOIN `tabPurchase Receipt Item` pri ON prec.name = pri.parent
 		JOIN `tabSerial No` sn ON sle.serial_no LIKE CONCAT("%",sn.name,"%")
-		JOIN `tabItem` i ON i.`name` = sn.`item_code` 
+		JOIN `tabItem` i ON i.`name` = sn.`item_code`
+		LEFT JOIN `tabPurchase Invoice Item` pii ON pii.`po_detail` = pri.`purchase_order_item`
+		LEFT JOIN `tabPurchase Invoice` pinv ON pinv.`name` = pii.`parent` 
 		WHERE prec.docstatus = 1 AND prec.`posting_date` BETWEEN '{}' AND '{}' 
 		ORDER BY prec.`posting_date` ASC
 		""".format(filters.get('from_date'),filters.get('to_date')),as_dict=1)
@@ -54,6 +59,12 @@ def get_columns(filters):
 			"fieldname": "supplier",
 			"fieldtype": "Link",
 			"options": "Supplier",
+			"width": 100
+		},
+		{
+			"label": _("No Invoice"),
+			"fieldname": "no_invoice",
+			"fieldtype": "Data",
 			"width": 100
 		},
 		{

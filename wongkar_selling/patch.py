@@ -870,17 +870,17 @@ def patch_rdl2():
 
 @frappe.whitelist()
 def patch_coa():
-	rule = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,td.`name` AS td_name,td.`rule` AS td_rule,td.`coa_receivable`
+	rule = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,td.`name` AS td_name,td.`rule` AS td_rule,td.`coa_receivable`, r.`coa_receivable` AS r_coa
 		FROM `tabSales Invoice Penjualan Motor` sipm
 		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.`name`
-		WHERE sipm.`docstatus` < 2 AND td.`rule` IS NOT NULL
-		ORDER BY sipm.`name` DESC """,as_dict=1)
+		LEFT JOIN `tabRule` r ON r.`name` = td.`rule`
+		WHERE sipm.`docstatus` < 2 AND td.`rule` IS NOT NULL ORDER BY sipm.`name` DESC """,as_dict=1)
 
-	rdl = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,tdl.name AS tdl_name,tdl.`rule` AS tdl_rule,tdl.coa
+	rdl = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,tdl.name AS tdl_name,tdl.`rule` AS tdl_rule,tdl.coa,rdl.`coa` AS rdl_coa
 		FROM `tabSales Invoice Penjualan Motor` sipm
 		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.`parent` = sipm.`name`
-		WHERE sipm.`docstatus` < 2 AND tdl.`rule` IS NOT NULL
-		ORDER BY sipm.`name` DESC """,as_dict=1)
+		LEFT JOIN `tabRule Discount Leasing` rdl ON rdl.`name` = tdl.`rule`
+		WHERE sipm.`docstatus` < 2 AND tdl.`rule` IS NOT NULL ORDER BY sipm.`name` DESC  """,as_dict=1)
 
 	# rule
 	for i in rule:
