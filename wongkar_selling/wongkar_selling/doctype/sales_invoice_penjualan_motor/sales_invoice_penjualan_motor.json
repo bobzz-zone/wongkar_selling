@@ -2486,11 +2486,7 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-09-22 11:00:28.961588",
-=======
  "modified": "2023-09-22 14:26:38.936214",
->>>>>>> 602722f90fe1e7e61c57be38263dd65c271affa3
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
