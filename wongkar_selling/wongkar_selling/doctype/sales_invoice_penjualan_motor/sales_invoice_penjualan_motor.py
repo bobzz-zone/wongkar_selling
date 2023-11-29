@@ -265,7 +265,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         self.cek_rdl()
         self.cek_rule()
         self.cek_off()
-        self.cek_advance()
+        # self.cek_advance()
 
         if self.no_rangka != self.items[0].serial_no:
             frappe.throw("No rangka tidak sama dengan item !")
@@ -718,7 +718,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     def on_submit(self):
         self.add_pemilik()
-
+        self.cek_advance()
         self.validate_pos_paid_amount()
 
         if not self.auto_repeat:
