@@ -271,7 +271,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             frappe.throw("No rangka tidak sama dengan item !")
         #validate rule biaya harus ada 3
         if not self.bypass_biaya:
-            if len(self.tabel_biaya_motor)<=2:
+            if len(self.tabel_biaya_motor)<=1:
                 frappe.throw("Error ada biaya yang belum di set")
 
         # super(SalesInvoice, self).validate()
