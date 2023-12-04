@@ -245,7 +245,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     # @frappe.whitelist()
     def cek_advance(self):
-        if self.advances:
+        if self.antar_entitas == 1:
+            pass
+        elif self.advances:
             if len(self.advances) <= 0:
                 frappe.throw("Advance Belum Ada !")
             else:

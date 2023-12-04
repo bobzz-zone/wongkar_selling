@@ -101,6 +101,10 @@ doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_mo
 # ---------------
 # Override standard doctype classes
 
+override_doctype_class = {
+	"GL Entry": "wongkar_selling.custom_standard.custom_gl_entry.custom_advance"
+}
+
 # override_doctype_class = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
