@@ -38,11 +38,16 @@ def update_outstanding_amt_custom(
 	if against_voucher_type in ["Sales Invoice","Sales Invoice Penjualan Motor"]:
 		# frappe.msgprint("aaaaa")
 		party_account = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to")
-		account_bpkb_stnk = frappe.db.get_value(against_voucher_type, against_voucher, "coa_bpkb_stnk")
-		
-		account_condition = "and account in ({0}, {1},{2})".format(
-			frappe.db.escape(account), frappe.db.escape(party_account), frappe.db.escape(account_bpkb_stnk)
-		)
+		if against_voucher_type == "Sales Invoice Penjualan Motor":
+			account_bpkb_stnk = frappe.db.get_value(against_voucher_type, against_voucher, "coa_bpkb_stnk")
+			
+			account_condition = "and account in ({0}, {1},{2})".format(
+				frappe.db.escape(account), frappe.db.escape(party_account), frappe.db.escape(account_bpkb_stnk)
+			)
+		else:
+			account_condition = "and account in ({0}, {1})".format(
+				frappe.db.escape(account), frappe.db.escape(party_account)
+			)
 	else:
 		account_condition = " and account = {0}".format(frappe.db.escape(account))
 
