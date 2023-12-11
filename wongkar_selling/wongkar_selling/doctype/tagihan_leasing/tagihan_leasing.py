@@ -16,14 +16,13 @@ class TagihanLeasing(Document):
 		# frappe.throw("Submitted")
 		self.add_tagihan()
 		self.make_gl_entries()
-		# for i in self.list_tagihan_piutang_leasing:
-		# 	# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
-		# 	doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
-		# 	doc.tertagih = 1
-		# 	doc.outstanding_amount = doc.outstanding_amount - i.tagihan_sipm
-		# 	doc.db_update()
-		# 	# frappe.db.commit()
-		# 	# frappe.msgprint('Berhasil !')
+		for i in self.list_tagihan_piutang_leasing:
+			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
+			doc.tertagih = 1
+			doc.db_update()
+			frappe.db.commit()
+			# frappe.msgprint('Berhasil !')
 		self.set_status()
 		
 
@@ -246,13 +245,12 @@ class TagihanLeasing(Document):
 		self.make_gl_entries(cancel=1)
 		data = frappe.db.get_list('List Tagihan Piutang Leasing',filters={'parent': self.name},fields=['*'])
 		# sudah update di gl entry
-		# for i in self.list_tagihan_piutang_leasing:
-		# 	# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
-		# 	doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
-		# 	doc.tertagih = 0
-		# 	doc.outstanding_amount = doc.outstanding_amount + i.tagihan_sipm
-		# 	doc.db_update()
-		# 	frappe.db.commit()
+		for i in self.list_tagihan_piutang_leasing:
+			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
+			doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
+			doc.tertagih = 0
+			doc.db_update()
+			frappe.db.commit()
 
 		# 	# frappe.msgprint('Berhasil update !')
 		self.set_status()
