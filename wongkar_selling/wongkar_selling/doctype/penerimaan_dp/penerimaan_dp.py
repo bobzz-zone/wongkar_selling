@@ -31,8 +31,11 @@ class PenerimaanDP(Document):
 			if self.paid_amount < self.harga - total_biaya_tanpa_dealer:
 				self.piutang_motor = self.paid_amount
 				self.piutang_bpkb_stnk = 0
-			elif self.paid_amount > self.harga - total_biaya_tanpa_dealer:
+			elif self.paid_amount > self.harga - total_biaya_tanpa_dealer and not self.off_the_road:
 				self.piutang_motor = self.paid_amount - total_biaya_tanpa_dealer
+				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
+			elif self.paid_amount > self.harga - total_biaya_tanpa_dealer and self.off_the_road:
+				self.piutang_motor = (self.harga - total_biaya_tanpa_dealer) - self.nominal_diskon
 				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
 			elif self.paid_amount == self.harga - total_biaya_tanpa_dealer:
 				self.piutang_motor = self.harga - total_biaya_tanpa_dealer - self.nominal_diskon
