@@ -58,6 +58,16 @@ class PenerimaanDP(Document):
 			else:
 				doc.delete()
 
+	def before_cancel(self):
+		data = frappe.db.sql(""" SELECT name,docstatus from `tabJournal Entry` where penerimaan_dp = '{}' """.format(self.name),as_dict=1)
+		for i in data:
+			if i.docstatus == 1:
+				cek_sipm = frappe.db.sql(""" SELECT sipm.name from `tabSales Invoice Penjualan Motor` sipm 
+					join `tabSales Invoice Advance` a on a.parent = sipm.name where a.reference_name = '{}' and sipm.docstatus = 1 """.format(i['name']),as_dict=1)
+				if cek_sipm:
+					frappe.throw("Masih di pakai di sipm "+ cek_sipm[0]['name']+" !")
+		# frappe.throw("wkwkwk")
+
 	def on_trash(self):
 		data = frappe.db.sql(""" SELECT name,docstatus from `tabJournal Entry` where penerimaan_dp = '{}' """.format(self.name),as_dict=1)
 		for i in data:
