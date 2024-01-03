@@ -23,6 +23,7 @@
   "off_the_road",
   "antar_entitas",
   "from_group",
+  "faktur_pajak",
   "tax_id",
   "pos_profile",
   "is_pos",
@@ -2490,12 +2491,18 @@
    "fieldname": "customer_detail_section",
    "fieldtype": "Section Break",
    "label": "Customer Detail"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "faktur_pajak",
+   "fieldtype": "Data",
+   "label": "Faktur Pajak"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-01 10:43:59.813137",
+ "modified": "2024-01-03 11:27:32.738613",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

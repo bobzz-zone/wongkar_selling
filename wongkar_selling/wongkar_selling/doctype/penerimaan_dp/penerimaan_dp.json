@@ -74,6 +74,7 @@
   },
   {
    "default": "0",
+   "description": "Jika nominal DP ke 2 lebih besar dari DP ke 1, maka piutang motor harus diisi manual untuk mengurangi biaya BPKB & STNK (Paid amount - BPKB STNK)",
    "fieldname": "dp_ke_2",
    "fieldtype": "Check",
    "label": "DP ke 2",
@@ -215,6 +216,7 @@
   },
   {
    "default": "0",
+   "description": "Jika nominal DP ke 2 lebih besar dari DP ke 1, maka piutang motor harus diisi manual untuk mengurangi biaya BPKB & STNK (Paid amount - BPKB STNK)",
    "fieldname": "piutang_motor",
    "fieldtype": "Currency",
    "label": "Piutang Motor"
@@ -274,7 +276,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-26 14:00:32.490038",
+ "modified": "2023-12-14 09:50:31.876048",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",
@@ -294,5 +296,6 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "track_changes": 1
 }
