@@ -21,7 +21,7 @@ def execute(filters=None):
 		company=filters.company,
 	)
 	filters40=filters
-	filters40["account_like"]="40.%"
+	filters40["account_like"]="4%"
 	acc40 = get_data(
 		filters.company,
 		"Income",
@@ -34,7 +34,7 @@ def execute(filters=None):
 		enable_total=False
 	)
 	filters50=filters
-	filters50["account_like"]="50.%"
+	filters50["account_like"]="5%"
 	acc50 = get_data(
 		filters.company,
 		"Expense",
@@ -48,11 +48,11 @@ def execute(filters=None):
 	)
 
 	filters60=filters
-	filters60["account_like"]="60.%"
+	filters60["account_like"]="6%"
 	acc60 = get_data(
 		filters.company,
-		"Expense",
-		"Debit",
+		"Income",
+		"Credit",
 		period_list,
 		filters=filters60,
 		accumulated_values=filters.accumulated_values,
@@ -62,11 +62,11 @@ def execute(filters=None):
 	)
 
 	filters70=filters
-	filters70["account_like"]="70.%"
+	filters70["account_like"]="7%"
 	acc70 = get_data(
 		filters.company,
-		"Income",
-		"Credit",
+		"Expense",
+		"Debit",
 		period_list,
 		filters=filters70,
 		accumulated_values=filters.accumulated_values,
@@ -75,56 +75,11 @@ def execute(filters=None):
 		enable_total=False
 	)
 
-	filters80=filters
-	filters80["account_like"]="80.%"
-	acc80 = get_data(
-		filters.company,
-		"Expense",
-		"Debit",
-		period_list,
-		filters=filters80,
-		accumulated_values=filters.accumulated_values,
-		ignore_closing_entries=True,
-		ignore_accumulated_values_for_fy=True,
-		enable_total=False
-	)
-	filters90=filters
-	filters90["account_like"]="90.%"
-	acc90 = get_data(
-		filters.company,
-		"Expense",
-		"Debit",
-		period_list,
-		filters=filters90,
-		accumulated_values=filters.accumulated_values,
-		ignore_closing_entries=True,
-		ignore_accumulated_values_for_fy=True,
-		enable_total=False
-	)
-	filters99=filters
-	filters99["account_like"]="99.%"
-	acc99 = get_data(
-		filters.company,
-		"Expense",
-		"Debit",
-		period_list,
-		filters=filters99,
-		accumulated_values=filters.accumulated_values,
-		ignore_closing_entries=True,
-		ignore_accumulated_values_for_fy=True,
-		enable_total=False
-	)
 	laba_kotor = get_net_profit_loss(
 		[acc40], [acc50], period_list, filters.company, filters.presentation_currency,title="Laba Kotor"
 	)
-	laba_operasional = get_net_profit_loss(
-		[acc40], [acc50,acc60], period_list, filters.company, filters.presentation_currency,title="Laba Operasional"
-	)
-	laba_sebelum_pajak = get_net_profit_loss(
-		[acc40,acc70], [acc50,acc60,acc80], period_list, filters.company, filters.presentation_currency,title="Laba Sebelum Pajak"
-	)
 	laba_bersih = get_net_profit_loss(
-		[acc40,acc70], [acc50,acc60,acc80,acc99], period_list, filters.company, filters.presentation_currency,title="Laba Bersih"
+		[acc40,acc60], [acc50,acc70], period_list, filters.company, filters.presentation_currency,title="Laba Bersih"
 	)
 	# net_profit_loss = get_net_profit_loss(
 	# 	[acc40,acc70], [acc50,acc60,acc80,acc90,acc99], period_list, filters.company, filters.presentation_currency
@@ -136,16 +91,9 @@ def execute(filters=None):
 	data.append(laba_kotor)
 	data.append({})
 	data.extend(acc60 or [])
-	data.append(laba_operasional)
-	data.append({})
 	data.extend(acc70 or [])
-	data.extend(acc80 or [])
-	data.append(laba_sebelum_pajak)
 	data.append({})
-	data.extend(acc99 or [])
 	data.append(laba_bersih)
-	data.append({})
-	data.extend(acc90 or [])
 	# if net_profit_loss:
 	# 	data.append(net_profit_loss)
 
