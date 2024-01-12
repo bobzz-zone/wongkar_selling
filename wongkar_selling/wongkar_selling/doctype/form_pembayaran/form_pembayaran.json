@@ -43,14 +43,14 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB"
+   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi"
   },
   {
-   "depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\"], doc.type)",
+   "depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\",\"Pembayaran Invoice Garansi\"], doc.type)",
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "mandatory_depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\"], doc.type)",
+   "mandatory_depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\",\"Pembayaran Invoice Garansi\"], doc.type)",
    "options": "Customer"
   },
   {
@@ -188,7 +188,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-10-11 09:18:09.713833",
+ "modified": "2024-01-10 10:33:56.835027",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",

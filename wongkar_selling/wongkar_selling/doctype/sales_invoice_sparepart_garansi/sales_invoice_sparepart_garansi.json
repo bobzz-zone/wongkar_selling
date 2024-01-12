@@ -1,0 +1,462 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2024-01-08 13:47:05.388189",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "customer_name",
+  "column_break_m9lip",
+  "company",
+  "posting_date",
+  "posting_time",
+  "currency_and_price_list_section",
+  "cost_center",
+  "currency",
+  "conversion_rate",
+  "column_break_yx2x0",
+  "selling_price_list",
+  "price_list_currency",
+  "plc_conversion_rate",
+  "detail_kendaraan_section",
+  "motor_dari_dealer_sendiri",
+  "no_rangka_mesin",
+  "no_rangka_manual_atau_lama",
+  "no_mesin",
+  "id_mekanik",
+  "nama_mekanik",
+  "jam_masuk_service",
+  "jam_selesai_service",
+  "column_break_djirv",
+  "nama_stnk",
+  "nama_pembawa",
+  "type_motor",
+  "km",
+  "tahun_motor",
+  "nomor_plat",
+  "keluhan_motor",
+  "media_social",
+  "email",
+  "booking_service",
+  "jenis_service",
+  "type_kpb",
+  "column_break_s6hno",
+  "bobot_pekerjaan",
+  "keterangan_bobot_pekerjaan",
+  "alasan_datang_ke_ahass",
+  "jenis_part",
+  "sumber_part",
+  "biaya_jasa",
+  "harga_suku_cadang",
+  "area_mekanik_section",
+  "saran_mekanik",
+  "garansi",
+  "tempat_service",
+  "area_service_kunjung",
+  "section_break_e5krh",
+  "set_warehouse",
+  "section_break_wpbnb",
+  "tax_account",
+  "rate",
+  "section_break_j7mig",
+  "items",
+  "grand_total",
+  "outstanding_amount",
+  "section_break_1dg6i",
+  "debit_to",
+  "against_income_account",
+  "tagihan",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "SINV-SP-.YYYY.-."
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sales Invoice Sparepart Garansi",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_m9lip",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Posting Time"
+  },
+  {
+   "fieldname": "section_break_j7mig",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_1dg6i",
+   "fieldtype": "Section Break",
+   "label": "Accounting Details"
+  },
+  {
+   "fetch_from": "company.titipan_ahas_account",
+   "fetch_if_empty": 1,
+   "fieldname": "debit_to",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Ttitipan",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "currency_and_price_list_section",
+   "fieldtype": "Section Break",
+   "label": "Currency and Price List"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate"
+  },
+  {
+   "fieldname": "column_break_yx2x0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "selling_price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "price_list_currency",
+   "fieldtype": "Link",
+   "label": "Price List Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "plc_conversion_rate",
+   "fieldtype": "Float",
+   "label": "Price List Exchange Rate"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Sales Invoice Sparepart Garansi Item"
+  },
+  {
+   "fieldname": "section_break_e5krh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "set_warehouse",
+   "fieldtype": "Link",
+   "label": "Source Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "against_income_account",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Against Income Account"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "detail_kendaraan_section",
+   "fieldtype": "Section Break",
+   "label": "Detail Kendaraan"
+  },
+  {
+   "default": "0",
+   "fieldname": "motor_dari_dealer_sendiri",
+   "fieldtype": "Check",
+   "label": "Motor Dari Dealer Sendiri"
+  },
+  {
+   "depends_on": "motor_dari_dealer_sendiri",
+   "fieldname": "no_rangka_mesin",
+   "fieldtype": "Link",
+   "label": "No Rangka Mesin",
+   "options": "Serial No"
+  },
+  {
+   "fieldname": "no_rangka_manual_atau_lama",
+   "fieldtype": "Data",
+   "label": "No Rangka Manual Atau Lama"
+  },
+  {
+   "fieldname": "no_mesin",
+   "fieldtype": "Data",
+   "label": "No Mesin"
+  },
+  {
+   "fieldname": "id_mekanik",
+   "fieldtype": "Link",
+   "label": "ID Mekanik",
+   "options": "Employee"
+  },
+  {
+   "fetch_from": "id_mekanik.employee_name",
+   "fieldname": "nama_mekanik",
+   "fieldtype": "Data",
+   "label": "Nama Mekanik",
+   "read_only": 1
+  },
+  {
+   "fieldname": "jam_masuk_service",
+   "fieldtype": "Time",
+   "label": "Jam Masuk Service"
+  },
+  {
+   "fieldname": "jam_selesai_service",
+   "fieldtype": "Time",
+   "label": "Jam Selesai Service"
+  },
+  {
+   "fieldname": "column_break_djirv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nama_stnk",
+   "fieldtype": "Data",
+   "label": "Nama STNK"
+  },
+  {
+   "fieldname": "nama_pembawa",
+   "fieldtype": "Data",
+   "label": "Nama Pembawa"
+  },
+  {
+   "fieldname": "type_motor",
+   "fieldtype": "Data",
+   "label": "Type Motor"
+  },
+  {
+   "fieldname": "km",
+   "fieldtype": "Float",
+   "label": "KM"
+  },
+  {
+   "fieldname": "tahun_motor",
+   "fieldtype": "Data",
+   "label": "Tahun Motor"
+  },
+  {
+   "fieldname": "nomor_plat",
+   "fieldtype": "Data",
+   "label": "Nomor Plat"
+  },
+  {
+   "fieldname": "keluhan_motor",
+   "fieldtype": "Small Text",
+   "label": "Keluhan Motor"
+  },
+  {
+   "fieldname": "media_social",
+   "fieldtype": "Data",
+   "label": "Media Social"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "default": "0",
+   "fieldname": "booking_service",
+   "fieldtype": "Check",
+   "label": "Booking Service"
+  },
+  {
+   "fieldname": "jenis_service",
+   "fieldtype": "Select",
+   "label": "Jenis Service",
+   "options": "\nKpb Dealer Lain\nKpd Dealer Sendiri\nReguller Dealer Lain\nReguler Dealer Sendiri\nGaransi"
+  },
+  {
+   "fieldname": "type_kpb",
+   "fieldtype": "Select",
+   "label": "Type KPB",
+   "options": "Reguler\nKPB"
+  },
+  {
+   "fieldname": "column_break_s6hno",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bobot_pekerjaan",
+   "fieldtype": "Select",
+   "label": "Bobot Pekerjaan",
+   "options": "\nKPB 1\nKPB 2\nKPB 3\nKPB 4\nSERVICE LENGKAP\nSERVICE RINGAN\nGANTI AHM OIL\nGANTI PART\nTURUN MESIN/PRESS\nSERVICE LAINYA"
+  },
+  {
+   "fieldname": "keterangan_bobot_pekerjaan",
+   "fieldtype": "Small Text",
+   "label": "Keterangan Bobot Pekerjaan"
+  },
+  {
+   "fieldname": "alasan_datang_ke_ahass",
+   "fieldtype": "Select",
+   "label": "Alasan Datang Ke AHASS",
+   "options": "Inisiatif Sendiri\nTelpon\nWA\nStiker\nBooking service\nMedsos\nReferensi"
+  },
+  {
+   "fieldname": "jenis_part",
+   "fieldtype": "Data",
+   "label": "Jenis Part"
+  },
+  {
+   "fieldname": "sumber_part",
+   "fieldtype": "Select",
+   "label": "Sumber Part",
+   "options": "H3 IFMI\nCampuran\nSumber Lain"
+  },
+  {
+   "fieldname": "biaya_jasa",
+   "fieldtype": "Small Text",
+   "label": "Biaya Jasa"
+  },
+  {
+   "fieldname": "harga_suku_cadang",
+   "fieldtype": "Small Text",
+   "label": "Harga Suku Cadang"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "area_mekanik_section",
+   "fieldtype": "Section Break",
+   "label": "Area mekanik"
+  },
+  {
+   "fieldname": "saran_mekanik",
+   "fieldtype": "Data",
+   "label": "Saran Mekanik"
+  },
+  {
+   "fieldname": "garansi",
+   "fieldtype": "Data",
+   "label": "Garansi"
+  },
+  {
+   "fieldname": "tempat_service",
+   "fieldtype": "Data",
+   "label": "Tempat Service"
+  },
+  {
+   "fieldname": "area_service_kunjung",
+   "fieldtype": "Data",
+   "label": "Area Service Kunjung"
+  },
+  {
+   "fieldname": "section_break_wpbnb",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "tax_account",
+   "fieldtype": "Link",
+   "label": "Tax Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "label": "Rate %"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Outstanding Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "tagihan",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Tagihan",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-01-11 10:12:06.908599",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Sales Invoice Sparepart Garansi",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

@@ -45,7 +45,11 @@ def get_data(filters):
 		se.to_warehouse,
 		sle.warehouse AS asalbeli,
 		w.parent_warehouse as cabang,
-		w2.parent_warehouse as pos 
+		w2.parent_warehouse as pos,
+		sn.purchase_rate as incoming_rate,
+		sn.dpp,
+		sn.delivery_date as tanggal_jual,
+		sn.harga_jual
 		FROM `tabSerial No` sn 
 		JOIN `tabStock Ledger Entry` sle ON sle.serial_no LIKE CONCAT("%",sn.name,"%") 
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
@@ -203,6 +207,12 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Incoming Rate"),
+			"fieldname": "incoming_rate",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
 			"label": _("KacaSpion"),
 			"fieldname": "kaca",
 			"fieldtype": "Int",
@@ -262,7 +272,24 @@ def get_columns(filters):
 			"fieldtype": "Data",
 			"width": 100
 		},
-
+		# {
+		# 	"label": _("Tanggal Jual"),
+		# 	"fieldname": "tanggal_jual",
+		# 	"fieldtype": "Date",
+		# 	"width": 100
+		# },
+		# {
+		# 	"label": _("DPP"),
+		# 	"fieldname": "dpp",
+		# 	"fieldtype": "Currency",
+		# 	"width": 100
+		# },
+		# {
+		# 	"label": _("Harga Jual"),
+		# 	"fieldname": "harga_jual",
+		# 	"fieldtype": "Currency",
+		# 	"width": 100
+		# },
 	]
 
 	return columns

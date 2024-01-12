@@ -253,7 +253,6 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 			pass
 			# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
 
-
 	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
@@ -366,6 +365,21 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 			# frappe.msgprint(data)
 			tmp.append(data)
 
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi':
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				customer as pemilik,
+				customer_name as nama_pemilik,
+				sales_invoice_sparepart_garansi,
+				grand_total,
+				outstanding_amount as outstanding,
+				parenttype,
+				parent,
+				name as id_detail,
+				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
 
 	# frappe.msgprint(str(data))
 	return tmp

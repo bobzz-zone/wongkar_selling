@@ -91,8 +91,12 @@ def get_data(filters):
 				sipm.foto_invoice as foto_inv,
 				sipm.foto_surat_jalan as foto_sj,
 				sipm.foto_kwitansi_uang_muka as foto_kw_um,
-				sipm.foto_kwitansi_sub as foto_kw_sub
+				sipm.foto_kwitansi_sub as foto_kw_sub,
+				t.total as dpp,
+				t.tax_amount as ppn,
+				sipm.`harga` - sipm.`nominal_diskon` - sn.biaya_stnk - sn.biaya_bpkb as total_harga
 			FROM `tabSales Invoice Penjualan Motor` sipm 
+			join `tabSales Taxes and Charges` t on t.parent = sipm.name and t.idx = 1
 			JOIN `tabItem` i ON i.`name` = sipm.`item_code`
 			JOIN `tabCustomer` c ON c.name = sipm.`pemilik`
 			JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
@@ -334,6 +338,18 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("DPP"),
+			"fieldname": "dpp",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("PPN"),
+			"fieldname": "ppn",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
 			"label": _("NamaJual"),
 			"fieldname": "namajual",
 			"fieldtype": "Data",
@@ -546,6 +562,12 @@ def get_columns(filters):
 		{
 			"label": _("Biaya SKB"),
 			"fieldname": "biaya_skb",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("Total Harga"),
+			"fieldname": "total_harga",
 			"fieldtype": "Currency",
 			"width": 100
 		},

@@ -13,6 +13,7 @@ def isi_nosin(self,method):
 def rem_sinv(self,method):
 	# frappe.msgprint("s")
 	# doc = frappe.get_doc("Serial No",self.name)
+	print("test123")
 	if self.delivery_document_type == 'Sales Invoice Penjualan Motor' and self.delivery_document_no:
 		# frappe.msgprint("sss")
 		data = frappe.get_doc("Sales Invoice Penjualan Motor",self.delivery_document_no)
@@ -63,7 +64,7 @@ def rem_sinv(self,method):
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
 		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1,debug=1)
+		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1)
 
 	data_blm = frappe.db.sql(""" SELECT 
 		(SELECT cc2.parent_cost_center from 
@@ -126,7 +127,7 @@ def rem_sinv(self,method):
 		tanggal_beli = data[0]['tanggal_beli']
 
 	if data_blm:
-		frappe.msgprint(str(data_blm)+" data_blm")
+		# frappe.msgprint(str(data_blm)+" data_blm")
 		if data_blm[0]['cc_beli']:
 			if 'BJM' in data_blm[0]['cc_beli']:
 				asal_beli = 'BJM'
@@ -425,3 +426,15 @@ def patch_serial_all():
 		print(str(data_blm)+' data_blm')
 		conter = conter + 1
 
+def pacth_total_harga():
+	data = frappe.db.sql(""" SELECT name,delivery_document_no from `tabSerial No` 
+		where delivery_document_type = 'Sales Invoice Penjualan Motor' and delivery_document_no is not null """,as_dict=1)
+	conter = 1
+	for i in data:
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i['delivery_document_no'])
+		print(doc.name)
+		doc.add_dpp_sn()
+		conter += 1
+		print(conter)
+	print("SELESAI")
+	frappe.db.commit()

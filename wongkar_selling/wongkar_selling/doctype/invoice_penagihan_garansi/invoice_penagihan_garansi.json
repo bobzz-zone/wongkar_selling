@@ -1,0 +1,184 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2024-01-09 11:38:31.394661",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "company",
+  "customer",
+  "customer_name",
+  "column_break_wle5q",
+  "posting_date",
+  "from_date",
+  "to_date",
+  "section_break_6bxqe",
+  "tax_account",
+  "rate",
+  "section_break_rjz0l",
+  "list_invoice_penagihan_garansi",
+  "section_break_sbovg",
+  "column_break_p5vek",
+  "grand_total",
+  "outstanding_amount",
+  "section_break_papqb",
+  "debit_to",
+  "income",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "IPG-.YYYY.-."
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Invoice Penagihan Garansi",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "list_invoice_penagihan_garansi",
+   "fieldtype": "Table",
+   "label": "List Invoice Penagihan Garansi",
+   "options": "List Invoice Penagihan Garansi",
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "debit_to",
+   "fieldtype": "Link",
+   "label": "Debit To",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_wle5q",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rjz0l",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_sbovg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_p5vek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_papqb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_6bxqe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "tax_account",
+   "fieldtype": "Link",
+   "label": "Tax Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "label": "Rate %",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "company.pendapatan_titipan_ahas_account",
+   "fetch_if_empty": 1,
+   "fieldname": "income",
+   "fieldtype": "Link",
+   "label": "Income",
+   "options": "Account",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-01-11 09:25:44.581958",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Invoice Penagihan Garansi",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

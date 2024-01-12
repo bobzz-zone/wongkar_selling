@@ -76,6 +76,17 @@ frappe.ui.form.on('Form Pembayaran', {
 		});
 
 		filter_docname()
+
+		if(cur_frm.doc.type == "Pembayaran Invoice Garansi"){
+			removeColumns(cur_frm,['no_sinv'],'tagihan_payment_table')
+			removeColumns(cur_frm,['no_rangka'],'tagihan_payment_table')
+			showColumns(cur_frm,['sales_invoice_sparepart_garansi'],'tagihan_payment_table')
+			showColumns(cur_frm,['no_rangka2'],'tagihan_payment_table')
+		}else{
+			removeColumns(cur_frm,['sales_invoice_sparepart_garansi'],'tagihan_payment_table')
+			showColumns(cur_frm,['no_sinv'],'tagihan_payment_table')
+		}
+
 			
 	},
 	vendor(frm){
@@ -120,6 +131,8 @@ frappe.ui.form.on('Form Pembayaran', {
 			doc_type = 'Tagihan Leasing'
 		}else if(cur_frm.doc.type == 'Pembayaran STNK' || cur_frm.doc.type == 'Pembayaran BPKB'){
 			doc_type = 'Pembayaran Tagihan Motor'
+		}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi'){
+			doc_type = 'Invoice Penagihan Garansi'
 		}
 
 		cur_frm.clear_table("tagihan_payment_table")
@@ -142,10 +155,12 @@ frappe.ui.form.on('Form Pembayaran', {
 							for( var j=0;j<r.message[i].length;j++){
 								var child = cur_frm.add_child("tagihan_payment_table");
 								frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i][j].no_invoice);
+								frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i][j].sales_invoice_sparepart_garansi);
 								frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i][j].pemilik);
 								frappe.model.set_value(child.doctype, child.name, "nama_pemilik", r.message[i][j].nama_pemilik);
 								frappe.model.set_value(child.doctype, child.name, "item", r.message[i][j].item);
 								frappe.model.set_value(child.doctype, child.name, "no_rangka", r.message[i][j].no_rangka);
+								frappe.model.set_value(child.doctype, child.name, "no_rangka2", r.message[i][j].no_rangka2);
 								frappe.model.set_value(child.doctype, child.name, "nilai", r.message[i][j].outstanding);
 								frappe.model.set_value(child.doctype, child.name, "doc_type", r.message[i][j].parenttype);
 								frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i][j].parent);
@@ -179,7 +194,9 @@ frappe.ui.form.on('List Doc Name', { // The child table is defined in a DoctType
     		d.reference_doctype = 'Tagihan Leasing'
     	}else if(cur_frm.doc.type == 'Pembayaran STNK' || cur_frm.doc.type == 'Pembayaran BPKB'){
     		d.reference_doctype = 'Pembayaran Tagihan Motor'
-    	}
+    	}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi'){
+			d.reference_doctype = 'Invoice Penagihan Garansi'
+		}
     	filter_docname()
 	 
         // frappe.msgprint('A row has been added to the links table 🎉 ');
@@ -379,5 +396,97 @@ var filter_docname = function(frm){
 	            ]
 	        }
         }
+	}else if(cur_frm.doc.type == "Pembayaran Invoice Garansi"){
+		cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
+	   		var child = locals[cdt][cdn];
+	        // console.log(child);
+	    	
+	    	var child_names = [];
+			if (cur_frm.doc.list_doc_name){
+				for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
+					if (cur_frm.doc.list_doc_name[i].docname){
+						child_names.push(cur_frm.doc.list_doc_name[i].docname);
+					}
+				}
+			}
+	        return {    
+	            filters:[
+	                ["name","NOT IN",child_names],
+	                ['docstatus', '=', 1],
+	                ['outstanding_amount', '>',0],
+	                ['customer','=',cur_frm.doc.customer],
+	                ['debit_to','=',cur_frm.doc.paid_from]
+	            ]
+	        }
+        }
 	}
+}
+
+var showColumns = function(frm, fields, table) {
+    let grid = frm.get_field(table).grid;
+    let re_render = false
+
+    // Menampilkan kolom yang tersembunyi
+    for (let field of fields) {
+        grid.fields_map[field].in_list_view = 1;
+        re_render = true
+    }
+
+    // Mengatur ulang kolom yang terlihat
+    grid.visible_columns = undefined;
+    grid.setup_visible_columns();
+    
+    // Menghapus header row dan membuat ulang
+    grid.header_row.wrapper.remove();
+    delete grid.header_row;
+    grid.make_head();
+    
+    
+    // Mengembalikan kolom-kolom yang dihapus pada setiap baris
+    for (let row of grid.grid_rows) {
+        // Menghapus tombol open form
+        row.wrapper.children().children('.grid-static-col').remove()
+        row.columns = []
+        if (row.open_form_button) {
+            row.open_form_button.parent().remove();
+            delete row.open_form_button;
+        }
+
+        // Menampilkan Column Baru
+        row.render_row();
+    }
+}
+
+var removeColumns = function(frm, fields, table) {
+        let grid = frm.get_field(table).grid;
+        let re_render = false
+
+        for (let field of fields) {
+            // console.log(grid.fields_map[field])
+            grid.fields_map[field].in_list_view = 0;
+            re_render = true
+        }
+        
+        grid.visible_columns = undefined;
+        grid.setup_visible_columns();
+        
+        grid.header_row.wrapper.remove();
+        delete grid.header_row;
+        grid.make_head();
+        
+        for (let row of grid.grid_rows) {
+            if (row.open_form_button) {
+                row.open_form_button.parent().remove();
+                delete row.open_form_button;
+            }
+            
+            for (let field in row.columns) {
+                if (row.columns[field] !== undefined) {
+                    row.columns[field].remove();
+                }
+            }
+            delete row.columns;
+            row.columns = [];
+            row.render_row();
+        }
 }

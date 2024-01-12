@@ -411,7 +411,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         if not self.is_return:
             self.update_serial_no(in_cancel=True)
 
-        self.remove_pemilik()               
+        self.remove_pemilik()
+        self.add_dpp_sn()              
 
     def before_submit(self):
         self.dp_gross_h()
@@ -718,10 +719,21 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         calculate_taxes_and_totals_custom(self)
 
+    def add_dpp_sn(self):
+        if self.taxes and len(self.taxes) > 0:
+            dpp = self.taxes[0].total 
+            ppn = self.taxes[0].tax_amount
+            if self.docstatus == 1:
+                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(dpp,ppn,self.grand_total,self.no_rangka),debug=1)
+            elif self.docstatus == 2:
+                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(0,0,0,self.no_rangka),debug=1)
+            print("sukses")
+
     def on_submit(self):
         self.add_pemilik()
         self.cek_advance()
         self.validate_pos_paid_amount()
+        self.add_dpp_sn()
 
         if not self.auto_repeat:
             frappe.get_doc("Authorization Control").validate_approving_authority(

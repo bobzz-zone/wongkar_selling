@@ -20,6 +20,18 @@ jenv = {
     ]
 }
 
+fixtures = [
+       {
+         "dt": "Custom Field", 
+         "filters":[["name", "in", ['Serial No-dpp', 'Serial No-ppn', 'Serial No-harga_jual', 'Company-titipan_ahas_account', 'Company-beban_titipan_ahas_account', 
+         'Company-sparepart_setting', 'Company-customer', 'Company-column_break_q9dyg', 'Company-customer_name', 'Company-pendapatan_titipan_ahas_account']]]
+      },
+      {
+        "dt": "Property Setter", 
+        "filters": [["name", "in", ['Form Pembayaran-tagihan_payment_table-no_copy', 'Form Pembayaran-list_doc_name-no_copy', 'Sales Invoice Sparepart Garansi-posting_time-no_copy', 'Sales Invoice Sparepart Garansi-posting_date-no_copy']]]
+      }
+]
+
 # Includes in <head>
 # ------------------
 
@@ -102,7 +114,8 @@ doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_mo
 # Override standard doctype classes
 
 override_doctype_class = {
-	"GL Entry": "wongkar_selling.custom_standard.custom_gl_entry.custom_advance"
+	"GL Entry": "wongkar_selling.custom_standard.custom_gl_entry.custom_advance",
+	"Expense Claim": "wongkar_selling.custom_standard.custom_expense_claim.custom_advance",
 }
 
 # override_doctype_class = {
@@ -224,7 +237,7 @@ doc_events = {
 		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
-		"onload": ["wongkar_selling.custom_standard.custom_serial_no.isi_nosin","wongkar_selling.custom_standard.custom_serial_no.rem_sinv"]
+		"onload": ["wongkar_selling.custom_standard.custom_serial_no.rem_sinv"]
 	},
 
 	# "Payment Entry": {

@@ -1,0 +1,26 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2024-01-05 13:17:44.077104",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2024-01-08 10:45:46.422824",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Laporan Harga Pokok Penjualan",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Stock Ledger Entry",
+ "report_name": "Laporan Harga Pokok Penjualan",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Developer"
+  }
+ ]
+}

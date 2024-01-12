@@ -14,11 +14,12 @@ class custom_advance(GLEntry):
 
 			# Update outstanding amt on against voucher menambahkan voucher untuk sipm
 			if (
-				self.against_voucher_type in ["Journal Entry", "Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor"]
+				self.against_voucher_type in ["Journal Entry", "Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor","Sales Invoice Sparepart Garansi"]
 				and self.against_voucher
 				and self.flags.update_outstanding == "Yes"
 				and not frappe.flags.is_reverse_depr_entry
 			):
+				# frappe.throw("masuk sini")
 				update_outstanding_amt_custom(
 					self.account, self.party_type, self.party, self.against_voucher_type, self.against_voucher
 				)
@@ -35,7 +36,7 @@ def update_outstanding_amt_custom(
 		party_condition = ""
 
 	# menambahkan voucher untuk sipm
-	if against_voucher_type in ["Sales Invoice","Sales Invoice Penjualan Motor"]:
+	if against_voucher_type in ["Sales Invoice","Sales Invoice Penjualan Motor","Sales Invoice Sparepart Garansi"]:
 		# frappe.msgprint("aaaaa")
 		party_account = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to")
 		if against_voucher_type == "Sales Invoice Penjualan Motor":
@@ -99,12 +100,13 @@ def update_outstanding_amt_custom(
 				_("Outstanding for {0} cannot be less than zero ({1})").format(against_voucher, fmt_money(bal))
 			)
 
-	if against_voucher_type in ["Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor"]:
+	if against_voucher_type in ["Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor","Sales Invoice Sparepart Garansi"]:
 		# frappe.msgprint("bbbb")
 		ref_doc = frappe.get_doc(against_voucher_type, against_voucher)
 
 		# Didn't use db_set for optimization purpose
 		ref_doc.outstanding_amount = bal
+		# frappe.msgprint(str(bal)+against_voucher_type+against_voucher)
 		frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount", bal)
-
-		ref_doc.set_status(update=True)
+		if against_voucher_type != "Sales Invoice Sparepart Garansi":
+			ref_doc.set_status(update=True)

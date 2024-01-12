@@ -24,22 +24,30 @@ def get_data(filters):
 			prec.`supplier_delivery_note`,
 			prec.`supplier_delivery_order`,
 			prec.`set_warehouse` AS accepted_warehouse,
-			SUBSTRING_INDEX(sn.`name`,"--",1) AS no_rangka,
-			SUBSTRING_INDEX(sn.`name`,"--",-1) AS no_mesin,
+			SUBSTRING_INDEX(sn.`name`,"--",1) AS no_mesin,
+			SUBSTRING_INDEX(sn.`name`,"--",-1) AS no_rangka,
 			SUBSTRING_INDEX(sn.item_code," - ", 1) AS type,
 			i.`warna`,
 			i.`tahun_rakitan` AS tahun,
-			pri.`rate` AS hpp,
+			pii.net_rate + ((pii.net_rate + ((pii.net_amount * t1.tax_amount / pinv.net_total) / pii.qty)) * t2.rate/100) AS hpp,
+			pii.discount_amount as diskon,
 			prec.`posting_date` AS tanggal,
 			pii.`parent`,
-			pinv.`bill_no` as no_invoice
+			pinv.`bill_no` as no_invoice,
+			pinv.posting_date as tanggal_pinv,
+			pinv.bill_date,
+			pinv.due_date,
+			pii.net_rate as dpp,
+			(pii.net_rate + ((pii.net_amount * t1.tax_amount / pinv.net_total) / pii.qty)) * t2.rate/100 as ppn
 		FROM `tabStock Ledger Entry` sle
 		JOIN `tabPurchase Receipt` prec ON prec.name = sle.voucher_no
-		JOIN `tabPurchase Receipt Item` pri ON prec.name = pri.parent
 		JOIN `tabSerial No` sn ON sle.serial_no LIKE CONCAT("%",sn.name,"%")
+		JOIN `tabPurchase Receipt Item` pri ON prec.name = pri.parent and pri.serial_no LIKE CONCAT("%",sn.name,"%")
 		JOIN `tabItem` i ON i.`name` = sn.`item_code`
 		LEFT JOIN `tabPurchase Invoice Item` pii ON pii.`po_detail` = pri.`purchase_order_item`
 		LEFT JOIN `tabPurchase Invoice` pinv ON pinv.`name` = pii.`parent` 
+		LEFT JOIN `tabPurchase Taxes and Charges` t1 ON t1.parent = pinv.name and t1.charge_type = 'Actual'
+		LEFT JOIN `tabPurchase Taxes and Charges` t2 ON t2.parent = pinv.name and t2.charge_type = 'On Previous Row Total'
 		WHERE prec.docstatus = 1 AND prec.`posting_date` BETWEEN '{}' AND '{}' 
 		ORDER BY prec.`posting_date` ASC
 		""".format(filters.get('from_date'),filters.get('to_date')),as_dict=1)
@@ -49,8 +57,26 @@ def get_data(filters):
 def get_columns(filters):
 	columns = [
 		{
-			"label": _("Tanggal"),
+			"label": _("Posting Date Prec"),
 			"fieldname": "tanggal",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
+			"label": _("Posting Date Pinv"),
+			"fieldname": "tanggal_pinv",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
+			"label": _("Supplier Invoice Date"),
+			"fieldname": "bill_date",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
+			"label": _("Due Date"),
+			"fieldname": "due_date",
 			"fieldtype": "Date",
 			"width": 100
 		},
@@ -93,14 +119,14 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("No Mesin"),
-			"fieldname": "no_mesin",
+			"label": _("No Rangka"),
+			"fieldname": "no_rangka",
 			"fieldtype": "Data",
 			"width": 100
 		},
 		{
-			"label": _("No Rangka"),
-			"fieldname": "no_rangka",
+			"label": _("No Mesin"),
+			"fieldname": "no_mesin",
 			"fieldtype": "Data",
 			"width": 100
 		},
@@ -114,6 +140,24 @@ def get_columns(filters):
 			"label": _("Tahun"),
 			"fieldname": "tahun",
 			"fieldtype": "Data",
+			"width": 100
+		},
+		# {
+		# 	"label": _("Diskon"),
+		# 	"fieldname": "diskon",
+		# 	"fieldtype": "Currency",
+		# 	"width": 100
+		# },
+		{
+			"label": _("DPP"),
+			"fieldname": "dpp",
+			"fieldtype": "Currency",
+			"width": 100
+		},
+		{
+			"label": _("PPN"),
+			"fieldname": "ppn",
+			"fieldtype": "Currency",
 			"width": 100
 		},
 		{
