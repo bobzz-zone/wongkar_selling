@@ -79,6 +79,8 @@
    "read_only": 1
   },
   {
+   "fetch_from": "company.customer_account",
+   "fetch_if_empty": 1,
    "fieldname": "debit_to",
    "fieldtype": "Link",
    "label": "Debit To",
@@ -92,6 +94,8 @@
    "options": "Company"
   },
   {
+   "fetch_from": "company.customer",
+   "fetch_if_empty": 1,
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
@@ -160,7 +164,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-11 09:25:44.581958",
+ "modified": "2024-01-12 14:06:18.630493",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Invoice Penagihan Garansi",

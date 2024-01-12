@@ -24,7 +24,7 @@ fixtures = [
        {
          "dt": "Custom Field", 
          "filters":[["name", "in", ['Serial No-dpp', 'Serial No-ppn', 'Serial No-harga_jual', 'Company-titipan_ahas_account', 'Company-beban_titipan_ahas_account', 
-         'Company-sparepart_setting', 'Company-customer', 'Company-column_break_q9dyg', 'Company-customer_name', 'Company-pendapatan_titipan_ahas_account']]]
+         'Company-sparepart_setting', 'Company-customer', 'Company-column_break_q9dyg', 'Company-customer_name', 'Company-pendapatan_titipan_ahas_account','Company-customer_account']]]
       },
       {
         "dt": "Property Setter", 
