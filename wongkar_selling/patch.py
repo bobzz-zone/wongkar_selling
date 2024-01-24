@@ -9,6 +9,90 @@ from datetime import date
 from frappe.utils import flt, rounded, add_months,add_days, nowdate, getdate
 import time
 import datetime
+from erpnext.controllers.accounts_controller import get_taxes_and_charges
+
+
+def patch_ec_pe():
+	pass
+
+def patch_ec():
+	from erpnext.stock.stock_ledger import update_entries_after
+	
+	data = frappe.db.sql(""" SELECT name from `tabExpense Claim` where docstatus = 1 """,as_dict=1)
+	tmp = []
+
+	for i in data:
+		tmp.append(i['name'])
+
+	print(len(tmp))
+	print(tmp, ' tmpppp')
+
+	for t in tmp:
+		docname = t
+		docu = frappe.get_doc("Expense Claim", docname)
+		print(docu.name) 
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(docname))
+
+		docu.make_gl_entries()
+
+		frappe.db.commit()
+		print("done")
+
+def patch_po():
+	data = frappe.db.sql(""" SELECT name from `tabPurchase Order` where supplier = 'IFMI MOTOR' and docstatus = 1 """,as_dict=1)
+
+	tmp = []
+
+	for i in data:
+		tmp.append(i['name'])
+
+	print(len(tmp))
+	print(tmp, ' tmpppp')
+
+	docname = 'PUR-ORD-2023-00297'
+	doc = frappe.get_doc("Purchase Order",docname)
+	print(doc.name)
+	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
+	print(taxes, ' taxes111')
+	doc.set_posting_time = 1
+	doc.taxes_and_charges = 'Purchase Tax - W'
+	doc.taxes = []
+	for t in taxes:
+		doc.append("taxes",t)
+	doc.run_method("calculate_taxes_and_totals")
+	doc.db_update()
+	doc.update_children()
+	frappe.db.commit()
+	print("done")
+
+
+def patch_prec():
+	data = frappe.db.sql(""" SELECT name from `tabPurchase Receipt` where supplier = 'IFMI MOTOR' and docstatus = 1 """,as_dict=1)
+
+	tmp = []
+	
+
+	for i in data:
+		tmp.append(i['name'])
+
+	print(len(tmp))
+	print(tmp)
+
+	docname = 'MAT-PRE-2023-00466'
+	doc = frappe.get_doc("Purchase Receipt",docname)
+	print(doc.name)
+	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
+	print(taxes, ' taxes111')
+	doc.set_posting_time = 1
+	doc.taxes_and_charges = 'Purchase Tax - W'
+	doc.taxes = []
+	for t in taxes:
+		doc.append("taxes",t)
+	doc.db_update()
+	doc.update_children()
+	frappe.db.commit()
+	print("done")
+
 
 def test_ste():
 	ste_list=frappe.db.sql("""select name from `tabStock Entry` where mark=1 and updated=0  order by posting_date asc,posting_time asc """,as_list=1)

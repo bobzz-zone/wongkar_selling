@@ -9,7 +9,7 @@ class custom_advance(ExpenseClaim):
 	def make_gl_entries(self, cancel=False):
 		if flt(self.total_sanctioned_amount) > 0:
 			gl_entries = self.get_gl_entries()
-			print(gl_entries, ' gl_entriesgl_entries')
+			# print(gl_entries, ' gl_entriesgl_entries')
 			make_gl_entries(gl_entries, cancel,merge_entries=False)
 
 	def get_gl_entries(self):
