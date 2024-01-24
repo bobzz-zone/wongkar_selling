@@ -117,7 +117,7 @@ def get_data(filters):
 			WHERE sipm.docstatus = 1 
 			AND sipm.posting_date BETWEEN '{}' AND '{}'
 			GROUP BY sipm.name ORDER BY sipm.posting_date ASC 
-			 """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1,debug=1)
+			 """.format(filters.get('from_date'),filters.get('to_date')),as_dict = 1)
 	
 	for i in data:
 		bl = 0
@@ -157,10 +157,10 @@ def get_data(filters):
 			i['foto_sj'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
 		
 		if i['foto_kw_um']:
-			i['foto_kw_um'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
+			i['foto_kw_um'] = "<a href='"+frappe.utils.get_url()+i['foto_kw_um']+"'>"+frappe.utils.get_url()+i['foto_kw_um']+"</a>"
 		
 		if i['foto_kw_sub']:
-			i['foto_kw_sub'] = "<a href='"+frappe.utils.get_url()+i['foto_sj']+"'>"+frappe.utils.get_url()+i['foto_sj']+"</a>"
+			i['foto_kw_sub'] = "<a href='"+frappe.utils.get_url()+i['foto_kw_sub']+"'>"+frappe.utils.get_url()+i['foto_kw_sub']+"</a>"
 
 		i.update({
 				'bebanleasing': bl,
