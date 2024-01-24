@@ -29,7 +29,7 @@ def get_data(filters):
 			SUBSTRING_INDEX(sn.item_code," - ", 1) AS type,
 			i.`warna`,
 			i.`tahun_rakitan` AS tahun,
-			pii.net_rate + ((pii.net_rate + ((pii.net_amount * t1.tax_amount / pinv.net_total) / pii.qty)) * t2.rate/100) AS hpp,
+			pri.net_rate + ((pri.net_rate + ((pri.net_amount * t1.tax_amount / prec.net_total) / pri.qty)) * t2.rate/100) AS hpp,
 			pii.discount_amount as diskon,
 			prec.`posting_date` AS tanggal,
 			pii.`parent`,
@@ -37,8 +37,8 @@ def get_data(filters):
 			pinv.posting_date as tanggal_pinv,
 			pinv.bill_date,
 			pinv.due_date,
-			pii.net_rate as dpp,
-			(pii.net_rate + ((pii.net_amount * t1.tax_amount / pinv.net_total) / pii.qty)) * t2.rate/100 as ppn
+			pri.net_rate as dpp,
+			(pri.net_rate + ((pri.net_amount * t1.tax_amount / prec.net_total) / pri.qty)) * t2.rate/100 as ppn
 		FROM `tabStock Ledger Entry` sle
 		JOIN `tabPurchase Receipt` prec ON prec.name = sle.voucher_no
 		JOIN `tabSerial No` sn ON sle.serial_no LIKE CONCAT("%",sn.name,"%")
@@ -46,8 +46,8 @@ def get_data(filters):
 		JOIN `tabItem` i ON i.`name` = sn.`item_code`
 		LEFT JOIN `tabPurchase Invoice Item` pii ON pii.`po_detail` = pri.`purchase_order_item`
 		LEFT JOIN `tabPurchase Invoice` pinv ON pinv.`name` = pii.`parent` 
-		LEFT JOIN `tabPurchase Taxes and Charges` t1 ON t1.parent = pinv.name and t1.charge_type = 'Actual'
-		LEFT JOIN `tabPurchase Taxes and Charges` t2 ON t2.parent = pinv.name and t2.charge_type = 'On Previous Row Total'
+		LEFT JOIN `tabPurchase Taxes and Charges` t1 ON t1.parent = prec.name and t1.charge_type = 'Actual'
+		LEFT JOIN `tabPurchase Taxes and Charges` t2 ON t2.parent = prec.name and t2.charge_type = 'On Previous Row Total'
 		WHERE prec.docstatus = 1 AND prec.`posting_date` BETWEEN '{}' AND '{}' 
 		ORDER BY prec.`posting_date` ASC
 		""".format(filters.get('from_date'),filters.get('to_date')),as_dict=1)
