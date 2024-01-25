@@ -39,7 +39,9 @@ def patch_ec():
 		print("done")
 
 def patch_po():
-	data = frappe.db.sql(""" SELECT name from `tabPurchase Order` where supplier = 'IFMI MOTOR' and docstatus = 1 """,as_dict=1)
+	data = frappe.db.sql(""" SELECT po.name as name,t.`name` as t_name,po.`supplier` FROM `tabPurchase Order` po
+		LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = po.name 
+		WHERE po.supplier = 'IFMI MOTOR' AND po.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
 
 	tmp = []
 
@@ -49,36 +51,48 @@ def patch_po():
 	print(len(tmp))
 	print(tmp, ' tmpppp')
 
-	docname = 'PUR-ORD-2023-00297'
-	doc = frappe.get_doc("Purchase Order",docname)
-	print(doc.name)
-	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
-	print(taxes, ' taxes111')
-	doc.set_posting_time = 1
-	doc.taxes_and_charges = 'Purchase Tax - W'
-	doc.taxes = []
-	for t in taxes:
-		doc.append("taxes",t)
-	doc.run_method("calculate_taxes_and_totals")
-	doc.db_update()
-	doc.update_children()
-	frappe.db.commit()
-	print("done")
+	conter = 1
+	for t in tmp:
+		print(conter)
+		docname = t
+		doc = frappe.get_doc("Purchase Order",docname)
+		print(doc.name)
+		taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
+		# print(taxes, ' taxes111')
+		doc.set_posting_time = 1
+		doc.taxes_and_charges = 'Purchase Tax - W'
+		doc.taxes = []
+		for t in taxes:
+			doc.append("taxes",t)
+		doc.run_method("calculate_taxes_and_totals")
+		doc.db_update()
+		doc.update_children()
+		frappe.db.commit()
+		print("done")
+		conter += 1
 
 
 def patch_prec():
-	data = frappe.db.sql(""" SELECT name from `tabPurchase Receipt` where supplier = 'IFMI MOTOR' and docstatus = 1 """,as_dict=1)
+	data = frappe.db.sql(""" SELECT pr.name as name,t.`name` as t_name,pr.`supplier` FROM `tabPurchase Receipt` pr
+		LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = pr.name 
+		WHERE pr.supplier = 'IFMI MOTOR' AND pr.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
 
-	tmp = []
 	
+	tmp = []
 
 	for i in data:
 		tmp.append(i['name'])
 
 	print(len(tmp))
-	print(tmp)
+	print(tmp, ' tmpppp')
 
-	docname = 'MAT-PRE-2023-00466'
+	# conter = 1
+	# for t in tmp:
+	# 	print(conter)
+	# 	print(t)
+	# 	conter += 1
+
+	docname = 'MAT-PRE-2023-00067'
 	doc = frappe.get_doc("Purchase Receipt",docname)
 	print(doc.name)
 	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")

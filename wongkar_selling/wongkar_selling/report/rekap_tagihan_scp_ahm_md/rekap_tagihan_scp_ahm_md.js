@@ -23,7 +23,7 @@ frappe.query_reports["Rekap Tagihan SCP AHM MD"] = {
 			"label": __("Area"),
 			"fieldtype": "Link",
 			"options": "Warehouse",
-			"reqd": 1,
+//			"reqd": 1,
 			"width": "60px",
 		}
 	]

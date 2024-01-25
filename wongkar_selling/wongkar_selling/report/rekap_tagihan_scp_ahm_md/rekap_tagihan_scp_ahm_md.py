@@ -111,7 +111,7 @@ def get_data(filters):
 				i['bulan'] = ""
 			previous_area = current_area
 
-	frappe.msgprint(str(data_with_total)+ " merged_data") 
+#	frappe.msgprint(str(data_with_total)+ " merged_data") 
 
 	return data_with_total
 
