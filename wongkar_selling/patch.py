@@ -102,6 +102,7 @@ def patch_prec():
 	doc.taxes = []
 	for t in taxes:
 		doc.append("taxes",t)
+	doc.run_method("calculate_taxes_and_totals")
 	doc.db_update()
 	doc.update_children()
 	frappe.db.commit()
