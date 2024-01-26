@@ -2086,6 +2086,7 @@
    "fieldname": "harga",
    "fieldtype": "Currency",
    "label": "Harga",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -2382,6 +2383,7 @@
    "fieldname": "otr",
    "fieldtype": "Currency",
    "label": "OTR",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -2502,7 +2504,7 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-03 11:27:32.738613",
+ "modified": "2024-01-25 13:12:47.766159",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",
