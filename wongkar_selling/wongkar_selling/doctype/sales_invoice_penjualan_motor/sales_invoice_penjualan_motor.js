@@ -959,8 +959,8 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 			    			cur_frm.set_value("harga", cur_frm.doc.adjustment_harga);
 			    		}
 			    	}else{
-			    		//cur_frm.set_value("harga", 0);
-				        //cur_frm.refresh_fields("harga")
+			    		cur_frm.set_value("harga", 0);
+				        cur_frm.refresh_fields("harga")
 			    	}
 				}
 			});
@@ -1058,16 +1058,16 @@ frappe.ui.form.on('Sales Invoice Penjualan Motor', {
 		}
 
 		if(!cur_frm.doc.no_rangka){
-			// cur_frm.set_value("harga", 0);
-			// cur_frm.refresh_field("harga");
-			// cur_frm.set_value("otr", 0);
-			// cur_frm.refresh_field("otr");
+			cur_frm.set_value("harga", 0);
+			cur_frm.refresh_field("harga");
+			cur_frm.set_value("otr", 0);
+			cur_frm.refresh_field("otr");
 			cur_frm.clear_table("items");
 			cur_frm.refresh_field("items");
 		}
 	},
-	hargaaaa(frm){
-		console.log("hargaaaa")
+	harga(frm){
+		console.log("harga")
 		cur_frm.clear_table("tabel_biaya_motor");
 		cur_frm.refresh_field("tabel_biaya_motor");  
 		let today = cur_frm.doc.posting_date;

@@ -44,7 +44,7 @@ def get_invd(customer,date_from,date_to):
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTable Discount` td on td.parent = si.name 
 		left join `tabSerial No` sn on sn.name = si.no_rangka 
-		where td.customer = '{}' and td.tertagih = 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1,debug=1)
+		where td.customer = '{}' and td.tertagih = 0 and td.nominal	> 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1,debug=1)
 
 	return data
 
