@@ -92,7 +92,7 @@ def get_data(filters):
 				sipm.foto_surat_jalan as foto_sj,
 				sipm.foto_kwitansi_uang_muka as foto_kw_um,
 				sipm.foto_kwitansi_sub as foto_kw_sub,
-				t.total as dpp,
+				sipm.net_total as dpp,
 				t.tax_amount as ppn,
 				sipm.`harga` - sipm.`nominal_diskon` - sn.biaya_stnk - sn.biaya_bpkb as total_harga
 			FROM `tabSales Invoice Penjualan Motor` sipm 
