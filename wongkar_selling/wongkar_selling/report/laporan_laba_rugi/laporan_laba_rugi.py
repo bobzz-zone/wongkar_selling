@@ -5,7 +5,14 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from erpnext.accounts.report.financial_statements import (
+# from erpnext.accounts.report.financial_statements import (
+# 	get_columns,
+# 	get_data,
+# 	get_filtered_list_for_consolidated_report,
+# 	get_period_list,
+# )
+
+from wongkar_selling.custom_standard.custom_financial_statements import (
 	get_columns,
 	get_data,
 	get_filtered_list_for_consolidated_report,
@@ -15,7 +22,7 @@ from erpnext.accounts.report.financial_statements import (
 def execute(filters=None):
 	period_list = get_period_list(
 		filters.from_fiscal_year,
-		filters.from_fiscal_year,
+		filters.to_fiscal_year,
 		filters.period_start_date,
 		filters.period_end_date,
 		filters.filter_based_on,
@@ -69,18 +76,23 @@ def execute(filters=None):
 	)
 
 	# return columns, data, None, chart, report_summary
+	key = period_list[0]['key']
+
+	# frappe.msgprint(str(key)+ ' keykey')
+
 	for i in data:
 		if isinstance(i, dict) and 'indent' in i:
 			if i['indent'] == 0.0:
-				i['total2']	= i['dec_'+filters.from_fiscal_year]
-				i['dec_'+filters.from_fiscal_year] = None
+				i['total2']	= i[key]
+				i[key] = None
 			elif i['indent'] == 1.0:
-				i['total1']	= i['dec_'+filters.from_fiscal_year]
-				i['dec_'+filters.from_fiscal_year] = None
+				i['total1']	= i[key]
+				i[key] = None
 		# i.update({"total1": 1})
 		
 	# frappe.msgprint(str(data))
 	return columns, data, None
+
 
 
 def get_report_summary(
@@ -239,7 +251,7 @@ def get_columns_custom(periodicity, period_list, accumulated_values=1, company=N
 	if periodicity != "Yearly":
 		if not accumulated_values:
 			columns.append(
-				{"fieldname": "total", "label": _("Total"), "fieldtype": "Currency", "width": 150}
+				{"fieldname": "total", "label": _("Total"), "fieldtype": "Currency", "width": 150,"hidden":1}
 			)
 
 	return columns

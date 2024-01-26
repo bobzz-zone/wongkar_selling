@@ -52,120 +52,75 @@ def get_data(filters):
 
 	# gabung = tahun+'-'+bulan
 
-	data = frappe.db.sql(""" SELECT 
-		ec.cost_center,
-		ecd.expense_date,
-		ecd.expense_type,
-		ecd.description,
-		ecd.amount,
-		ec.status,
-		cc.parent_cost_center
-		from `tabExpense Claim` ec 
-		left join `tabExpense Claim Detail` ecd on ecd.parent = ec.name
-		left join `tabCost Center` cc on cc.name = ec.cost_center
-		where ec.docstatus = 1 and ecd.expense_date between '{}' and '{}' 
-		and ec.cost_center = '{}' order by ecd.expense_date asc """.format(from_date,to_date,filters.get("area")),as_list = 1,debug=1)
+	# ec = frappe.db.sql(""" SELECT 
+	# 	ec.cost_center as area,
+	# 	ecd.expense_date as tgl_tanasaksi,
+	# 	ecd.expense_type as type,
+	# 	ecd.description as description,
+	# 	ecd.amount as kredit,
+	# 	ec.status,
+	# 	cc.parent_cost_center as cab,
+	# 	ec.name as dokumen
+	# 	from `tabExpense Claim` ec 
+	# 	left join `tabExpense Claim Detail` ecd on ecd.parent = ec.name
+	# 	left join `tabCost Center` cc on cc.name = ec.cost_center
+	# 	where ec.docstatus = 1 and ecd.expense_date between '{}' and '{}' 
+	# 	and ec.cost_center = '{}' order by ecd.expense_date asc """.format(from_date,to_date,filters.get("area")),as_dict=1,debug=1)
+
+	ec = frappe.db.sql(""" SELECT
+		gl.`posting_date` AS tgl_tanasaksi,
+		gl.`voucher_type`,
+		gl.`voucher_no` AS dokumen,
+		IF(gl.voucher_type='Expense Claim',gl.`debit`,0) AS kredit,
+		IF(gl.voucher_type='Payment Entry',gl.`debit`,0) AS debet,
+		gl.cost_center as area,
+		cc.parent_cost_center as cab,
+		gl.remarks as description
+		FROM `tabGL Entry` gl 
+		left join `tabCost Center` cc on cc.name = gl.cost_center
+		WHERE gl.is_cancelled = 0 AND gl.voucher_type IN ('Expense Claim','Payment Entry') 
+		AND gl.docstatus = 1 AND gl.posting_date BETWEEN '{}' AND '{}' AND gl.debit > 0 
+		AND gl.cost_center = '{}' ORDER BY  gl.posting_date ASC """.format(from_date,to_date,filters.get("area")),as_dict=1,debug=1)
 
 	# 11.0104.01.00.00.001 - Petty Cash - CITY1 - HND
 	
-	saldo_awal = frappe.db.sql(""" SELECT IFNULL(0,sum(debit)-sum(credit)) as debit 
+	saldo_awal = frappe.db.sql(""" SELECT sum(debit)-sum(credit) as saldo,"Saldo Awal" as description
 		from `tabGL Entry` gl where gl.account = '{}' 
-		and gl.is_cancelled = 0 and gl.posting_date < '{}' 
-		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date),debug=1)
+		and gl.is_cancelled = 0 and gl.posting_date > '{}' 
+		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date),as_dict=1,debug=1)
 
 	cek_je = frappe.db.sql(""" SELECT posting_date,remarks,debit
 		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.debit > 0 
 		and gl.voucher_type = "Journal Entry" and gl.posting_date between '{}' and '{}' """.format(filters.get("akun"),from_date,to_date),debug=1)
 	
-	# frappe.msgprint(str(cek_je)+ " cek_je")
+	data = []
+	data.extend(saldo_awal or [])
+	saldo = data[0]['saldo']
+	tot_deb = 0
+	tot_kre = 0
+	for i in ec:
+		saldo = saldo + i['debet'] - i['kredit'] 
+		tot_deb += i['debet']
+		tot_kre += i['kredit']
+		i.update({
+				'saldo': saldo
+			})
+	data.extend(ec or [])
 
-	tampil = [[
-				"",
-				"",
-				"",
-				"Saldo Awal",
-				"",
-				"",
-				"",
-				saldo_awal[0][0]
-			]]
-	if data:
-		for i in data:
-			if i[5] == "Paid":
-				d = 0
-				k = i[4]
-			else:
-				d=i[4]
-				k=0
-
-			tampil.append([
-				i[6],
-				i[0],
-				i[1],
-				i[2],
-				i[3],
-				0,
-				i[4],
-				d-k
-			])
 	
-	# frappe.msgprint(str(tampil)+ " tampil")
-	output = []
-	if cek_je:
-		for c in cek_je:
-			tampil.append(["","",c[0],c[1],"",c[2],0,0])
 
-	# for t in tampil[0:]:
-	# 	frappe.msgprint(str(t[1][8])+'+'+str(t[6])+"-"+str(t[7]))
+	total = [{
+		'description' : 'Total',
+		'debet': tot_deb,
+		'kredit': tot_kre
+	}]
 
-	# frappe.msgprint(str(output)+ " output")
-	sort = sorted(tampil[1:], key= lambda x: x[2])
-	sort.insert(0, tampil[0])
+	# data.extend(total or [])
+
+	# frappe.msgprint(str(data)+' dataxxx')
 	
-	# frappe.msgprint(str(sort)+ " sort")
-	conter = 0
-	conter2 = 1
-	debet = 0 
-	kredit = 0
-	con = 1
-	# frappe.msgprint(str(len(sort))+' len sort')
-	# for s in sort:
-	# 	# frappe.msgprint(str(sort[conter][8])+"wkwkwk")
-	# 	# sort[conter][8] = 9999
-	# 	sort[conter2][7] = sort[conter][7] + sort[conter2][5] - sort[conter2][6]
-		
-	# 	if conter2 != len(sort)-1:
-	# 		conter = conter + 1
-	# 		conter2 = conter2 + 1
-	# 		frappe.msgprint(str(sort[conter][5]) + " sort[conter][5]")
-
-	for i in range(len(sort)-1):
-		debet = debet + sort[i+1][5]
-		kredit = kredit + sort[i+1][6]
-		
-		sort[i+1][7] = sort[i][7]+sort[i+1][5] - sort[i+1][6]
-
-		# sort[14][7] = 9999
-	# 	frappe.msgprint(str(conter2)+ " conter2")
-	# 	frappe.msgprint(str(conter)+ " conter")
-	# frappe.msgprint(str(sort[1:][1:])+ " conterxx")
-	# frappe.msgprint(str(sort[15][7])+'jjj')
-	sort.append(
-		[
-			"",
-			"",
-			"",
-			"Total",
-			"",
-			debet,
-			kredit,
-			""
-		]
-		)
-
-	# frappe.msgprint(str(sort)+" sort")
-	return sort
+	return data
 
 def get_columns(filters):
 	columns = [
@@ -190,17 +145,23 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
-			"label": _("Expanse Claim Type"),
-			"fieldname": "type",
-			"fieldtype": "Data",
-			"width": 100
-		},
-		{
 			"label": _("Description"),
-			"fieldname": "desc",
+			"fieldname": "description",
 			"fieldtype": "Text Editor",
-			"width": 100
+			"width": 250
 		},
+		# {
+		# 	"label": _("Expanse Claim Type"),
+		# 	"fieldname": "type",
+		# 	"fieldtype": "Data",
+		# 	"width": 100
+		# },
+		# {
+		# 	"label": _("Dokumen"),
+		# 	"fieldname": "dokumen",
+		# 	"fieldtype": "Data",
+		# 	"width": 100
+		# },
 		# {
 		# 	"label": _("Status"),
 		# 	"fieldname": "status",
@@ -211,19 +172,19 @@ def get_columns(filters):
 			"label": _("Debet"),
 			"fieldname": "debet",
 			"fieldtype": "Currency",
-			"width": 200
+			"width": 150
 		},
 		{
 			"label": _("Kredit"),
 			"fieldname": "kredit",
 			"fieldtype": "Currency",
-			"width": 200
+			"width": 150
 		},
 		{
 			"label": _("Saldo"),
 			"fieldname": "saldo",
 			"fieldtype": "Currency",
-			"width": 200
+			"width": 150
 		},
 
 	]

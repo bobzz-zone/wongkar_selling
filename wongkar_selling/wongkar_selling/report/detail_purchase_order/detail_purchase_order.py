@@ -38,13 +38,16 @@ def get_data(filters):
 			pinv.bill_date,
 			pinv.due_date,
 			pri.net_rate as dpp,
-			(pri.net_rate + ((pri.net_amount * t1.tax_amount / prec.net_total) / pri.qty)) * t2.rate/100 as ppn
+			(pri.net_rate + ((pri.net_amount * t1.tax_amount / prec.net_total) / pri.qty)) * t2.rate/100 as ppn,
+			po.faktur_pajak,
+			pii.discount_amount as diskon
 		FROM `tabStock Ledger Entry` sle
 		JOIN `tabPurchase Receipt` prec ON prec.name = sle.voucher_no
 		JOIN `tabSerial No` sn ON sle.serial_no LIKE CONCAT("%",sn.name,"%")
 		JOIN `tabPurchase Receipt Item` pri ON prec.name = pri.parent and pri.serial_no LIKE CONCAT("%",sn.name,"%")
 		JOIN `tabItem` i ON i.`name` = sn.`item_code`
 		LEFT JOIN `tabPurchase Invoice Item` pii ON pii.`po_detail` = pri.`purchase_order_item`
+		LEFT join `tabPurchase Order` po on po.name = pri.`purchase_order`
 		LEFT JOIN `tabPurchase Invoice` pinv ON pinv.`name` = pii.`parent` 
 		LEFT JOIN `tabPurchase Taxes and Charges` t1 ON t1.parent = prec.name and t1.charge_type = 'Actual'
 		LEFT JOIN `tabPurchase Taxes and Charges` t2 ON t2.parent = prec.name and t2.charge_type = 'On Previous Row Total'
@@ -106,6 +109,12 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Faktur Pajak"),
+			"fieldname": "faktur_pajak",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
 			"label": _("Accepted Warehouse"),
 			"fieldname": "accepted_warehouse",
 			"fieldtype": "Link",
@@ -142,12 +151,12 @@ def get_columns(filters):
 			"fieldtype": "Data",
 			"width": 100
 		},
-		# {
-		# 	"label": _("Diskon"),
-		# 	"fieldname": "diskon",
-		# 	"fieldtype": "Currency",
-		# 	"width": 100
-		# },
+		{
+			"label": _("Diskon"),
+			"fieldname": "diskon",
+			"fieldtype": "Currency",
+			"width": 100
+		},
 		{
 			"label": _("DPP"),
 			"fieldname": "dpp",

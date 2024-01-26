@@ -721,7 +721,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     def add_dpp_sn(self):
         if self.taxes and len(self.taxes) > 0:
-            dpp = self.taxes[0].total 
+            # dpp = self.taxes[0].total 
+            dpp = self.net_total
             ppn = self.taxes[0].tax_amount
             if self.docstatus == 1:
                 frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(dpp,ppn,self.grand_total,self.no_rangka),debug=1)
