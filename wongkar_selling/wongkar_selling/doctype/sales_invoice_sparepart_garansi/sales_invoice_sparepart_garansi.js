@@ -145,5 +145,15 @@ frappe.ui.form.on('Sales Invoice Sparepart Garansi', {
 		if(cur_frm.doc.__islocal){
 			cur_frm.set_value('posting_time', frappe.datetime.now_time())
 		}
+		cur_frm.set_query("debit_to", function(doc) {
+			return {
+				filters: {
+					// 'account_type': 'Receivable',
+					'is_group': 0,
+					'company': doc.company,
+					'disabled': 0
+				}
+			}
+		});
 	},
 });

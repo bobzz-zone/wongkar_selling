@@ -73,26 +73,26 @@ def patch_po():
 
 
 def patch_prec():
-	data = frappe.db.sql(""" SELECT pr.name as name,t.`name` as t_name,pr.`supplier` FROM `tabPurchase Receipt` pr
-		LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = pr.name 
-		WHERE pr.supplier = 'IFMI MOTOR' AND pr.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
+	# data = frappe.db.sql(""" SELECT pr.name as name,t.`name` as t_name,pr.`supplier` FROM `tabPurchase Receipt` pr
+	# 	LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = pr.name 
+	# 	WHERE pr.supplier = 'IFMI MOTOR' AND pr.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
 
 	
-	tmp = []
+	# tmp = []
 
-	for i in data:
-		tmp.append(i['name'])
+	# for i in data:
+	# 	tmp.append(i['name'])
 
-	print(len(tmp))
-	print(tmp, ' tmpppp')
+	# print(len(tmp))
+	# print(tmp, ' tmpppp')
 
-	# conter = 1
-	# for t in tmp:
-	# 	print(conter)
-	# 	print(t)
-	# 	conter += 1
+	# # conter = 1
+	# # for t in tmp:
+	# # 	print(conter)
+	# # 	print(t)
+	# # 	conter += 1
 
-	docname = 'MAT-PRE-2023-00067'
+	docname = 'MAT-PRE-2023-00471'
 	doc = frappe.get_doc("Purchase Receipt",docname)
 	print(doc.name)
 	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
@@ -107,6 +107,47 @@ def patch_prec():
 	doc.update_children()
 	frappe.db.commit()
 	print("done")
+
+def patch_ste():
+	docname = 'MAT-STE-2023-03120'
+	doc = frappe.get_doc("Stock Entry",docname)
+	print(doc.name)
+	doc.set_posting_time = 1
+	doc.calculate_rate_and_amount(reset_outgoing_rate=False)
+	doc.db_update()
+	doc.update_children()
+	frappe.db.commit()
+	print("done")
+
+def patch_sn():
+	docname = 'JMA1E1117814--MH1JMA114PK117983'
+	doc = frappe.get_doc("Serial No",docname)
+	print(doc.name)
+	doc.update_serial_no_reference(docname)
+	doc.db_update()
+	frappe.db.commit()
+	print("done")
+
+
+@frappe.whitelist()
+def repair_gl_sle_entry(doctype,docname):
+	
+	docu = frappe.get_doc(doctype, docname)
+	print(docu.name)
+	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(docname))
+	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(docname))
+
+
+	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 1 WHERE `field` = "allow_negative_stock" """)
+	docu.update_stock_ledger()
+
+	docu.make_gl_entries()
+	docu.repost_future_sle_and_gle()
+	
+	# docu = frappe.get_doc("Stock Entry", docname)
+	# print("accountings", docu.items[0].basic_rate)
+	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
+	frappe.db.commit()
 
 
 def test_ste():
@@ -213,32 +254,6 @@ def isi_warehouse(nomor_do):
 					serial_doc.warehouse_temp = ""
 					serial_doc.db_update()
 
-@frappe.whitelist()
-def repair_gl_sle_entry():
-	# doctype = "Sales Invoice Penjualan Motor"
-	# docname = "ACC-SINVM-2023-00261"
-	doctype = "Purchase Receipt"
-	docname = "MAT-PRE-2023-00073"
-	print(docname)
-	docu = frappe.get_doc(doctype, docname)
-	
-	delete_sl = frappe.db.sql(""" DELETE FROM `tabStock Ledger Entry` WHERE voucher_no = "{}" """.format(docname))
-	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(docname))
-
-
-	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 1 WHERE `field` = "allow_negative_stock" """)
-	docu.update_stock_ledger()
-
-	# docu = frappe.get_doc("Stock Entry", docname)
-	# print("sle", docu.items[0].basic_rate)
-
-	docu.make_gl_entries()
-	docu.repost_future_sle_and_gle()
-	
-	# docu = frappe.get_doc("Stock Entry", docname)
-	# print("accountings", docu.items[0].basic_rate)
-	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
-	frappe.db.commit()
 
 
 @frappe.whitelist()

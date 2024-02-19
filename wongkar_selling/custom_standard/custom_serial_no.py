@@ -8,7 +8,7 @@ def isi_nosin(self,method):
 		if self.delivery_document_type == 'Sales Invoice Penjualan Motor':
 			frappe.db.sql(""" UPDATE `tabSerial No` set sales_invoice_penjualan_motor='{}',sales_invoice=Null where name = '{}' """.format(self.delivery_document_no,self.name))
 		frappe.db.sql(""" UPDATE `tabSerial No` set no_rangka='{}',no_mesin = '{}' where name = '{}' """.format(split[1],split[0],self.name))
-		frappe.db.commit()
+		# frappe.db.commit()
 
 def rem_sinv(self,method):
 	# frappe.msgprint("s")

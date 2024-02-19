@@ -23,7 +23,7 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 			for i in self.items:
 				i.income_account = beban_titipan_ahas_account
 				i.cost_center = self.cost_center
-		self.debit_to = titipan_ahas_account
+		# self.debit_to = titipan_ahas_account
 		if self.docstatus == 0:
 			self.outstanding_amount = self.grand_total
 

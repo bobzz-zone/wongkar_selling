@@ -44,7 +44,8 @@ def get_invd(customer,date_from,date_to):
 		FROM `tabSales Invoice Penjualan Motor` si 
 		left join `tabTable Discount` td on td.parent = si.name 
 		left join `tabSerial No` sn on sn.name = si.no_rangka 
-		where td.customer = '{}' and td.tertagih = 0 and td.nominal	> 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1,debug=1)
+		where td.customer = '{}' and td.tertagih = 0 and td.nominal	> 0 and si.docstatus = 1 and si.posting_date BETWEEN '{}' and '{}' 
+		group by td.customer,si.name order by si.nama_pemilik """.format(customer,date_from,date_to),as_dict=1)
 
 	return data
 
@@ -71,7 +72,7 @@ def get_invd_l(customer,date_from,date_to):
 		sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 
 		left join `tabSerial No` sn on sn.name = sinv.no_rangka
-		where tdl.nama_leasing = '{0}' and tdl.tertagih = 0 and sinv.docstatus = 1
+		where tdl.nama_leasing = '{0}' and tdl.tertagih = 0 and sinv.docstatus = 1 and tdl.nominal > 0
 		and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	return data
 

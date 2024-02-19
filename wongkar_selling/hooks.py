@@ -38,6 +38,17 @@ fixtures = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/wongkar_selling/css/wongkar_selling.css"
 # app_include_js = "/assets/wongkar_selling/js/wongkar_selling.js"
+app_include_css = ['/assets/wongkar_selling/css/dx.light.css',
+# '/assets/wongkar_selling/css/dx.dark.css'
+]
+app_include_js = ['/assets/wongkar_selling/js/dx.all.js',
+'/assets/wongkar_selling/js/exceljs.min.js',
+'/assets/wongkar_selling/js/FileSaver.min.js',
+'/assets/wongkar_selling/js/jspdf.umd.min.js',
+'/assets/wongkar_selling/js/jszip.min.js',
+'/assets/wongkar_selling/js/polyfill.min.js',
+'/assets/wongkar_selling/js/clusterize.min.js'
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/wongkar_selling/css/wongkar_selling.css"
@@ -235,9 +246,9 @@ doc_events = {
 	},
 	"Serial No":{
 		"validate": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
-		"after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
-		"on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
-		"onload": ["wongkar_selling.custom_standard.custom_serial_no.rem_sinv"]
+		# "after_insert": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
+		# "on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
+		"onload": ["wongkar_selling.custom_standard.custom_serial_no.rem_sinv","wongkar_selling.custom_standard.custom_serial_no.isi_nosin"]
 	},
 
 	# "Payment Entry": {
