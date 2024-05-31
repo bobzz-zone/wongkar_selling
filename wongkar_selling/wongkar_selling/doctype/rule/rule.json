@@ -22,6 +22,7 @@
   "amount",
   "percent",
   "coa_receivable",
+  "coa_lawan",
   "disable"
  ],
  "fields": [
@@ -83,7 +84,8 @@
    "fieldname": "coa_receivable",
    "fieldtype": "Link",
    "label": "COA",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "customer",
@@ -131,11 +133,18 @@
    "label": "Item Code",
    "options": "Item",
    "read_only": 1
+  },
+  {
+   "fieldname": "coa_lawan",
+   "fieldtype": "Link",
+   "label": "COA Lawan",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-12 09:24:37.849287",
+ "modified": "2024-02-19 09:53:27.315820",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule",

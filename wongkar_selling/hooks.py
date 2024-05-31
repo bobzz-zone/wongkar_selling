@@ -24,7 +24,11 @@ fixtures = [
        {
          "dt": "Custom Field", 
          "filters":[["name", "in", ['Serial No-dpp', 'Serial No-ppn', 'Serial No-harga_jual', 'Company-titipan_ahas_account', 'Company-beban_titipan_ahas_account', 
-         'Company-sparepart_setting', 'Company-customer', 'Company-column_break_q9dyg', 'Company-customer_name', 'Company-pendapatan_titipan_ahas_account','Company-customer_account']]]
+         'Company-sparepart_setting', 'Company-customer', 'Company-column_break_q9dyg', 'Company-customer_name', 'Company-pendapatan_titipan_ahas_account','Company-customer_account',
+         'Purchase Invoice-list_sn', 'Serial No-update_rate', 'Stock Entry-purchase_invoice', 'Journal Entry-purchase_invoice', 'Company-diskon_pinv', 'Company-je_credit', 'Company-je_debit',
+         'Purchase Order-invoice_penagihan_garansi','Journal Entry-calculate', 'Journal Entry-get_data', 'Journal Entry-tagihan_payment_table', 'Journal Entry-section_break_za3eb', 
+         'Journal Entry-list_doc_name', 'Journal Entry-section_break_chyyo', 'Purchase Invoice-list_doc_name', 'Purchase Invoice-section_break_ychs8', 'Purchase Order-list_doc_name', 
+         'Purchase Order-section_break_mgaja','Journal Entry-claim','Purchase Invoice-claim','Purchase Order-claim']]]
       },
       {
         "dt": "Property Setter", 
@@ -68,7 +72,9 @@ app_include_js = ['/assets/wongkar_selling/js/dx.all.js',
 doctype_js = {"Payment Entry" : "public/js/custom_payment_entry.js",
 "Customer": "public/js/custom_customer.js",
 "Serial No": "public/js/custom_serial_no.js",
-"Journal Entry": "public/js/custom_journal_entry.js"
+"Journal Entry": "public/js/custom_journal_entry.js",
+'Purchase Invoice': 'public/js/custom_purchase_invoice.js',
+"Purchase Order": 'public/js/custom_purchase_order.js'
 }
 
 doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_motor.js",
@@ -163,18 +169,18 @@ doc_events = {
 		# "before_cancel": ["wongkar_selling.wongkar_selling.doctype.form_expanse_generator.form_expanse_generator.cencel_form"]
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
 		# "on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update_je"],
-		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_journal_entry.cek_cancel_adv_leasing"],
+		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_journal_entry.cek_cancel_adv_leasing","wongkar_selling.custom_standard.custom_stock_entry.cek_diskon_pinv",'wongkar_selling.custom_standard.custom_journal_entry.hitung_outstanding_claim'],
 		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel","wongkar_selling.custom_standard.custom_journal_entry.get_penerimaan_dp"],
-		"on_submit": ["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing"],
+		"on_submit": ["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing",'wongkar_selling.custom_standard.custom_journal_entry.hitung_outstanding_claim'],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
 	"Purchase Invoice": {
 		# "before_submit" : ["wongkar_selling.wongkar_selling.selling.overide_make_gl"]
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
 		"on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update"],
-		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
+		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_purchase_invoice.can_diskon_sn_ste"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"],
-		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
+		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_purchase_invoice.diskon_sn_ste"],
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sales_order_log.sales_order_log.after_submit_so"]
 	},
 	"Purchase Receipt": {
@@ -231,7 +237,7 @@ doc_events = {
 	},
 	"Stock Entry": {
 		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
-		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],
+		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_stock_entry.cek_diskon_pinv"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
 	"Stock Reconciliation": {
@@ -297,7 +303,9 @@ override_whitelisted_methods = {
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.make_payment_order": "wongkar_selling.wongkar_selling.selling.make_payment_order",
 	"erpnext.accounts.doctype.payment_entry.payment_entry.get_payment_entry": "wongkar_selling.wongkar_selling.selling.get_payment_entry_custom",
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_outstanding_reference_documents": "wongkar_selling.wongkar_selling.selling.get_outstanding_reference_documents_custom",
-	"erpnext.controllers.taxes_and_totals.calculate_totals": "wongkar_selling.wongkar_selling.override_controler.calculate_totals_custom"
+	"erpnext.controllers.taxes_and_totals.calculate_totals": "wongkar_selling.wongkar_selling.override_controler.calculate_totals_custom",
+	"erpnext.buying.doctype.purchase_order.purchase_order.make_purchase_invoice": "wongkar_selling.custom_standard.custom_purchase_order.make_purchase_invoice_custom"
+	# "erpnext.accounts.doctype.journal_entry.journal_entry.get_outstanding": "wongkar_selling.custom_standard.custom_journal_entry.get_outstanding_custom",
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_reference_details": "wongkar_selling.custom_payment_entry.get_reference_details_chandra",
 	# "erpnext.accounts.doctype.payment_entry.payment_entry.set_missing_values": "wongkar_selling.wongkar_selling.selling.set_missing_values_custom",
 }

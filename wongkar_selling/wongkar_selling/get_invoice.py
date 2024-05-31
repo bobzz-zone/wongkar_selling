@@ -151,14 +151,14 @@ def get_rule(item_code,territory,posting_date,category_discount,from_group):
 	# if frappe.local.site in ["newbjm.digitalasiasolusindo.com"]:
 	if from_group:
 		item_group = frappe.get_doc("Item",item_code).item_group
-		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory from `tabRule` 
+		data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory,coa_lawan from `tabRule` 
 			where item_group='{0}' and  (territory = '{1}' OR territory='All Territories') and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
 			and valid_to >= '{2}' and item_code is NULL HAVING territory='All Territories' order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 		
 		if data:
 			print("ada all territory")
 		else:
-			data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory from `tabRule` 
+			data = frappe.db.sql(""" SELECT name,customer,category_discount,coa_receivable,amount,discount,percent,valid_from,valid_to,territory,coa_lawan from `tabRule` 
 				where item_group='{0}' and  (territory = '{1}') and category_discount='{3}' and disable = 0 and valid_from <='{2}' 
 				and valid_to >= '{2}' and item_code is NULL order by valid_from desc """.format(item_group,territory,posting_date,category_discount),as_dict=1)
 	else:
@@ -186,7 +186,7 @@ def get_leasing(item_code,nama_promo,territory_real,posting_date,from_group):
 			AND rdl.disable = 0 group by rdl.item_group,rdl.leasing order by rdl.valid_from desc """.format(item_group,nama_promo,territory_real,posting_date),as_dict=1)
 		# frappe.msgprint(str(data))
 	else:
-		data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount,rdl.valid_from,rdl.valid_to,rdl.name  from `tabRule Discount Leasing` rdl 
+		data = frappe.db.sql(""" SELECT rdl.leasing,tdl.coa,tdl.amount,rdl.valid_from,rdl.valid_to,rdl.name,rdl.coa_lawan  from `tabRule Discount Leasing` rdl 
 			join `tabTable Discount Leasing` tdl on rdl.name = tdl.parent
 			where rdl.item_code='{0}' and rdl.nama_promo='{1}' and rdl.territory='{2}' 
 			and (rdl.valid_from is NULL or rdl.valid_from <='{3}') and (rdl.valid_to is NULL or rdl.valid_to >='{3}') 
@@ -224,7 +224,7 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 	return data
 
 @frappe.whitelist()
-def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
+def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 	# frappe.msgprint(doc_type+" "+tipe_pembayaran)
 	tes = json.loads(data)
 	# frappe.msgprint(str(tes)+" tes")
@@ -366,7 +366,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 			# frappe.msgprint(data)
 			tmp.append(data)
 
-	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi':
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi' and not oli:
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
 				customer as pemilik,
@@ -379,6 +379,21 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from):
 				name as id_detail,
 				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
 				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi' and oli:
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				customer as pemilik,
+				customer_name as nama_pemilik,
+				sales_invoice_sparepart_garansi,
+				grand_total_oli as grand_total,
+				outstanding_amount_oli as outstanding,
+				parenttype,
+				parent,
+				name as id_detail,
+				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_oli > 0 """.format(i['docname']),as_dict=1,debug=1)
 			# frappe.msgprint(data)
 			tmp.append(data)
 

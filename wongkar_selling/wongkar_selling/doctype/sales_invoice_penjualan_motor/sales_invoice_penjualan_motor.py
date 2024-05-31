@@ -138,9 +138,11 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             elif self.docstatus == 1:
                 # if self.is_internal_transfer():
                 #   self.status = 'Internal Transfer'
+                # frappe.msgprint("masuk sini status xxx")
                 if outstanding_amount > 0 and due_date < nowdate and self.is_discounted and discountng_status=='Disbursed':
                     self.status = "Overdue and Discounted"
                 if outstanding_amount > 0 and due_date < nowdate:
+                    # frappe.msgprint("masuk sini status 444")
                     self.status = "Overdue"
                 if outstanding_amount > 0 and due_date >= nowdate and self.is_discounted and discountng_status=='Disbursed':
                     self.status = "Unpaid and Discounted"
@@ -169,7 +171,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             # frappe.msgprint("masuk update")
             # frappe.msgprint(self.status+ " self.status")
             self.db_set('status', self.status, update_modified = update_modified)
-            frappe.db.commit()
+            # frappe.db.commit()
 
     def cek_rdl(self):
         # if len(self.items) > 1 or self.from_group:
@@ -519,6 +521,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
                         "customer":row.customer,
                         "category_discount": row.category_discount,
                         "coa_receivable": row.coa_receivable,
+                        "coa_lawan": row.coa_lawan,
                         "nominal": row.amount
                         })
 
@@ -942,8 +945,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         self.make_customer_gl_entry(gl_entries)
         # tambahan
-        # self.make_disc_gl_entry_custom(gl_entries)
-        # self.make_disc_gl_entry_custom_leasing(gl_entries)
+        self.make_disc_gl_entry_custom(gl_entries)
+        self.make_disc_gl_entry_custom_leasing(gl_entries)
+        
         self.make_biaya_gl_entry_custom(gl_entries)
         self.make_adj_disc_gl_entry(gl_entries)
         self.make_disc_gl_entry(gl_entries)
@@ -1416,130 +1420,99 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         for d in self.get('table_discount_leasing'):
             hitung_tax = (d.nominal) / tax
             net_dl = (d.nominal) - hitung_tax
+            pendapatan = frappe.get_doc("Rule Discount Leasing",d.rule).coa_lawan
             gl_entries.append(
                 self.get_gl_dict({
                     "account": d.coa,
-                    # "party_type": "Customer",
-                    # "party": d.nama_leasing,
-                    "due_date": self.due_date,
-                    # "against": self.against_income_account,
+                    # "due_date": self.due_date,
+                    "party_type": "Customer",
+                    "party": d.nama_leasing,
                     "against": d.coa_lawan,
-                    "debit": hitung_tax,
-                    "debit_in_account_currency": hitung_tax,
-                    "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+                    "debit": d.nominal,
+                    "debit_in_account_currency": d.nominal,
+                    "against_voucher": self.name,
                     "against_voucher_type": self.doctype,
                     "cost_center": self.cost_center,
-                    "project": self.project,
-                    # "remarks": "coba Lutfi zzzzz!"
-                }, self.party_account_currency, item=self)
+                    # "project": self.project,
+                    # "remarks": "coba Lutfi yyyyy!"
+                }, self.party_account_currency, item=self.table_discount_leasing)
             )
-
-            # gl_entries.append(
-            #   self.get_gl_dict({
-            #       "account": tax_account,
-            #       "against": d.nama_leasing,
-            #       "debit": net_dl,
-            #       "debit_in_account_currency": net_dl,
-            #       "cost_center": self.cost_center,
-            #   }, self.party_account_currency, item=self)
-            # )
-
-        for d in self.get('table_discount_leasing'):
-            hitung_tax_c = (d.nominal) / tax
+            
             gl_entries.append(
                 self.get_gl_dict({
                     "account": d.coa_lawan,
-                    # "party_type": "Customer",
-                    # "party": d.nama_leasing,
-                    "due_date": self.due_date,
-                    # "against": self.against_income_account,
+                    # "due_date": self.due_date,
                     "against": d.coa,
-                    "credit": hitung_tax_c,
-                    "credit_in_account_currency": hitung_tax_c,
-                    "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
-                    "against_voucher_type": self.doctype,
+                    "credit": d.nominal,
+                    "credit_in_account_currency": d.nominal,
+                    # "against_voucher": self.name,
+                    # "against_voucher_type": self.doctype,
                     "cost_center": self.cost_center,
-                    "project": self.project,
-                    # "remarks": "coba Lutfi zzzzz!"
-                }, self.party_account_currency, item=self)
+                    # "project": self.project,
+                    # "remarks": "coba Lutfi yyyyy!"
+                }, self.party_account_currency, item=self.table_discount_leasing)
             )
 
-    # diskon biasa
-    def make_disc_gl_entry_custom(self, gl_entries):
-        # from erpnext.accounts.general_ledger import merge_similar_entries
-        tax = (100+ self.taxes[0].rate) / 100
-        tax_account = self.taxes[0].account_head
-        # pendapatan = frappe.get_doc("Company",self.company).pendapatan_lain
-        total_net_d = 0
-        for d in self.get('table_discount'):
-            pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
-            hitung_tax = flt((d.nominal) / tax,0)
-            net_d = (d.nominal) - hitung_tax
-            gl_entries.append(
-                self.get_gl_dict({
-                    "account": d.coa_receivable,
-                    # "party_type": "Customer",
-                    # "party": d.customer,
-                    "due_date": self.due_date,
-                    # "against": self.against_income_account,
-                    "against": pendapatan,
-                    "debit": hitung_tax,
-                    "debit_in_account_currency": hitung_tax,
-                    "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
-                    "against_voucher_type": self.doctype,
-                    "cost_center": self.cost_center,
-                    "project": self.project,
-                    # "remarks": "coba Lutfi yyyyy!"
-                }, self.party_account_currency, item=self)
-            )
-            
-            # gl_entries.append(
-            #   self.get_gl_dict({
-            #       "account": tax_account,
-            #       "against": d.customer,
-            #       "debit": net_d,
-            #       "debit_in_account_currency": net_d,
-            #       "cost_center": self.cost_center,
-            #   }, self.party_account_currency, item=self)
-            # )
-        
-        tmp_againt = ''
-        previous_coa = None
-        # for d in self.get('table_discount'):
-        #     pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
-        #     current_coa = pendapatan
-        #     if (previous_coa is not None and previous_coa != current_coa):
-        #         pass
-        #     else:
-        #         tmp_againt.append(d.coa_receivable)
-        #     previous_area = current_coa
-        #     tampil = str(tmp_againt).replace("'","").replace("[","").replace("]","")
-        # print(tampil, ' tampiltampiltampiltampilsss')
-       
-        # for d in self.get('table_discount'):
-        #     pendapatan = frappe.get_doc("Rule",d.rule).coa_lawan
+        # for d in self.get('table_discount_leasing'):
         #     hitung_tax_c = (d.nominal) / tax
         #     gl_entries.append(
         #         self.get_gl_dict({
-        #             "account": pendapatan,
+        #             "account": d.coa_lawan,
         #             # "party_type": "Customer",
-        #             # "party": d.customer,
+        #             # "party": d.nama_leasing,
         #             "due_date": self.due_date,
         #             # "against": self.against_income_account,
-        #             "against": d.coa_receivable,
+        #             "against": d.coa,
         #             "credit": hitung_tax_c,
         #             "credit_in_account_currency": hitung_tax_c,
         #             "against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
         #             "against_voucher_type": self.doctype,
         #             "cost_center": self.cost_center,
         #             "project": self.project,
-        #             # "remarks": "coba Lutfi yyyyy!"
+        #             # "remarks": "coba Lutfi zzzzz!"
         #         }, self.party_account_currency, item=self)
         #     )
-        
 
-
-        # gl_entries = merge_similar_entries(gl_entries)
+    # diskon biasa
+    def make_disc_gl_entry_custom(self, gl_entries):
+        tax = (100+ self.taxes[0].rate) / 100
+        tax_account = self.taxes[0].account_head
+        total_net_d = 0
+        for d in self.get('table_discount'):
+            beban = frappe.get_doc("Rule",d.rule).coa_lawan
+            hitung_tax = flt((d.nominal) / tax,0)
+            net_d = (d.nominal) - hitung_tax
+            gl_entries.append(
+                self.get_gl_dict({
+                    "account": d.coa_receivable,
+                    # "due_date": self.due_date,
+                    "party_type": "Customer",
+                    "party": d.customer,
+                    "against": d.coa_lawan,
+                    "debit": d.nominal,
+                    "debit_in_account_currency": d.nominal,
+                    "against_voucher": self.name,
+                    "against_voucher_type": self.doctype,
+                    "cost_center": self.cost_center,
+                    # "project": self.project,
+                    # "remarks": "coba Lutfi yyyyy!"
+                }, self.party_account_currency, item=self.table_discount)
+            )
+            
+            gl_entries.append(
+                self.get_gl_dict({
+                    "account": d.coa_lawan,
+                    # "due_date": self.due_date,
+                    "against": d.coa_receivable,
+                    "credit": d.nominal,
+                    "credit_in_account_currency": d.nominal,
+                    # "against_voucher": self.name,
+                    # "against_voucher_type": self.doctype,
+                    "cost_center": self.cost_center,
+                    # "project": self.project,
+                    # "remarks": "coba Lutfi yyyyy!"
+                }, self.party_account_currency, item=self.table_discount)
+            )
 
     def make_customer_gl_entry(self, gl_entries):
         # # Checked both rounding_adjustment and rounded_total

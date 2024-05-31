@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-14 12:09:54.970366",
  "doctype": "DocType",
@@ -17,14 +18,15 @@
   "name_leasing",
   "nama_promo",
   "territory",
-  "coa_pendapatan_leasing",
   "coa_tagihan_discount_leasing",
+  "coa_pendapatan_leasing",
   "coa_tagihan_sipm",
   "section_break_bsymq",
   "tax_account",
   "cek_pph",
   "pph_account",
   "pph",
+  "pendapatan_per",
   "section_break_12",
   "grand_total",
   "outstanding_amount",
@@ -214,10 +216,9 @@
   {
    "fieldname": "coa_pendapatan_leasing",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "COA Pendapatan Leasing",
    "options": "Account",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "tax_account",
@@ -248,13 +249,28 @@
    "depends_on": "eval:doc.cek_pph",
    "fieldname": "pph",
    "fieldtype": "Percent",
-   "label": "PPH"
+   "label": "PPH %"
+  },
+  {
+   "default": "109",
+   "depends_on": "eval:doc.cek_pph",
+   "fieldname": "pendapatan_per",
+   "fieldtype": "Percent",
+   "label": "Pendapatan %"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2023-08-09 14:46:03.669659",
+ "links": [
+  {
+   "group": "Form Pembayaran",
+   "link_doctype": "Form Pembayaran",
+   "link_fieldname": "docname",
+   "parent_doctype": "Form Pembayaran",
+   "table_fieldname": "list_doc_name"
+  }
+ ],
+ "modified": "2024-05-31 09:31:30.912122",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount Leasing",

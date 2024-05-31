@@ -18,6 +18,7 @@
   "customer_group",
   "territory",
   "coa",
+  "coa_lawan",
   "amount",
   "beban_dealer",
   "disable"
@@ -118,11 +119,18 @@
    "fieldname": "amount",
    "fieldtype": "Currency",
    "label": "Amount"
+  },
+  {
+   "fieldname": "coa_lawan",
+   "fieldtype": "Link",
+   "label": "COA Lawan",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-12 09:25:18.150004",
+ "modified": "2024-02-19 10:04:37.237896",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",

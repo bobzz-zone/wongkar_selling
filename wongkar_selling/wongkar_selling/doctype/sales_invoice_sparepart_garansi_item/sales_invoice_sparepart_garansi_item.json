@@ -18,6 +18,7 @@
   "section_break_bxsgd",
   "income_account",
   "expense_account",
+  "titipan_account",
   "cost_center"
  ],
  "fields": [
@@ -68,8 +69,7 @@
    "fieldname": "income_account",
    "fieldtype": "Link",
    "label": "Income Account",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "expense_account",
@@ -103,12 +103,19 @@
    "fieldtype": "Link",
    "label": "Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fetch_from": "item_code.titipan_account",
+   "fieldname": "titipan_account",
+   "fieldtype": "Link",
+   "label": "Titipan Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-01-08 15:21:30.773201",
+ "modified": "2024-04-18 14:35:27.736011",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Sparepart Garansi Item",

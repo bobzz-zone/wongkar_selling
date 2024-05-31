@@ -10,6 +10,121 @@ from frappe.utils import flt, rounded, add_months,add_days, nowdate, getdate
 import time
 import datetime
 from erpnext.controllers.accounts_controller import get_taxes_and_charges
+from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_amt_custom
+
+def patch_rate_salah_ste():
+	# patch SN
+	harga_baru = 27313700
+	serial_no = 'KD11E1491244--MH1KD1113RK492089'
+	item_code = frappe.get_doc('Serial No',serial_no).item_code
+	
+	frappe.db.sql(""" UPDATE `tabSerial No` SET purchase_rate={} WHERE name = '{}' """.format(harga_baru,serial_no),debug=1)
+	# STE
+	se = ['MAT-STE-2024-00644']
+	for i in se:
+		data = frappe.db.sql(""" SELECT name,parent,item_code,basic_rate,valuation_rate,basic_amount,amount,qty,serial_no FROM `tabStock Entry Detail` 
+			WHERE parent = '{}' AND item_code = '{}' AND serial_no LIKE '%{}%' """.format(i,item_code,serial_no),as_dict=1,debug=1)
+		if data:
+			for d in data:
+				frappe.db.sql(""" UPDATE `tabStock Entry Detail` SET basic_rate={} WHERE NAME ='{}' """.format(harga_baru,d['name']),debug=1)
+		patch_ste(i)
+
+
+def patch_rate_salah_prec():
+	# patch SN
+	harga_baru = 27313700
+	serial_no = 'KD11E1490059--MH1KD1112RK490897'
+	item_code = frappe.get_doc('Serial No',serial_no).item_code
+	
+	
+	frappe.db.sql(""" UPDATE `tabSerial No` SET purchase_rate={} WHERE name = '{}' """.format(harga_baru,serial_no),debug=1)
+	# PECR
+	se = ['MAT-PRE-2024-00258']
+	for i in se:
+		data = frappe.db.sql(""" SELECT name,item_code,price_list_rate,stock_uom_rate,valuation_rate,rate,qty,margin_type,serial_no FROM `tabPurchase Receipt Item` 
+			WHERE parent = '{}' AND item_code = '{}' AND serial_no LIKE '%{}%' """.format(i,item_code,serial_no),as_dict=1,debug=1)
+		if data:
+			for d in data:
+				frappe.db.sql(""" UPDATE `tabPurchase Receipt Item` SET rate={0},valuation_rate={0},stock_uom_rate={0}
+					WHERE NAME='{1}' """.format(harga_baru,d['name']),debug=1)
+		patch_prec(i)
+
+
+@frappe.whitelist()
+def patch_coa():
+	rule = frappe.db.sql(""" SELECT 
+		sipm.name,sipm.`docstatus`,td.`name` AS td_name,td.`rule` AS td_rule,td.`coa_receivable`, r.`coa_receivable` AS r_coa
+		FROM `tabSales Invoice Penjualan Motor` sipm
+		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.`name`
+		LEFT JOIN `tabRule` r ON r.`name` = td.`rule`
+		WHERE sipm.`docstatus` < 2 AND td.`rule` IS NOT NULL ORDER BY sipm.`name` DESC """,as_dict=1)
+
+	rdl = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,tdl.name AS tdl_name,tdl.`rule` AS tdl_rule,tdl.coa,rdl.`coa` AS rdl_coa
+		FROM `tabSales Invoice Penjualan Motor` sipm
+		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.`parent` = sipm.`name`
+		LEFT JOIN `tabRule Discount Leasing` rdl ON rdl.`name` = tdl.`rule`
+		WHERE sipm.`docstatus` < 2 AND tdl.`rule` IS NOT NULL ORDER BY sipm.`name` DESC  """,as_dict=1)
+
+	# rule
+	for i in rule:
+		coa = frappe.get_doc("Rule",i['td_rule']).coa_receivable
+		if i['coa_receivable'] != coa.coa_receivable:
+			print(i['name']," | ",coa.coa_receivable)
+			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable = '{}' where name = '{}' """.format(coa.coa_receivable,i['td_name']))
+		elif i['coa_receivable'] != coa.coa_lawan:
+			print(i['name']," | ",coa.coa_receivable)
+			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable = '{}' where name = '{}' """.format(coa.coa_receivable,i['td_name']))
+
+	# rdl
+	for i in rdl:
+		coa = frappe.get_doc("Rule Discount Leasing",i['tdl_rule'])
+		if i['coa'] != coa.coa:
+			print(i['name']," | ",coa)
+			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa = '{}' where name = '{}' """.format(coa,i['tdl_name']))
+			# frappe.db.commit()
+
+
+def patch_sipm_gl():
+	tmp = [
+'ACC-SINVM-2024-00854'
+]
+	for i in tmp:
+		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
+		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
+		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+
+def patch_coa_sipm():
+	tmp = [
+'ACC-SINVM-2024-00854'
+]
+	
+	for i in tmp:
+		docname = i
+		doc = frappe.get_doc('Sales Invoice Penjualan Motor',docname)
+		
+		# r
+		for i in doc.table_discount:
+			print(i.parent, ' NAME')
+			r = frappe.get_doc("Rule",i.rule)
+			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable='{}',coa_lawan='{}' where name = '{}' """.format(r.coa_receivable,r.coa_lawan,i.name))
+
+		#RDL
+		for i in doc.table_discount_leasing:
+			print(i.parent, ' NAME')
+			rdl = frappe.get_doc("Rule Discount Leasing",i.rule)
+			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa='{}',coa_lawan='{}' where name = '{}' """.format(rdl.coa,rdl.coa_lawan,i.name))
+
+def patch_sn_no_rangka():
+	data = frappe.db.sql(""" SELECT name,no_rangka from `tabSerial No` where no_rangka is null limit 100 """,as_dict=1)
+	print(len(data))
+	for i in data:
+		print(i['name'])
+		doc = frappe.get_doc('Serial No',i['name'])
+		split = doc.name.split("--")
+		doc.no_rangka = split[1]
+		doc.no_mesin = split[0]
+		
+		doc.db_update()
 
 
 def patch_ec_pe():
@@ -39,18 +154,21 @@ def patch_ec():
 		print("done")
 
 def patch_po():
-	data = frappe.db.sql(""" SELECT po.name as name,t.`name` as t_name,po.`supplier` FROM `tabPurchase Order` po
-		LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = po.name 
-		WHERE po.supplier = 'IFMI MOTOR' AND po.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
+	# data = frappe.db.sql(""" SELECT po.name as name,t.`name` as t_name,po.`supplier` FROM `tabPurchase Order` po
+	# 	LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = po.name 
+	# 	WHERE po.supplier = 'IFMI MOTOR' AND po.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
 
-	tmp = []
+	# tmp = []
 
-	for i in data:
-		tmp.append(i['name'])
+	# for i in data:
+	# 	tmp.append(i['name'])
 
-	print(len(tmp))
-	print(tmp, ' tmpppp')
+	# print(len(tmp))
+	# print(tmp, ' tmpppp')
 
+	
+	#  UPDATE `tabPurchase Order Item` SET price_list_rate = 14539300,rate=14539300,discount_amount=0 WHERE NAME = '3d4a0518a5'
+	tmp = ['PUR-ORD-2023-00308']
 	conter = 1
 	for t in tmp:
 		print(conter)
@@ -72,7 +190,7 @@ def patch_po():
 		conter += 1
 
 
-def patch_prec():
+def patch_prec(docname):
 	# data = frappe.db.sql(""" SELECT pr.name as name,t.`name` as t_name,pr.`supplier` FROM `tabPurchase Receipt` pr
 	# 	LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = pr.name 
 	# 	WHERE pr.supplier = 'IFMI MOTOR' AND pr.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
@@ -92,7 +210,7 @@ def patch_prec():
 	# # 	print(t)
 	# # 	conter += 1
 
-	docname = 'MAT-PRE-2023-00471'
+	# docname = 'MAT-PRE-2023-00471'
 	doc = frappe.get_doc("Purchase Receipt",docname)
 	print(doc.name)
 	taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
@@ -108,8 +226,8 @@ def patch_prec():
 	frappe.db.commit()
 	print("done")
 
-def patch_ste():
-	docname = 'MAT-STE-2023-03120'
+def patch_ste(docname):
+	# docname = 'MAT-STE-2023-03120'
 	doc = frappe.get_doc("Stock Entry",docname)
 	print(doc.name)
 	doc.set_posting_time = 1
@@ -130,6 +248,14 @@ def patch_sn():
 
 
 @frappe.whitelist()
+def repair_only_gl_entry(doctype,docname):	
+	# bench --site wongkar2pjk.digitalasiasolusindo.com execute wongkar_selling.patch.repair_only_gl_entry --kwargs '{"doctype":"Tagihan Discount","docname":"Tagihan-D-03-2024-00001"}'
+	docu = frappe.get_doc(doctype, docname)
+	print(docu.name)
+	delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(docname))
+	docu.make_gl_entries()
+
+@frappe.whitelist()
 def repair_gl_sle_entry(doctype,docname):
 	
 	docu = frappe.get_doc(doctype, docname)
@@ -147,7 +273,7 @@ def repair_gl_sle_entry(doctype,docname):
 	# docu = frappe.get_doc("Stock Entry", docname)
 	# print("accountings", docu.items[0].basic_rate)
 	frappe.db.sql(""" UPDATE `tabSingles` SET VALUE = 0 WHERE `field` = "allow_negative_stock" """)
-	frappe.db.commit()
+	# frappe.db.commit()
 
 
 def test_ste():
@@ -982,33 +1108,5 @@ def patch_rdl2():
 		
 
 
-@frappe.whitelist()
-def patch_coa():
-	rule = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,td.`name` AS td_name,td.`rule` AS td_rule,td.`coa_receivable`, r.`coa_receivable` AS r_coa
-		FROM `tabSales Invoice Penjualan Motor` sipm
-		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.`name`
-		LEFT JOIN `tabRule` r ON r.`name` = td.`rule`
-		WHERE sipm.`docstatus` < 2 AND td.`rule` IS NOT NULL ORDER BY sipm.`name` DESC """,as_dict=1)
 
-	rdl = frappe.db.sql(""" SELECT sipm.name,sipm.`docstatus`,tdl.name AS tdl_name,tdl.`rule` AS tdl_rule,tdl.coa,rdl.`coa` AS rdl_coa
-		FROM `tabSales Invoice Penjualan Motor` sipm
-		LEFT JOIN `tabTable Disc Leasing` tdl ON tdl.`parent` = sipm.`name`
-		LEFT JOIN `tabRule Discount Leasing` rdl ON rdl.`name` = tdl.`rule`
-		WHERE sipm.`docstatus` < 2 AND tdl.`rule` IS NOT NULL ORDER BY sipm.`name` DESC  """,as_dict=1)
-
-	# rule
-	for i in rule:
-		coa = frappe.get_doc("Rule",i['td_rule']).coa_receivable
-		if i['coa_receivable'] != coa:
-			print(i['name']," | ",coa)
-			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable = '{}' where name = '{}' """.format(coa,i['td_name']))
-			frappe.db.commit()
-
-	# rdl
-	for i in rdl:
-		coa = frappe.get_doc("Rule Discount Leasing",i['tdl_rule']).coa
-		if i['coa'] != coa:
-			print(i['name']," | ",coa)
-			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa = '{}' where name = '{}' """.format(coa,i['tdl_name']))
-			frappe.db.commit()
 

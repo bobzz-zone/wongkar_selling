@@ -2114,7 +2114,8 @@
    "fieldname": "tertagih",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Tertagih"
+   "label": "Tertagih",
+   "no_copy": 1
   },
   {
    "fieldname": "sb_tb_disc_section",
@@ -2504,7 +2505,7 @@
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-25 13:12:47.766159",
+ "modified": "2024-03-21 08:23:30.813030",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

@@ -65,6 +65,16 @@ frappe.ui.form.on('Tagihan Discount Leasing', {
 			};
 		});
 
+		frm.set_query("coa_pendapatan_leasing", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0,
+					disabled : 0
+				}
+			};
+		});
+
 		frm.set_query("coa_tagihan_sipm", function() {
 			return {
 				filters: {

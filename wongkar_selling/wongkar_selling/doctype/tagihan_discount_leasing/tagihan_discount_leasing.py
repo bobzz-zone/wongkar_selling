@@ -34,17 +34,17 @@ class TagihanDiscountLeasing(Document):
 		total = 0
 		if self.cek_pph:
 			for d in self.daftar_tagihan_leasing:
-				rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
-				tax = (100+rate ) / 100
-				hitung_tax = d.nilai_diskon / tax
-				pph = hitung_tax * self.pph / 100
-				d.nilai = d.nilai_diskon - pph
-				d.outstanding_discount = d.nilai
+				# rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
+				# tax = (100+rate ) / 100
+				# hitung_tax = d.nilai_diskon / tax
+				# pph = hitung_tax * self.pph / 100
+				# d.nilai = d.nilai_diskon - pph
+				# d.outstanding_discount = d.nilai
 				total += d.nilai
 		else:
 			for d in self.daftar_tagihan_leasing:
-				d.nilai = d.nilai_diskon
-				d.outstanding_discount = d.nilai
+				# d.nilai = d.nilai_diskon
+				# d.outstanding_discount = d.nilai
 				total += d.nilai
 		print(total, ' total')
 		self.grand_total = total
@@ -152,13 +152,42 @@ class TagihanDiscountLeasing(Document):
 
 		self.make_gl_debit(gl_entries)
 		self.make_gl_credit(gl_entries)
+		self.make_gl_pendapatan(gl_entries)
+		self.make_pph_gl_entries(gl_entries)
 		self.make_tax_gl_entries(gl_entries)
-		self.make_pph_gl_entries(gl_entries)		
 		# merge gl entries before adding pos entries
 		gl_entries = merge_similar_entries(gl_entries)
-
+		# frappe.msgprint(str(gl_entries)+' gl_entries')
+		print(gl_entries, ' gl_entries')
 		return gl_entries
 
+
+	def make_gl_pendapatan(self, gl_entries):
+		for d in self.get('daftar_tagihan_leasing'):
+			print(d.no_invoice, " no_invoice")
+			account = frappe.db.get_list('Table Disc Leasing',filters={'parent' : d.no_invoice,'nama_leasing': self.customer},fields=['*'])
+			print(account, ' account')
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			total = [0]
+			debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",d.no_invoice).debit_to
+			for d2 in account:
+				rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d2.parent,'idx':1}).rate
+				tax = (100+rate ) / 100
+				hitung_tax = (d2.nominal) / tax
+				net = (d2.nominal) - hitung_tax
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": d2.coa_lawan,
+						"against":  self.coa_pendapatan_leasing,
+						"debit": d2.nominal,
+						"debit_in_account_currency": d2.nominal,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 
 	def make_pph_gl_entries(self, gl_entries):
 		
@@ -166,8 +195,9 @@ class TagihanDiscountLeasing(Document):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
 			tax = (100+rate ) / 100
-			hitung_tax = d.nilai_diskon / tax
-			pph = hitung_tax * self.pph / 100
+			hitung_tax = d.nilai_diskon / (self.pendapatan_per / 100)
+			# pph = hitung_tax * self.pph / 100
+			pph = hitung_tax * (self.pph/100)
 			pajak = hitung_tax - pph
 			# pph = d.nilai_diskon * self.pph / 100
 			gl_entries.append(
@@ -178,30 +208,56 @@ class TagihanDiscountLeasing(Document):
 					# "debit_in_account_currency": pph,
 					"debit": pph,
 					"debit_in_account_currency": pph,
-					"cost_center": cost_center,
+					# "cost_center": cost_center,
 					# "remarks": "coba Lutfi pajak!"
 				}, item=None)
 			)
 
 
 	def make_tax_gl_entries(self, gl_entries):
+
+		for d in self.get('daftar_tagihan_leasing'):
+			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
+			account = frappe.db.get_list('Table Disc Leasing',filters={'parent' : d.no_invoice,'nama_leasing': self.customer},fields=['*'])
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
+			tax = (100+rate ) / 100
+			hitung_tax = d.nilai_diskon / (self.pendapatan_per / 100)
+			# pph = hitung_tax * self.pph / 100
+			pph = hitung_tax * (self.pph/100)
+			tot_pph = (d.nilai_diskon + pph) / tax
+			for d2 in account:
+				gl_entries.append(
+					self.get_gl_dict({
+						"account": self.coa_pendapatan_leasing,
+						"against":  d2.coa_lawan,
+						"credit": hitung_tax,
+						"credit_in_account_currency": hitung_tax,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						"cost_center": cost_center
+						# "project": self.project,
+						# "remarks": "coba Lutfi yyyyy!"
+					}, item=None)
+				)
 		
 		for d in self.get('daftar_tagihan_leasing'):
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_invoice}, "cost_center")
 			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
 			tax = (100+rate ) / 100
-			hitung_tax = d.nilai_diskon / tax
-			net = d.nilai_diskon - hitung_tax
-			# lama
-			# hitung_tax = (d.nilai_diskon) / 1.11
-			# net = (d.nilai_diskon) - hitung_tax
+			hitung_tax = d.nilai_diskon / (self.pendapatan_per / 100)
+			# pph = hitung_tax * self.pph / 100
+			pph = hitung_tax * (self.pph/100)
+			tot_pph = (d.nilai_diskon + pph) / tax
+			net = (d.nilai_diskon + pph) - tot_pph
+			
+
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": self.tax_account,
 					"against": self.customer,
 					"credit": net,
 					"credit_in_account_currency": net,
-					"cost_center": cost_center,
+					# "cost_center": cost_center,
 					# "remarks": "coba Lutfi pajak!"
 				}, item=None)
 			)
@@ -230,15 +286,17 @@ class TagihanDiscountLeasing(Document):
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": d2.coa,
-						# "party_type": "Customer",
-						# "party": self.customer,
+						"party_type": "Customer",
+						"party": self.customer,
 						# "due_date": self.due_date,
 						"against":  self.coa_tagihan_discount_leasing,
-						"credit": hitung_tax,
-						"credit_in_account_currency": hitung_tax,
-						# "against_voucher": d.no_invoice,
-						# "against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": cost_center
+						# "credit": hitung_tax,
+						# "credit_in_account_currency": hitung_tax,
+						"credit": d2.nominal,
+						"credit_in_account_currency": d2.nominal,
+						"against_voucher": d.no_invoice,
+						"against_voucher_type": "Sales Invoice Penjualan Motor",
+						# "cost_center": cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -299,7 +357,7 @@ class TagihanDiscountLeasing(Document):
 			JOIN `tabTable Disc Leasing` tdl on tdl.parent = sinv.name
 			WHERE cd.parent = '{}' and tdl.nama_leasing = '{}' GROUP BY cost_center,tdl.nama_leasing """.format(self.name,self.customer),as_dict=1)
 
-		data_sipm = frappe.db.sql(""" SELECT SUM(outstanding_sipm) AS outstanding_sipm,cost_center,sinv.debit_to FROM `tabDaftar Tagihan Leasing` cd
+		data_sipm = frappe.db.sql(""" SELECT SUM(outstanding_sipm) AS outstanding_sipm,cost_center,sinv.debit_to,sinv.name as no_invoice FROM `tabDaftar Tagihan Leasing` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_invoice` WHERE cd.parent = '{}' GROUP BY cost_center """.format(self.name),as_dict=1)
 
 		# frappe.msgprint(str(data_sipm)+"data_sipm")
@@ -342,13 +400,13 @@ class TagihanDiscountLeasing(Document):
 					"party": self.customer,
 					# "due_date": self.due_date,
 					"against": d.coa,
-					# "debit": net,
-					# "debit_in_account_currency": net,
-					"debit": pajak if self.cek_pph else d.nilai,
-					"debit_in_account_currency": pajak if self.cek_pph else d.nilai,
-					# "against_voucher": d.no_invoice,
-					# "against_voucher_type": "Sales Invoice Penjualan Motor",
-					"cost_center": d.cost_center
+					# "debit": pajak if self.cek_pph else d.nilai,
+					# "debit_in_account_currency": pajak if self.cek_pph else d.nilai,
+					"debit": d.nilai,
+					"debit_in_account_currency": d.nilai,
+					"against_voucher": d.name,
+					"against_voucher_type": "Sales Invoice Penjualan Motor",
+					# "cost_center": d.cost_center
 					# "project": self.project,
 					# "remarks": "coba Lutfi yyyyy!"
 				}, item=None)

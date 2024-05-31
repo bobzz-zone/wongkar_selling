@@ -42,6 +42,16 @@ frappe.ui.form.on('Tagihan Discount', {
 			};
 		});
 
+		frm.set_query("coa_pendapatan", function() {
+			return {
+				filters: {
+					company: frm.doc.company,
+					is_group: 0,
+					disabled : 0
+				}
+			};
+		});
+
 		if(cur_frm.doc.__islocal){
 			cur_frm.set_value('customer',null)
 		}

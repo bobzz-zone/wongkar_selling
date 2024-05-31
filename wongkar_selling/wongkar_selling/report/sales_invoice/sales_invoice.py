@@ -48,8 +48,8 @@ def get_data(filters):
 				i.item_name AS nama_tipe,
 				i.warna,
 				i.`tahun_rakitan` AS tahun_rakit,
-				sn.`no_mesin`,
-				sn.`no_rangka`,
+				SUBSTRING_INDEX(sipm.no_rangka,'--',1) as no_mesin,
+				SUBSTRING_INDEX(sipm.no_rangka,'--',-1) as no_rangka,
 				sipm.`harga` as otr,
 				IF(sipm.cara_bayar = "Credit",sipm.customer_name,"CASH") AS namajual,
 				sipm.`cara_bayar`,
@@ -81,8 +81,8 @@ def get_data(filters):
 				sipm.angsuran,
 				s.tanggal_faktur as tglmohonfaktur,
 				sipm.status as docstaus,
-				sn.biaya_stnk as biaya_stnk,
-				sn.biaya_bpkb as biaya_skb,
+				tbms.amount as biaya_stnk,
+				tbmb.amount as biaya_skb,
 				sipm.foto_gesekan as foto_nosin,
 				sipm.foto_gesekan_no_rangka as foto_rangka,
 				sipm.po_attch as foto_po,
@@ -100,6 +100,8 @@ def get_data(filters):
 			JOIN `tabItem` i ON i.`name` = sipm.`item_code`
 			JOIN `tabCustomer` c ON c.name = sipm.`pemilik`
 			JOIN `tabSerial No` sn ON sn.name = sipm.no_rangka
+			LEFT JOIN `tabTabel Biaya Motor` tbms ON tbms.`parent` = sipm.name AND tbms.type = 'STNK'
+			LEFT JOIN `tabTabel Biaya Motor` tbmb ON tbmb.`parent` = sipm.name AND tbmb.type = 'BPKB'
 			LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name AND td.customer = 'AHM'
 			LEFT JOIN `tabTable Discount` td2 ON td2.`parent` = sipm.name AND td2.customer = 'MD'
 			LEFT JOIN `tabTable Discount` td3 ON td3.`parent` = sipm.name AND td3.customer = 'Dealer'

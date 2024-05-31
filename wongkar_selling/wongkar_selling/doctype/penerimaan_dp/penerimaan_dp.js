@@ -56,6 +56,21 @@ frappe.ui.form.on('Penerimaan DP', {
 	},
 	customer(frm) {
 		console.log("llooo")
+		if (cur_frm.doc.customer) {
+			frappe.call({
+				method:
+					"erpnext.accounts.party.get_party_account",
+				args: {
+					party_type: 'Customer',
+					party: cur_frm.doc.customer,
+					company: cur_frm.doc.company
+				},
+				callback: (response) => {
+					if (response) cur_frm.set_value("debit_to", response.message);
+				},
+			});
+		}
+		
 		if(cur_frm.doc.cara_bayar == 'Cash'){
 			
 			if(cur_frm.doc.customer){
@@ -71,6 +86,7 @@ frappe.ui.form.on('Penerimaan DP', {
 					// price_list: cur_frm.doc.selling_price_list,
 					// pos_profile: pos_profile
 				}, function() {
+					// console.log(r, ' rrrr')
 					// apply_pricing_rule();
 				});
 			}

@@ -23,11 +23,24 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 			for i in self.items:
 				i.income_account = beban_titipan_ahas_account
 				i.cost_center = self.cost_center
-		# self.debit_to = titipan_ahas_account
-		if self.docstatus == 0:
-			self.outstanding_amount = self.grand_total
+		
+	def hitung_total(self):
+		piutang_oli = 0
+		piutang_jasa = 0
+		if self.items and len(self.items) > 0:
+			for i in self.items:
+				if i.titipan_account == self.debit_to:
+					piutang_jasa += i.amount
+				elif i.titipan_account == self.debit_to_oli:
+					piutang_oli += i.amount
+
+		self.grand_total = piutang_jasa
+		self.grand_total_oli = piutang_oli
+		self.outstanding_amount = self.grand_total
+		self.outstanding_amount_oli = self.grand_total_oli
 
 	def validate(self):
+		self.hitung_total()
 		self.set_item_amount()
 		self.ubah_akun()
 
@@ -167,27 +180,49 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 
 		if grand_total and not self.is_internal_transfer():
 			# Did not use base_grand_total to book rounding loss gle
-			gl_entries.append(
-				self.get_gl_dict(
-					{
-						"account": self.debit_to,
-						# "party_type": "Customer",
-						# "party": self.customer,
-						# "due_date": self.due_date,
-						"against": self.against_income_account,
-						"debit": base_grand_total,
-						"debit_in_account_currency": base_grand_total
-						if "IDR" == "IDR"
-						else grand_total,
-						"against_voucher": self.name,
-						"against_voucher_type": self.doctype,
-						# "cost_center": self.cost_center,
-						# "project": self.project,
-					},
-					'IDR',
-					item=self,
+			for i in self.items:
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": i.titipan_account,
+							# "party_type": "Customer",
+							# "party": self.customer,
+							# "due_date": self.due_date,
+							"against": i.income_account,
+							"debit": i.amount,
+							"debit_in_account_currency": i.amount,
+							"against_voucher": self.name,
+							"against_voucher_type": self.doctype,
+							# "cost_center": self.cost_center,
+							# "project": self.project,
+						},
+						'IDR',
+						item=self,
+					)
 				)
-			)
+
+			# lama	
+			# gl_entries.append(
+			# 	self.get_gl_dict(
+			# 		{
+			# 			"account": self.debit_to,
+			# 			# "party_type": "Customer",
+			# 			# "party": self.customer,
+			# 			# "due_date": self.due_date,
+			# 			"against": self.against_income_account,
+			# 			"debit": base_grand_total,
+			# 			"debit_in_account_currency": base_grand_total
+			# 			if "IDR" == "IDR"
+			# 			else grand_total,
+			# 			"against_voucher": self.name,
+			# 			"against_voucher_type": self.doctype,
+			# 			# "cost_center": self.cost_center,
+			# 			# "project": self.project,
+			# 		},
+			# 		'IDR',
+			# 		item=self,
+			# 	)
+			# )
 
 	def get_gl_entries(self, warehouse_account=None):
 		from erpnext.accounts.general_ledger import merge_similar_entries

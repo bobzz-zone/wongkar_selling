@@ -171,7 +171,7 @@ def get_data(filters):
 				
 			# frappe.msgprint(str(out)+ ' out')
 			tampil_st.extend([parent]+out)
-			frappe.msgprint(str(tampil_st)+' tampil_st')
+			# frappe.msgprint(str(tampil_st)+' tampil_st')
 		elif status_sipm == 'Belum Realisasi':
 			tampil_br = []
 			parent = {
@@ -236,7 +236,7 @@ def get_data(filters):
 					info_sipm['piutang'] = info_sipm['terbayarkan_sipm']
 					info_sipm['range1'] = info_sipm['range2'] = info_sipm['range3'] = info_sipm['range4'] = info_sipm['range5'] = 0.0
 					aging = get_ageing_data(entry_date,info_sipm)
-					frappe.msgprint(str(aging)+ ' agingaging')
+					# frappe.msgprint(str(aging)+ ' agingaging')
 					isi.append({
 						'nama': info_sipm['nama_pemilik'],
 						'tgl_jual': info_sipm['tgl_jual'],
@@ -339,17 +339,10 @@ def get_columns(filters):
 			"width": 200
 		},
 		{
-			"label": _("Tgl SIPM"),
+			"label": _("Tgl Jual"),
 			"fieldname": "tgl_jual",
 			"fieldtype": "Date",
 			"width": 100
-		},
-		{
-			"label": _("SIPM"),
-			"fieldname": "sipm",
-			"fieldtype": "Link",
-			"options": "Sales Invoice Penjualan Motor",
-			"width": 200
 		},
 		{
 			"label": _("Tgl Tagih"),
@@ -357,13 +350,13 @@ def get_columns(filters):
 			"fieldtype": "Date",
 			"width": 100
 		},
-		{
-			"label": _("No Tagih"),
-			"fieldname": "no_tagih",
-			"fieldtype": "Link",
-			"options": "Tagihan Leasing",
-			"width": 200
-		},
+		# {
+		# 	"label": _("No Tagih"),
+		# 	"fieldname": "no_tagih",
+		# 	"fieldtype": "Link",
+		# 	"options": "Tagihan Leasing",
+		# 	"width": 200
+		# },
 		{
 			"label": _("Ht"),
 			"fieldname": "ht",
@@ -388,6 +381,13 @@ def get_columns(filters):
 			"fieldtype": "Currency",
 			"width": 200
 		},
+		{
+			"label": _("SIPM"),
+			"fieldname": "sipm",
+			"fieldtype": "Link",
+			"options": "Sales Invoice Penjualan Motor",
+			"width": 200
+		},
 		# {
 		# 	"label": _("KetBerkas"),
 		# 	"fieldname": "ket",
@@ -397,7 +397,7 @@ def get_columns(filters):
 		
 	]
 
-	columns.extend(setup_ageing_columns())
+	# columns.extend(setup_ageing_columns())
 
 	return columns
 

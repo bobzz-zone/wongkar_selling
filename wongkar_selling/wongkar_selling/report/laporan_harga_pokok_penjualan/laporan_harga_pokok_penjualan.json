@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2024-01-08 10:45:46.422824",
+ "modified": "2024-02-19 13:26:54.745130",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Laporan Harga Pokok Penjualan",
@@ -20,7 +20,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Developer"
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
   }
  ]
 }

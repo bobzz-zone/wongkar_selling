@@ -11,6 +11,7 @@ from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_a
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
 from erpnext.accounts.general_ledger import make_gl_entries
+import erpnext
 
 class PembayaranTagihanMotor(Document):
 	def before_cancel(self):
@@ -103,16 +104,43 @@ class PembayaranTagihanMotor(Document):
 
 		return gl_dict
 
-	def make_gl_entries(self, cancel=0, adv_adj=0):
-		# frappe.msgprint("MAsuk make_gl_entries")
+	def make_gl_entries(self, gl_entries=None, from_repost=False,cancel=None):
+		from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries
+
+		auto_accounting_for_stock = erpnext.is_perpetual_inventory_enabled(self.company)
+		if not gl_entries:
+			gl_entries = self.get_gl_entries()
+
+		if gl_entries:
+			# if POS and amount is written off, updating outstanding amt after posting all gl entries
+			update_outstanding = (
+				"No"
+			)
+
+			if self.docstatus == 1:
+				print(gl_entries, ' gl_entries')
+				make_gl_entries(
+					gl_entries,
+					update_outstanding=update_outstanding,
+					merge_entries=False,
+					from_repost=from_repost,
+				)
+			elif self.docstatus == 2:
+				make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
+
+	
+	def get_gl_entries(self, warehouse_account=None):
 		from erpnext.accounts.general_ledger import merge_similar_entries
 
 		gl_entries = []
+
 		self.make_gl_debit(gl_entries)
 		self.make_gl_credit(gl_entries)
-		# return gl_entries
+		
+		# merge gl entries before adding pos entries
+		gl_entries = merge_similar_entries(gl_entries)
 
-		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		return gl_entries
 
 	def make_gl_debit(self, gl_entries):
 		cash = frappe.get_value("Company",{"name" : self.company}, "default_cash_account")
@@ -131,7 +159,7 @@ class PembayaranTagihanMotor(Document):
 						"debit_in_account_currency": d.nilai,
 						"against_voucher": d.no_invoice,
 						"against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": cost_center
+						# "cost_center": cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -151,7 +179,7 @@ class PembayaranTagihanMotor(Document):
 						"debit_in_account_currency": d.nilai_stnk,
 						"against_voucher": d.no_invoice,
 						"against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": cost_center
+						# "cost_center": cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -169,7 +197,7 @@ class PembayaranTagihanMotor(Document):
 						"debit_in_account_currency": d.nilai_bpkb,
 						"against_voucher": d.no_invoice,
 						"against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": cost_center
+						# "cost_center": cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -215,7 +243,7 @@ class PembayaranTagihanMotor(Document):
 						"credit_in_account_currency": d.nilai,
 						# "against_voucher": d.no_sinv,
 						# "against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": d.cost_center
+						# "cost_center": d.cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -238,7 +266,7 @@ class PembayaranTagihanMotor(Document):
 						"credit_in_account_currency": d.nilai,
 						# "against_voucher": d.no_sinv,
 						# "against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": d.cost_center
+						# "cost_center": d.cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)
@@ -259,7 +287,7 @@ class PembayaranTagihanMotor(Document):
 						"credit_in_account_currency": d.nilai,
 						# "against_voucher": d.no_sinv,
 						# "against_voucher_type": "Sales Invoice Penjualan Motor",
-						"cost_center": d.cost_center
+						# "cost_center": d.cost_center
 						# "project": self.project,
 						# "remarks": "coba Lutfi yyyyy!"
 					}, item=None)

@@ -14,6 +14,11 @@ class RuleDiscountLeasing(Document):
 
 			if cek == 'Receivable':
 				frappe.throw("Tidak boleh menggunkan akun Receivable ! ")
+		elif self.coa_lawan:
+			cek = frappe.get_doc("Account",self.coa_lawan).account_type
+
+			if cek == 'Payable':
+				frappe.throw("Tidak boleh menggunkan akun Payable ! ")
 				
 	def before_insert(self):
 		# pass

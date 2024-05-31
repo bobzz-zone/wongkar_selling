@@ -11,8 +11,12 @@
   "customer_name",
   "no_rangka",
   "no_mesin",
+  "section_break_j7iwq",
   "grand_total",
-  "outstanding_amount"
+  "outstanding_amount",
+  "column_break_p7jqi",
+  "grand_total_oli",
+  "outstanding_amount_oli"
  ],
  "fields": [
   {
@@ -62,12 +66,34 @@
    "fieldname": "no_mesin",
    "fieldtype": "Data",
    "label": "No Mesin"
+  },
+  {
+   "fieldname": "grand_total_oli",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Grand Total Oli",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount_oli",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Outstanding Amount Oli",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_j7iwq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_p7jqi",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-01-10 11:56:01.438251",
+ "modified": "2024-04-25 14:25:38.165277",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "List Invoice Penagihan Garansi",

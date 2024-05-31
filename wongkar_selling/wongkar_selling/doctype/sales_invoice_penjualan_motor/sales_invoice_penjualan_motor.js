@@ -74,6 +74,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 								frappe.model.set_value(child.doctype, child.name, "customer", r.message[i].customer);
 								frappe.model.set_value(child.doctype, child.name, "category_discount", r.message[i].category_discount);
 								frappe.model.set_value(child.doctype, child.name, "coa_receivable", r.message[i].coa_receivable);
+								frappe.model.set_value(child.doctype, child.name, "coa_lawan", r.message[i].coa_lawan);
 								frappe.model.set_value(child.doctype, child.name, "nominal", r.message[i].amount);
 							}else if(data[i].discount == 'Percent'){
 								var amount = r.message[i].percent * cur_frm.doc.harga / 100;
@@ -82,6 +83,7 @@ erpnext.accounts.CustomSINV = erpnext.accounts.SalesInvoiceController.extend({
 								frappe.model.set_value(child2.doctype, child2.name, "customer", r.message[i].customer);
 								frappe.model.set_value(child2.doctype, child2.name, "category_discount", r.message[i].category_discount);
 								frappe.model.set_value(child2.doctype, child2.name, "coa_receivable", percent[i].coa_receivable);
+								frappe.model.set_value(child.doctype, child.name, "coa_lawan", r.message[i].coa_lawan);
 								frappe.model.set_value(child2.doctype, child2.name, "nominal", amount);
 							}
 						}

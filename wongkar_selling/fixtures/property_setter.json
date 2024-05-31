@@ -1,6 +1,5 @@
 [
  {
-  "_liked_by": "[\"Administrator\"]",
   "default_value": null,
   "doc_type": "Sales Invoice Sparepart Garansi",
   "docstatus": 0,
@@ -18,7 +17,6 @@
   "value": "1"
  },
  {
-  "_liked_by": "[\"Administrator\"]",
   "default_value": null,
   "doc_type": "Sales Invoice Sparepart Garansi",
   "docstatus": 0,
@@ -36,7 +34,6 @@
   "value": "1"
  },
  {
-  "_liked_by": "[\"Administrator\"]",
   "default_value": null,
   "doc_type": "Form Pembayaran",
   "docstatus": 0,
@@ -54,7 +51,6 @@
   "value": "1"
  },
  {
-  "_liked_by": "[\"Administrator\"]",
   "default_value": null,
   "doc_type": "Form Pembayaran",
   "docstatus": 0,

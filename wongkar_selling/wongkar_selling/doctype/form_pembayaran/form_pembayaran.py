@@ -277,7 +277,7 @@ class FormPembayaran(Document):
 						"credit_in_account_currency": data[0]['total'],
 						"against_voucher": d.docname,
 						"against_voucher_type": d.reference_doctype,
-						"cost_center": self.cost_center
+						# "cost_center": self.cost_center
 					}, item=None)
 				)
 		# if self.customer  and self.type != 'Pembayaran Invoice Garansi':		
@@ -367,7 +367,7 @@ class FormPembayaran(Document):
 						"debit_in_account_currency": data[0]['total'],
 						"against_voucher": d.docname,
 						"against_voucher_type": d.reference_doctype,
-						"cost_center": self.cost_center
+						# "cost_center": self.cost_center
 					}, item=None)
 				)	
 

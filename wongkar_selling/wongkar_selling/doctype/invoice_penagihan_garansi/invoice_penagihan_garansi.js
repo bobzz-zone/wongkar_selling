@@ -4,11 +4,24 @@
 frappe.ui.form.on('Invoice Penagihan Garansi', {
 	refresh: function(frm) {
 		show_general_ledger()
-		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
+		if (cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount>0) {
 			cur_frm.add_custom_button(__('Payment'),
 				// change_value2, __('Create'),
 				make_payment_entry, __('Create'));
+				// make_je, __('Create JE'));
 			cur_frm.page.set_inner_btn_group_as_primary(__('Create'));
+		}
+		if(cur_frm.doc.__islocal){
+			cur_frm.set_value('to_date',null)
+			cur_frm.refresh_field('to_date')
+		}
+	},
+	cek_pph(frm){
+		if(!cur_frm.doc.cek_pph){
+			cur_frm.set_value('pph_account',null)
+			cur_frm.set_value('pph',0)
+			cur_frm.refresh_field('pph_account')
+			cur_frm.refresh_field('pph')
 		}
 	},
 	to_date(frm){
@@ -34,6 +47,8 @@ frappe.ui.form.on('Invoice Penagihan Garansi', {
 							frappe.model.set_value(child.doctype, child.name, "no_mesin", r.message[i].no_mesin);
 							frappe.model.set_value(child.doctype, child.name, "grand_total", r.message[i].grand_total);
 							frappe.model.set_value(child.doctype, child.name, "outstanding_amount", r.message[i].outstanding_amount);
+							frappe.model.set_value(child.doctype, child.name, "grand_total_oli", r.message[i].grand_total_oli);
+							frappe.model.set_value(child.doctype, child.name, "outstanding_amount_oli", r.message[i].outstanding_amount_oli);
 						}
 						cur_frm.refresh_field("list_invoice_penagihan_garansi");
 					}
@@ -66,6 +81,24 @@ var make_payment_entry= async function() {
 
 	return frappe.call({
 		method: 'wongkar_selling.wongkar_selling.doctype.form_pembayaran.form_pembayaran.get_form_pemabayaran',
+		args: {
+			"dt": cur_frm.doc.doctype,
+			"dn": cur_frm.doc.name
+		},
+		callback: function(r) {
+			var doclist = frappe.model.sync(r.message);
+			frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+			// cur_frm.refresh_fields()
+		}
+	});
+}
+
+
+var make_je= async function() {
+	// change_value2()
+
+	return frappe.call({
+		method: 'wongkar_selling.wongkar_selling.doctype.invoice_penagihan_garansi.invoice_penagihan_garansi.make_je',
 		args: {
 			"dt": cur_frm.doc.doctype,
 			"dn": cur_frm.doc.name

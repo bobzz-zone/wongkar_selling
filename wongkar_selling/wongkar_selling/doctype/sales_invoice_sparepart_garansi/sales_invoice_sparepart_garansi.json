@@ -64,10 +64,15 @@
   "rate",
   "section_break_j7mig",
   "items",
+  "section_break_qgbkq",
   "grand_total",
   "outstanding_amount",
+  "column_break_zn5ww",
+  "grand_total_oli",
+  "outstanding_amount_oli",
   "section_break_1dg6i",
   "debit_to",
+  "debit_to_oli",
   "against_income_account",
   "tagihan",
   "amended_from"
@@ -126,12 +131,11 @@
    "label": "Accounting Details"
   },
   {
-   "fetch_from": "company.titipan_ahas_account",
-   "fetch_if_empty": 1,
+   "fetch_from": "company.coa_claimable_sinv_garansi_jasa",
    "fieldname": "debit_to",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Ttitipan",
+   "label": "Ttitipan Jasa",
    "options": "Account",
    "reqd": 1
   },
@@ -176,6 +180,7 @@
   {
    "fieldname": "plc_conversion_rate",
    "fieldtype": "Float",
+   "hidden": 1,
    "label": "Price List Exchange Rate"
   },
   {
@@ -206,7 +211,8 @@
    "fieldname": "against_income_account",
    "fieldtype": "Small Text",
    "hidden": 1,
-   "label": "Against Income Account"
+   "label": "Against Income Account",
+   "read_only": 1
   },
   {
    "fieldname": "cost_center",
@@ -237,12 +243,14 @@
   {
    "fieldname": "no_rangka_manual_atau_lama",
    "fieldtype": "Data",
-   "label": "No Rangka Manual Atau Lama"
+   "label": "No Rangka Manual Atau Lama",
+   "reqd": 1
   },
   {
    "fieldname": "no_mesin",
    "fieldtype": "Data",
-   "label": "No Mesin"
+   "label": "No Mesin",
+   "reqd": 1
   },
   {
    "fieldname": "id_mekanik",
@@ -432,13 +440,44 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Tagihan",
+   "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "grand_total_oli",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Grand Total Oli",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount_oli",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Outstanding Amount Oli",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_qgbkq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_zn5ww",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "company.titipan_ahas_account",
+   "fieldname": "debit_to_oli",
+   "fieldtype": "Link",
+   "label": "Ttitipan Oli",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-11 10:12:06.908599",
+ "modified": "2024-04-25 14:00:28.631662",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Sparepart Garansi",

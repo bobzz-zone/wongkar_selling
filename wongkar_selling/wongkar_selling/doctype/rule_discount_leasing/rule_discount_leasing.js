@@ -21,6 +21,7 @@ frappe.ui.form.on('Rule Discount Leasing', {
 		frm.set_df_property("territory", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("table_discount_leasing", "read_only", frm.is_new() ? 0 : 1);
 		frm.set_df_property("coa", "read_only", frm.is_new() ? 0 : 1);
+		frm.set_df_property("coa_lawan", "read_only", frm.is_new() ? 0 : 1);
 		// frm.set_df_property("amount", "read_only", frm.is_new() ? 0 : 1);
 		// frm.set_df_property("beban_dealer", "read_only", frm.is_new() ? 0 : 1);
 	}

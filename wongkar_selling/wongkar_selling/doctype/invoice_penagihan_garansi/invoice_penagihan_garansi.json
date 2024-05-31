@@ -18,15 +18,22 @@
   "section_break_6bxqe",
   "tax_account",
   "rate",
+  "cek_pph",
+  "pph_account",
+  "pph",
   "section_break_rjz0l",
   "list_invoice_penagihan_garansi",
   "section_break_sbovg",
-  "column_break_p5vek",
   "grand_total",
   "outstanding_amount",
+  "column_break_p5vek",
+  "grand_total_oli",
+  "outstanding_amount_oli",
   "section_break_papqb",
   "debit_to",
+  "debit_to_oli",
   "income",
+  "conversion_rate",
   "amended_from"
  ],
  "fields": [
@@ -79,11 +86,11 @@
    "read_only": 1
   },
   {
-   "fetch_from": "company.customer_account",
+   "fetch_from": "company.customer_account_jasa",
    "fetch_if_empty": 1,
    "fieldname": "debit_to",
    "fieldtype": "Link",
-   "label": "Debit To",
+   "label": "Debit To Jasa",
    "options": "Account",
    "reqd": 1
   },
@@ -159,12 +166,62 @@
    "label": "Income",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cek_pph",
+   "fieldtype": "Check",
+   "label": "cek PPH",
+   "mandatory_depends_on": "eval:doc.cek_pph"
+  },
+  {
+   "depends_on": "eval:doc.cek_pph",
+   "fieldname": "pph_account",
+   "fieldtype": "Link",
+   "label": "PPH Account",
+   "mandatory_depends_on": "eval:doc.cek_pph",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.cek_pph",
+   "fieldname": "pph",
+   "fieldtype": "Percent",
+   "label": "PPH %",
+   "mandatory_depends_on": "eval:doc.cek_pph"
+  },
+  {
+   "default": "1",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "conversion_rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grand_total_oli",
+   "fieldtype": "Currency",
+   "label": "Grand Total Oli",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount_oli",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount Oli",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "company.customer_account",
+   "fieldname": "debit_to_oli",
+   "fieldtype": "Link",
+   "label": "Debit To Oli",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-12 14:06:18.630493",
+ "modified": "2024-04-25 14:06:21.968084",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Invoice Penagihan Garansi",
