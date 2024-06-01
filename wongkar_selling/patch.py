@@ -84,18 +84,34 @@ def patch_coa():
 			# frappe.db.commit()
 
 
-def patch_sipm_gl():
-	tmp = [
-'ACC-SINVM-2024-00854'
-]
-	for i in tmp:
-		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
-		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
-		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+# def patch_sipm_gl():
+# 	tmp = [
+# 'ACC-SINVM-2024-00854'
+# ]
+# 	for i in tmp:
+# 		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
+# 		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
+# 		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 
 def patch_coa_sipm():
 	tmp = [
-'ACC-SINVM-2024-00854'
+"ACC-SINVM-2023-00163-1",
+"ACC-SINVM-2023-00185",
+"ACC-SINVM-2023-00088",
+"ACC-SINVM-2023-00225",
+"ACC-SINVM-2023-00072",
+"ACC-SINVM-2023-00241",
+"ACC-SINVM-2023-00084",
+"ACC-SINVM-2023-00275",
+"ACC-SINVM-2023-00271-1",
+"ACC-SINVM-2023-00261",
+"ACC-SINVM-2023-00281",
+"ACC-SINVM-2023-00184",
+"ACC-SINVM-2023-00087",
+"ACC-SINVM-2023-00175",
+"ACC-SINVM-2023-00191",
+"ACC-SINVM-2023-00244",
+"ACC-SINVM-2023-00177"
 ]
 	
 	for i in tmp:
@@ -103,16 +119,50 @@ def patch_coa_sipm():
 		doc = frappe.get_doc('Sales Invoice Penjualan Motor',docname)
 		
 		# r
-		for i in doc.table_discount:
-			print(i.parent, ' NAME')
-			r = frappe.get_doc("Rule",i.rule)
-			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable='{}',coa_lawan='{}' where name = '{}' """.format(r.coa_receivable,r.coa_lawan,i.name))
+		for td in doc.table_discount:
+			print(td.parent, ' NAME')
+			r = frappe.get_doc("Rule",td.rule)
+			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable='{}',coa_lawan='{}' where name = '{}' """.format(r.coa_receivable,r.coa_lawan,td.name))
 
 		#RDL
-		for i in doc.table_discount_leasing:
-			print(i.parent, ' NAME')
-			rdl = frappe.get_doc("Rule Discount Leasing",i.rule)
-			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa='{}',coa_lawan='{}' where name = '{}' """.format(rdl.coa,rdl.coa_lawan,i.name))
+		for tdl in doc.table_discount_leasing:
+			print(tdl.parent, ' NAME')
+			rdl = frappe.get_doc("Rule Discount Leasing",tdl.rule)
+			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa='{}',coa_lawan='{}' where name = '{}' """.format(rdl.coa,rdl.coa_lawan,tdl.name))
+
+		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
+		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+		print('DONE')
+
+def patch_tagihan_disc():
+	tmp = ['Tagihan-D-11-2023-00002']
+
+	for i in tmp:
+		print(i, ' xx')
+		repair_only_gl_entry('Tagihan Discount',i)
+		print('DONE')
+
+
+def patch_tagihan_disc_leasing():
+	tmp = ['Tagihan-L-05-2024-00007']
+
+	for i in tmp:
+		doc = frappe.get_doc('Tagihan Discount Leasing',i)
+		for d in doc.daftar_tagihan_leasing:
+			nominal = frappe.get_doc('Table Disc Leasing',{'parent':d.no_invoice,'nama_leasing':doc.customer}).nominal
+			print(nominal, ' nominalxxx')
+			d.nilai = nominal
+			d.outstanding_discount = nominal
+		doc.hitung_pph()
+		doc.db_update()
+		doc.update_children()
+		repair_only_gl_entry('Tagihan Discount Leasing',i)
+		print('DONE')
+
+
+		# print(i, ' xx')
+		# repair_only_gl_entry('Tagihan Discount Leasing',i)
+		# print('DONE')
 
 def patch_sn_no_rangka():
 	data = frappe.db.sql(""" SELECT name,no_rangka from `tabSerial No` where no_rangka is null limit 100 """,as_dict=1)
