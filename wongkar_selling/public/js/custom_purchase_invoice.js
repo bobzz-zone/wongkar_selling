@@ -1,7 +1,7 @@
 frappe.ui.form.on('Purchase Invoice', {
 	refresh(frm) {
 		// your code here
-		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount != 0
+		if(cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount != 0 && cur_frm.doc.claim
 			&& !(cur_frm.doc.is_return && cur_frm.doc.return_against) && !cur_frm.doc.on_hold) {
 			cur_frm.add_custom_button(
 				__('Crate JE Claim'),

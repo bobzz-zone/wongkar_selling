@@ -26,7 +26,7 @@ class RuleDiscountLeasing(Document):
 		cek	= frappe.db.sql(""" SELECT * from `tabRule Discount Leasing` where item_group = '{0}' and nama_promo = '{1}' 
 			and territory = '{2}' and leasing = '{3}' 
 			and (valid_to = '{4}' or valid_from = '{4}')
-			and name != '{5}' and disable = 0 """.format(self.item_group,self.nama_promo,self.territory,self.leasing,self.valid_to,self.name),as_dict=1)
+			 and disable = 0 """.format(self.item_group,self.nama_promo,self.territory,self.leasing,self.valid_to,self.name),as_dict=1)
 
 		tmp_cek = []
 		if cek:

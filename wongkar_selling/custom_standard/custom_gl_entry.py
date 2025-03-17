@@ -423,7 +423,7 @@ def rename_temporarily_named_docs(doctype):
 def update_outstanding_amt_custom(
 	account, party_type, party, against_voucher_type, against_voucher, on_cancel=False,voucher_no=None,voucher_type = None
 ):
-	print(voucher_type,' voucher_typexx')
+	# print(voucher_type,' voucher_typexx')
 	# frappe.throw("masuk sinin vvv")
 	if party_type and party:
 		party_condition = " and party_type={0} and party={1}".format(

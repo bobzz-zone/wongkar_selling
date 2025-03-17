@@ -99,7 +99,7 @@ def get_piutang_leasing(customer,date_from,date_to):
 		sinv.total_discoun_leasing as nominal,sinv.outstanding_amount from `tabSales Invoice Penjualan Motor` sinv
 		left join `tabTable Disc Leasing` tdl on sinv.name = tdl.parent 
 		left join `tabSerial No` sn on sn.name = sinv.no_rangka
-		where tdl.nama_leasing = '{0}' and sinv.tertagih = 0 and sinv.docstatus = 1
+		where sinv.customer = '{0}' and sinv.tertagih = 0 and sinv.docstatus = 1
 		and sinv.posting_date BETWEEN '{1}' and '{2}' group by tdl.nama_leasing,sinv.name order by sinv.nama_pemilik asc """.format(customer,date_from,date_to),as_dict=1)
 	return data
 

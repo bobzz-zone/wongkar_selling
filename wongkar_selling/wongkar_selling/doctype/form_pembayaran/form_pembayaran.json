@@ -42,6 +42,7 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi"
   },
@@ -188,7 +189,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-25 14:34:11.188341",
+ "modified": "2024-07-23 09:58:49.768688",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",

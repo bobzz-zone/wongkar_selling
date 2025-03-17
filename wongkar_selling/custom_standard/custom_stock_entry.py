@@ -13,4 +13,5 @@ def make_serial_no(doc,method):
 @frappe.whitelist()
 def cek_diskon_pinv(self,method):
 	if self.purchase_invoice:
-		frappe.throw('Tidak Bisa Cancel Disini !')
+		pass
+		# frappe.throw('Tidak Bisa Cancel Disini !')

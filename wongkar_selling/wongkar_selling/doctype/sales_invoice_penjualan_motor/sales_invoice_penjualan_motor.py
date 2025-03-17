@@ -242,7 +242,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             self.coa_bpkb_stnk = None
             self.tabel_biaya_motor = []
             self.total_biaya = 0
-            if self.adjustment_harga <= 0 or self.adjustment_harga == None:
+            if (self.adjustment_harga <= 0 or self.adjustment_harga == None) and self.territory_biaya == 'ZZZ_Kosongan' and 'Antar Entitas' in self.selling_price_list:
                 frappe.throw("Masukkan Nilai adjusment otr tanpa biya bpkb dan stnk !!!")
 
     # @frappe.whitelist()
@@ -1256,6 +1256,28 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
         return process_gl_map(gl_list, precision=precision)
 
+    def update_stock_ledger_entries(self, sle):
+        sle.valuation_rate = get_valuation_rate(sle.item_code, sle.warehouse,
+        self.doctype, self.name, currency=self.company_currency, company=self.company)
+
+        sle.stock_value = flt(sle.qty_after_transaction) * flt(sle.valuation_rate)
+        sle.stock_value_difference = flt(sle.actual_qty) * flt(sle.valuation_rate)
+
+        if sle.name:
+            frappe.db.sql("""
+            update
+            `tabStock Ledger Entry`
+            set
+            stock_value = %(stock_value)s,
+            valuation_rate = %(valuation_rate)s,
+            stock_value_difference = %(stock_value_difference)s
+            where
+            name = %(name)s""", (sle))
+
+        return sle
+
+    
+    
     def make_tax_gl_entries(self, gl_entries):
         tax = (100+ self.taxes[0].rate) / 100
         nominal_diskon = 0
@@ -1479,7 +1501,10 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
         tax_account = self.taxes[0].account_head
         total_net_d = 0
         for d in self.get('table_discount'):
-            beban = frappe.get_doc("Rule",d.rule).coa_lawan
+            if frappe.db.exists("Rule",d.rule):
+                beban = frappe.get_doc("Rule",d.rule).coa_lawan
+            else:
+                beban = d.coa_lawan
             hitung_tax = flt((d.nominal) / tax,0)
             net_d = (d.nominal) - hitung_tax
             gl_entries.append(

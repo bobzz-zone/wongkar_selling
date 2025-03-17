@@ -26,6 +26,7 @@ def execute(filters=None):
 
 	from_date = filters.get("from_date")
 	to_date = filters.get("to_date")
+	f_wh = filters.get("warehouse")
 
 	if filters.get("company"):
 		company_currency = erpnext.get_company_currency(filters.get("company"))
@@ -37,7 +38,7 @@ def execute(filters=None):
 	items = get_items(filters)
 	# frappe.msgprint(str(items)+ ' items')
 	sle = get_stock_ledger_entries(filters, items)
-	sn = get_sn(filters)
+	# sn = get_sn(filters)
 	# frappe.msgprint(str(sn)+ ' sn')
 
 	if filters.get("show_stock_ageing_data"):
@@ -53,12 +54,12 @@ def execute(filters=None):
 	item_reorder_detail_map = get_item_reorder_details(item_map.keys())
 
 	data = []
-	data.extend(sn or [])
+	# data.extend(sn or [])
 	# frappe.msgprint(str(data)+' datasss')
 	conversion_factors = {}
 
 	_func = itemgetter(1)
-
+	# frappe.msgprint(f"{iwb_map}")
 	for (company, item, warehouse) in sorted(iwb_map):
 		if item_map.get(item):
 			qty_dict = iwb_map[(company, item, warehouse)]
@@ -100,16 +101,97 @@ def execute(filters=None):
 			data.append(report_data)
 
 	add_additional_uom_columns(columns, data, include_uom, conversion_factors)
+	tmp_data = []
+	tmp_data_in = []
+	tmp_data_open = []
+	con = 0
+	# frappe.msgprint(f"{data}")
 	for i in data:
-		i['barang_jual'] = i['opening_val'] + i['in_val']
-		if 'no_rangka' in i:
-			if i['out_qty'] > 0:
-				i['saldo_qty'] = 0
-		else:
-			i['saldo_qty'] = i['opening_qty'] + i['in_qty'] - i['out_qty']
-	# frappe.msgprint(str(data)+' datasxx')
-	return columns, data
+		cek_ig = frappe.db.get_value('Item',i['item_code'],'has_serial_no')
+		if cek_ig == 0:
+			tmp_data.append(i)
+		elif cek_ig == 1:
+			# tmp_data.append(i)
+			# frappe.msgprint(f"{con}")
+			# frappe.msgprint(f'{i["in_sn"]}xx')
+			# frappe.msgprint(f'{i["open_sn"]}xx11')
+			
+			if i['open_sn']:
+				sn = i['open_sn']
+				out_sn = i['out_sn']
+				tes = get_sn_bale(sn,i['warehouse'],is_opening=True,out_sn=out_sn,to_date=to_date,f_wh=f_wh)
+				for t in tes:
+					if t['name'] not in str(tmp_data):
+						tmp_data.append(t)
+			if i['in_sn']:
+				sn = i['in_sn']
+				out_sn = i['out_sn']
+				tes = get_sn_bale(sn,i['warehouse'],is_in=True,out_sn=out_sn,to_date=to_date,f_wh=f_wh)
+				for t in tes:
+					if t['name'] not in str(tmp_data):
+						tmp_data.append(t)
+				# print(f'{tes} dddd')
+			# 	for t in tes:
+			# 		tmp_data.append(t)
+		
+	# frappe.msgprint(str(tmp_data)+' datasxx11')
+	return columns, tmp_data
 
+def get_sn_bale(sn,wh,is_opening=False,is_in=False,out_sn='',to_date='',f_wh=None):
+	sn = sn.split('\n')
+	out_sn = out_sn.split('\n')
+	str_sn = str(sn)
+	str_sn = str_sn.replace('[','(').replace(']',')')
+	data_sn = frappe.db.sql(""" 
+		SELECT 
+			sn.name,
+			sn.`purchase_date`,
+			sn.delivery_date,
+			sn.item_code,
+			sn.item_name,
+			sn.warehouse AS wh,
+			sn.purchase_rate,
+			sn.status,
+			SUBSTRING_INDEX(sn.name,'--',1) AS no_mesin,
+			SUBSTRING_INDEX(sn.name,'--',-1) AS no_rangka,
+			IF({2},sn.purchase_rate,0) AS opening_val,
+			IF({2},1,0) AS opening_qty,
+			IF({3},sn.purchase_rate,0)  AS in_val,
+			IF({3},1,0) AS in_qty,
+			IF(sn.warehouse != '{1}',1,0) AS out_qtys,
+			IF(sn.warehouse != '{1}',sn.purchase_rate,0) AS out_val,
+			IF(sn.warehouse IS NOT NULL,sn.purchase_rate,0) AS bal_va,
+			IF(sn.warehouse IS NULL,IF(sn.delivery_document_type IS NOT NULL,
+			(SELECT set_warehouse FROM `tabSales Invoice Penjualan Motor` WHERE NAME = sn.delivery_document_no),sn.warehouse),sn.warehouse) AS warehouse
+		from `tabSerial No` sn where  sn.name in {0} order by sn.purchase_date asc """.format(str_sn,wh,is_opening,is_in),as_dict=1,debug=0)
+	# frappe.msgprint(f'{data_sn} snxxx')
+	
+	for i in data_sn:
+		# frappe.msgprint(f'{i["delivery_date"]} {to_date}snxxx')
+		if i['name'] in out_sn :
+			if i["delivery_date"]:
+				# frappe.msgprint(f'{i["delivery_date"]} {to_date}snxxx')
+				if i["delivery_date"] <= getdate(to_date):
+					i['out_qty'] = 1
+					i['out_val'] = i['purchase_rate']
+				elif f_wh and wh != i['warehouse']:
+					i['out_qty'] = 1
+					i['out_val'] = i['purchase_rate']
+				else:
+					i['out_qty'] = 0
+					i['out_val'] = 0
+			elif i['status'] == 'Active':
+				i['out_qty'] = 0
+				i['out_val'] = 0
+			else:
+				i['out_qty'] = 0
+				i['out_val'] = 0
+		else:
+			i['out_qty'] = 0
+			i['out_val'] = 0
+		i['bal_qty'] = i['opening_qty'] + i['in_qty'] - i['out_qty']
+		i['bal_val'] = i['opening_val'] + i['in_val'] - i['out_val']
+	return data_sn
 
 def get_sn(filters):
 	conditions = ''
@@ -121,9 +203,12 @@ def get_sn(filters):
 	data_sn = frappe.db.sql(""" 
 		SELECT 
 			sn.`purchase_date`,
+			sn.delivery_date,
 			sn.item_code,
 			sn.item_name,
 			sn.warehouse AS wh,
+			sn.purchase_rate,
+			sn.status,
 			SUBSTRING_INDEX(sn.name,'--',1) AS no_mesin,
 			SUBSTRING_INDEX(sn.name,'--',-1) AS no_rangka,
 			IF(sn.warehouse IS NULL,0,IF(sn.`purchase_date` < CURRENT_DATE(),sn.purchase_rate,0))  AS opening_val,
@@ -135,9 +220,64 @@ def get_sn(filters):
 			IF(sn.warehouse IS NOT NULL,sn.purchase_rate,0) AS bal_val,
 			IF(sn.warehouse IS NULL,IF(sn.delivery_document_type IS NOT NULL,
 			(SELECT set_warehouse FROM `tabSales Invoice Penjualan Motor` WHERE NAME = sn.delivery_document_no),sn.warehouse),sn.warehouse) AS warehouse
-		from `tabSerial No` sn where  {}  sn.purchase_date between '{}' and '{}' """.format(conditions,from_date,to_date),as_dict=1,debug=1)
+		from `tabSerial No` sn where  {0}  sn.purchase_date <= '{2}' order by sn.purchase_date asc """.format(conditions,from_date,to_date),as_dict=1,debug=0)
 
-	return data_sn
+	tmp = []
+	for i in data_sn:
+		if  (i['purchase_date'] > getdate(from_date) and i['purchase_date'] < getdate(to_date)):
+			tmp.append({
+					'item_code': i['item_code'],
+					'item_name': i['item_name'],
+					'no_rangka': i['no_rangka'],
+					'no_mesin': i['no_mesin'],
+					'warehouse': i['warehouse'],
+					'status': i['status'],
+					'purchase_date': i['purchase_date'],
+					'opening_qty': 0,
+					'opening_val': 0,
+					'in_qty':1,
+					'in_val': i['purchase_rate'],
+					'out_qty': 0,
+					'out_val': 0,
+					'saldo_qty': 1,
+					'bal_val': i['purchase_rate']
+
+				})
+		# if i['purchase_date'] >= getdate(from_date):
+		# 	if i['status'] == 'Delivered':
+		# 			tmp.append({
+		# 			'item_code': i['item_code'],
+		# 			'item_name': i['item_name'],
+		# 			'no_rangka': i['no_rangka'],
+		# 			'no_mesin': i['no_mesin'],
+		# 			'warehouse': i['warehouse'],
+		# 			'status': i['status'],
+		# 			'purchase_date': i['purchase_date'],
+		# 			'opening_qty': 0,
+		# 			'opening_val': 0,
+		# 			'in_qty':0,
+		# 			'in_val': 0,
+		# 			'out_qty': 1,
+		# 			'out_val': i['purchase_rate'],
+		# 			'bal_val': 0
+		# 		})
+		# 	else:
+		# 		tmp.append({
+		# 			'item_code': i['item_code'],
+		# 			'item_name': i['item_name'],
+		# 			'no_rangka': i['no_rangka'],
+		# 			'no_mesin': i['no_mesin'],
+		# 			'warehouse': i['warehouse'],
+		# 			'status': i['status'],
+		# 			'purchase_date': i['purchase_date'],
+		# 			'opening_qty': 1,
+		# 			'opening_val': i['purchase_rate'],
+		# 			'in_qty':0,
+		# 			'in_val': 0,
+		# 			'out_qty': 0
+		# 		})
+
+	return tmp
 
 
 def get_columns(filters):
@@ -169,6 +309,27 @@ def get_columns(filters):
 			"width": 200,
 			"hidden":0
 		},
+		# {
+		# 	"label": _("Serial No"),
+		# 	"fieldname": "serial_no",
+		# 	"fieldtype": "Data",
+		# 	"width": 200,
+		# 	"hidden":0
+		# },
+		# {
+		# 	"label": _("Status"),
+		# 	"fieldname": "status",
+		# 	"fieldtype": "Data",
+		# 	"width": 200,
+		# 	"hidden":0
+		# },
+		# {
+		# 	"label": _("purchase_date"),
+		# 	"fieldname": "purchase_date",
+		# 	"fieldtype": "Date",
+		# 	"width": 200,
+		# 	"hidden":0
+		# },
 		{
 			"label": _("Stock UOM"),
 			"fieldname": "stock_uom",
@@ -177,14 +338,14 @@ def get_columns(filters):
 			"width": 90,
 			"hidden":1
 		},
-		{
-			"label": _("Balance Qty"),
-			"fieldname": "bal_qty",
-			"fieldtype": "Float",
-			"width": 100,
-			"convertible": "qty",
-			"hidden":1
-		},
+		# {
+		# 	"label": _("Balance Qty"),
+		# 	"fieldname": "bal_qty",
+		# 	"fieldtype": "Float",
+		# 	"width": 100,
+		# 	"convertible": "qty",
+		# 	"hidden":1
+		# },
 		{
 			"label": _("Opening Qty"),
 			"fieldname": "opening_qty",
@@ -193,6 +354,7 @@ def get_columns(filters):
 			"convertible": "qty",
 			"hidden":0
 		},
+		# {"label": _("No Mesin--No Rangka Open"), "fieldname": "open_sn", "fieldtype": "Small Text", "width": 200},
 		{
 			"label": _("Saldo Awal"),
 			"fieldname": "opening_val",
@@ -208,6 +370,7 @@ def get_columns(filters):
 			"convertible": "qty",
 			"hidden":0
 		},
+		# {"label": _("No Mesin--No Rangka In"), "fieldname": "in_sn", "fieldtype": "Small Text", "width": 200},
 		{"label": _("Pembelian"), "fieldname": "in_val", "fieldtype": "Currency", "width": 150},
 		{"label": _("Barang Siap Yang Dijual"), "fieldname": "barang_jual", "fieldtype": "Currency", "width": 180,"hidden":1},
 		{
@@ -218,15 +381,17 @@ def get_columns(filters):
 			"convertible": "qty",
 			"hidden":0
 		},
+		# {"label": _("No Mesin--No Rangka Out"), "fieldname": "out_sn", "fieldtype": "Small Text", "width": 200},
 		{"label": _("Harga Pokok Penjualan"), "fieldname": "out_val", "fieldtype": "Currency", "width": 180,},
 		{
 			"label": _("Saldo Qty"),
-			"fieldname": "saldo_qty",
+			"fieldname": "bal_qty",
 			"fieldtype": "Float",
 			"width": 80,
 			"convertible": "qty",
 			"hidden":0
 		},
+		# {"label": _("No Mesin--No Rangka Saldo"), "fieldname": "bal_sn", "fieldtype": "Small Text", "width": 200},
 		{
 			"label": _("Saldo Akhir"),
 			"fieldname": "bal_val",
@@ -319,6 +484,63 @@ def get_conditions(filters):
 	return conditions
 
 
+def get_stock_ledger_entries_sp(filters, items):
+	item_conditions_sql = ""
+	if items:
+		item_conditions_sql = " and sle.item_code in ({})".format(
+			", ".join(frappe.db.escape(i, percent=False) for i in items)
+		)
+
+	conditions = get_conditions(filters)
+
+	return frappe.db.sql(
+		"""
+		select
+			sle.item_code, warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
+			sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
+			sle.item_code as name, sle.voucher_no, sle.stock_value, sle.batch_no,sle.serial_no
+		from
+			`tabStock Ledger Entry` sle
+		join `tabItem` i on i.name = sle.item_code
+		where sle.docstatus < 2 %s %s
+		and is_cancelled = 0 and i.item_group in ('All Item Groups', 'Aset Tetap', 'Kendaraan Operasional', 'KO-001', 'H1 - Motor', 'H2 - Ahass', 
+		'Ganti Ban Depan/Blakang', 'Ganti belt drive', 'Ganti Kabel Speedo/Kopling', 'Ganti Kampas Cakram Depan/Blakang', 'Ganti Kampas Tromol', 
+		'Ganti rantai mesin', 'Ganti rantai/ Gear Set', 'Jasa Service', 'Overhaul turun mesin', 'Paket Kuras Tangki', 'Paket Pembersihan CVT', 
+		'Paket Pemeriksaan PGM-FI', 'Service lengkap', 'H3 - Sparepart', 'HGA', 'Oli', 'Sparepart', 'Tools', 'Jasa')
+		order by sle.posting_date, sle.posting_time, sle.creation, sle.actual_qty"""
+		% (item_conditions_sql, conditions),  # nosec
+		as_dict=1,debug=0
+	)
+
+def get_stock_ledger_entries_motor(filters, items):
+	item_conditions_sql = ""
+	if items:
+		item_conditions_sql = " and sle.item_code in ({})".format(
+			", ".join(frappe.db.escape(i, percent=False) for i in items)
+		)
+
+	conditions = get_conditions(filters)
+
+	return frappe.db.sql(
+		"""
+		select
+			sle.item_code, warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
+			sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
+			sle.item_code as name, sle.voucher_no, sle.stock_value, sle.batch_no,sle.serial_no
+		from
+			`tabStock Ledger Entry` sle
+		join `tabItem` i on i.name = sle.item_code
+		where sle.docstatus < 2 %s %s
+		and is_cancelled = 0 and i.item_group not in ('All Item Groups', 'Aset Tetap', 'Kendaraan Operasional', 'KO-001', 'H1 - Motor', 'H2 - Ahass', 
+		'Ganti Ban Depan/Blakang', 'Ganti belt drive', 'Ganti Kabel Speedo/Kopling', 'Ganti Kampas Cakram Depan/Blakang', 'Ganti Kampas Tromol', 
+		'Ganti rantai mesin', 'Ganti rantai/ Gear Set', 'Jasa Service', 'Overhaul turun mesin', 'Paket Kuras Tangki', 'Paket Pembersihan CVT', 
+		'Paket Pemeriksaan PGM-FI', 'Service lengkap', 'H3 - Sparepart', 'HGA', 'Oli', 'Sparepart', 'Tools', 'Jasa')
+		order by sle.posting_date, sle.posting_time, sle.creation, sle.actual_qty"""
+		% (item_conditions_sql, conditions),  # nosec
+		as_dict=1,debug=0
+	)
+
+
 def get_stock_ledger_entries(filters, items):
 	item_conditions_sql = ""
 	if items:
@@ -333,44 +555,15 @@ def get_stock_ledger_entries(filters, items):
 		select
 			sle.item_code, warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
 			sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
-			sle.item_code as name, sle.voucher_no, sle.stock_value, sle.batch_no
+			sle.item_code as name, sle.voucher_no,sle.voucher_detail_no, sle.stock_value, sle.batch_no,sle.serial_no
 		from
 			`tabStock Ledger Entry` sle
 		join `tabItem` i on i.name = sle.item_code
 		where sle.docstatus < 2 %s %s
-		and is_cancelled = 0 and i.item_group in ('All Item Groups', 'Aset Tetap', 'Kendaraan Operasional', 'KO-001', 'H1 - Motor', 'H2 - Ahass', 
-		'Ganti Ban Depan/Blakang', 'Ganti belt drive', 'Ganti Kabel Speedo/Kopling', 'Ganti Kampas Cakram Depan/Blakang', 'Ganti Kampas Tromol', 
-		'Ganti rantai mesin', 'Ganti rantai/ Gear Set', 'Jasa Service', 'Overhaul turun mesin', 'Paket Kuras Tangki', 'Paket Pembersihan CVT', 
-		'Paket Pemeriksaan PGM-FI', 'Service lengkap', 'H3 - Sparepart', 'HGA', 'Oli', 'Sparepart', 'Tools', 'Jasa')
-		order by sle.posting_date, sle.posting_time, sle.creation, sle.actual_qty"""
+		and is_cancelled = 0 """
 		% (item_conditions_sql, conditions),  # nosec
-		as_dict=1,
+		as_dict=1,debug=0
 	)
-
-
-# def get_stock_ledger_entries(filters, items):
-# 	item_conditions_sql = ""
-# 	if items:
-# 		item_conditions_sql = " and sle.item_code in ({})".format(
-# 			", ".join(frappe.db.escape(i, percent=False) for i in items)
-# 		)
-
-# 	conditions = get_conditions(filters)
-
-# 	return frappe.db.sql(
-# 		"""
-# 		select
-# 			sle.item_code, warehouse, sle.posting_date, sle.actual_qty, sle.valuation_rate,
-# 			sle.company, sle.voucher_type, sle.qty_after_transaction, sle.stock_value_difference,
-# 			sle.item_code as name, sle.voucher_no, sle.stock_value, sle.batch_no
-# 		from
-# 			`tabStock Ledger Entry` sle
-# 		join `tabItem` i on i.name = sle.item_code
-# 		where sle.docstatus < 2 %s %s
-# 		and is_cancelled = 0 """
-# 		% (item_conditions_sql, conditions),  # nosec
-# 		as_dict=1,debug=1
-# 	)
 
 
 def get_opening_vouchers(to_date):
@@ -407,7 +600,7 @@ def get_item_warehouse_map(filters, sle):
 	to_date = getdate(filters.get("to_date"))
 	opening_vouchers = get_opening_vouchers(to_date)
 	float_precision = cint(frappe.db.get_default("float_precision")) or 3
-
+	serial_no = ''
 	for d in sle:
 		key = (d.company, d.item_code, d.warehouse)
 		if key not in iwb_map:
@@ -422,6 +615,10 @@ def get_item_warehouse_map(filters, sle):
 					"bal_qty": 0.0,
 					"bal_val": 0.0,
 					"val_rate": 0.0,
+					"open_sn": "",
+					"in_sn": "",
+					"out_sn": "",
+					"bal_sn": ""
 				}
 			)
 
@@ -431,44 +628,125 @@ def get_item_warehouse_map(filters, sle):
 			qty_diff = flt(d.qty_after_transaction) - flt(qty_dict.bal_qty)
 		else:
 			qty_diff = flt(d.actual_qty)
-
+			if d.serial_no:
+				serial_no = d.serial_no
+			
 		value_diff = flt(d.stock_value_difference)
 
 		if d.posting_date < from_date or d.voucher_no in opening_vouchers.get(d.voucher_type, []):
 			qty_dict.opening_qty += qty_diff
 			qty_dict.opening_val += value_diff
+			# frappe.msgprint(f"{d} dddddd")
+			if d.serial_no:
+				qty_dict.open_sn += format(serial_no+"\t")
+			# frappe.msgprint(serial_no)
 
 		elif d.posting_date >= from_date and d.posting_date <= to_date:
 			if flt(qty_diff, float_precision) >= 0:
 				qty_dict.in_qty += qty_diff
 				qty_dict.in_val += value_diff
+				# frappe.msgprint(f"{serial_no}")
+				if d.serial_no:
+					qty_dict.in_sn += format(serial_no+"\t")
+				# frappe.msgprint(f"{qty_dict.in_sn} xxx" )
 			else:
 				qty_dict.out_qty += abs(qty_diff)
 				qty_dict.out_val += abs(value_diff)
+				if d.serial_no:
+				
+					qty_dict.out_sn += format(serial_no+"\t")
+				# qty_dict.serial_no += serial_no
 
 		qty_dict.val_rate = d.valuation_rate
 		qty_dict.bal_qty += qty_diff
 		qty_dict.bal_val += value_diff
 
+		# qty_dict.bal_sn += qty_dict.in_sn.replace(qty_dict.out_sn, "")
+	# frappe.msgprint(f"{qty_dict.in_sn} in {qty_dict.out_sn} out")
+		# if qty_dict.bal_qty  > 0:
+		# 	qty_dict.bal_sn += serial_no
+		# frappe.msgprint(f"{ d.serial_no} bal_sn")
+
+	# frappe.msgprint(f'{iwb_map} iwb_map before')
+
 	iwb_map = filter_items_with_no_transactions(iwb_map, float_precision)
+	# frappe.msgprint(f'{iwb_map} iwb_mapxxx')
 
 	return iwb_map
 
+def hilang_data_sama(data_str,opening_qty,out_sn):
+	from collections import Counter
+	
+	data_list = data_str.split("\t")
+	hasil = list(filter(None, set(data_list)))
+	# frappe.msgprint(f"{hasil}zzzzxxx {opening_qty}xxx{out_sn}yyy")
+	
+	
+	if len(hasil) == opening_qty:
+		new_str = "\t".join(hasil)
+		return new_str
+	else:
+		count_dict = Counter(data_list)
+		
+		new_list = ["" if count_dict[item]%2 <1  else item for item in data_list]
+		filtered_list = list(filter(None, new_list))
+		new_str = "\t".join(filtered_list)
+		
+		return new_str
+
+def hilang_data_dup(data_str):
+	data_list = data_str.split("\t")
+	new_str = "\t".join(data_list)
+
+	# frappe.msgprint(f'{data_list} data_listxx')
+
+	return new_str
+
 
 def filter_items_with_no_transactions(iwb_map, float_precision):
+	# frappe.msgprint(f'{iwb_map} fdfdfdf')
+	tmp_in = []
+	tmp_out = []
 	for (company, item, warehouse) in sorted(iwb_map):
 		qty_dict = iwb_map[(company, item, warehouse)]
 
 		no_transactions = True
 		for key, val in iteritems(qty_dict):
-			val = flt(val, float_precision)
+			# frappe.msgprint(f"{key} {val} valxx")
+			if key not in ['in_sn','out_sn','bal_sn','open_sn']:
+				val = flt(val, float_precision)
+			# qty_dict['bal_sn'] = qty_dict['out_sn'].replace(qty_dict['in_sn'], "")
+			
+			# if qty_dict['bal_sn']
 			qty_dict[key] = val
+			if qty_dict['opening_qty'] == 0:
+				qty_dict['open_sn'] = ''
+			if key == 'open_sn':
+				# frappe.msgprint(f"{key} {val}")
+				qty_dict['open_sn'] = qty_dict['open_sn'].replace('\n','\t')
+				qty_dict['open_sn'] = hilang_data_sama(qty_dict['open_sn'],qty_dict['opening_qty'],qty_dict['out_sn'])
+			if key in ['in_sn']:
+				qty_dict['in_sn'] = qty_dict['in_sn'].replace('\n','\t')
+				qty_dict['out_sn'] = qty_dict['out_sn'].replace('\n','\t')
+				tmp_in_open = qty_dict['in_sn'] + qty_dict['open_sn']
+				qty_dict['bal_sn'] = tmp_in_open.replace(qty_dict['out_sn'], "")
+			
+			qty_dict['open_sn'] = qty_dict['open_sn'].replace('\t','\n')
+			qty_dict['in_sn'] = qty_dict['in_sn'].replace('\t','\n')
+			qty_dict['out_sn'] = qty_dict['out_sn'].replace('\t','\n')
+			qty_dict['bal_sn'] = qty_dict['bal_sn'].replace('\t','\n')
+
+			if qty_dict['bal_qty'] == 0:
+				qty_dict['bal_sn'] = ''
 			if key != "val_rate" and val:
 				no_transactions = False
 
 		if no_transactions:
 			iwb_map.pop((company, item, warehouse))
 
+	
+	# frappe.msgprint(f'{iwb_map} afterxx')
+	
 	return iwb_map
 
 
@@ -489,7 +767,7 @@ def get_items(filters):
 	if conditions:
 		# frappe.msgprint('Masuk sini !!')
 		items = frappe.db.sql_list(
-			"""select name from `tabItem` item where {}""".format(" and ".join(conditions)), filters,debug=1
+			"""select name from `tabItem` item where {}""".format(" and ".join(conditions)), filters,debug=0
 		)
 	return items
 

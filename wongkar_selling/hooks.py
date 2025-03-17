@@ -133,6 +133,8 @@ doctype_list_js = {"Sales Invoice Penjualan Motor" : "public/js/sales_invoice_mo
 override_doctype_class = {
 	"GL Entry": "wongkar_selling.custom_standard.custom_gl_entry.custom_advance",
 	"Expense Claim": "wongkar_selling.custom_standard.custom_expense_claim.custom_advance",
+    "Purchase Invoice": "wongkar_selling.custom_standard.custom_purchase_invoice.PurchaseInvoiceCustom",
+    "Purchase Receipt": "wongkar_selling.custom_standard.custom_purchase_receipt.PurchaseReceiptCustom"
 }
 
 # override_doctype_class = {

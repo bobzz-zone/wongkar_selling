@@ -1,6 +1,3 @@
-from wongkar_selling.wongkar_selling.doctype.sales_invoice_penjualan_motor.sales_invoice_penjualan_motor import get_warehouse_account_map
-from erpnext.assets.doctype.asset.asset import is_cwip_accounting_enabled
-from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
 import frappe
 from frappe import _, throw
 from datetime import datetime, timedelta
@@ -10,22 +7,21 @@ import erpnext
 from erpnext.accounts.general_ledger import (
 	merge_similar_entries,
 )
-from frappe.utils import get_link_to_form
 
-class PurchaseInvoiceCustom(PurchaseInvoice):
-	def cek_item_saprepart(self,item_code):
-		item_group = frappe.get_doc('Item',item_code).item_group
-		if item_group in ['H3 - Sparepart','HGA','Oli','Sparepart','Tools']:
-			print(item_group, ' cek_igxxx2321323')
-			return True
-		else:
-			return False
-	
+class PurchaseInvoiceCustom(PurchaseInvoice):	
+
 	def set_expense_account(self, for_validate=False):
+		from erpnext.accounts.utils import get_company_default
+		
 		auto_accounting_for_stock = erpnext.is_perpetual_inventory_enabled(self.company)
 
 		if auto_accounting_for_stock:
-			stock_not_billed_account = self.get_company_default("stock_received_but_not_billed")
+			#stock_not_billed_account = self.get_company_default("stock_received_but_not_billed")
+			stock_not_billed_account = None
+			for row in self.items:
+				if stock_not_billed_account is None:
+					stock_not_billed_account = row.expense_account
+
 			stock_items = self.get_stock_items()
 
 		asset_items = [d.is_fixed_asset for d in self.items if d.is_fixed_asset]
@@ -75,10 +71,6 @@ class PurchaseInvoiceCustom(PurchaseInvoice):
 				else:
 					# check if 'Stock Received But Not Billed' account is credited in Purchase receipt or not
 					if item.purchase_receipt:
-						cek_stock_not_billed_account = self.cek_item_saprepart(item.item_code)
-						if cek_stock_not_billed_account:
-							stock_not_billed_account = self.get_company_default("stock_received_but_not_billed_sparepart")
-
 						negative_expense_booked_in_pr = frappe.db.sql(
 							"""select name from `tabGL Entry`
 							where voucher_type='Purchase Receipt' and voucher_no=%s and account = %s""",
@@ -100,12 +92,6 @@ class PurchaseInvoiceCustom(PurchaseInvoice):
 					else:
 						# If no purchase receipt present then book expense in 'Stock Received But Not Billed'
 						# This is done in cases when Purchase Invoice is created before Purchase Receipt
-						
-						cek_stock_not_billed_account = self.cek_item_saprepart(item.item_code)
-						if cek_stock_not_billed_account:
-							stock_not_billed_account = self.get_company_default("stock_received_but_not_billed_sparepart")
-							
-						print(stock_not_billed_account, ' stock_not_billed_accountxxxx123')
 						if (
 							for_validate and item.expense_account and item.expense_account != stock_not_billed_account
 						):
@@ -119,7 +105,6 @@ class PurchaseInvoiceCustom(PurchaseInvoice):
 								"This is done to handle accounting for cases when Purchase Receipt is created after Purchase Invoice"
 							)
 							frappe.msgprint(msg, title=_("Expense Head Changed"))
-
 						item.expense_account = stock_not_billed_account
 
 			elif item.is_fixed_asset and not is_cwip_accounting_enabled(asset_category):
@@ -137,6 +122,42 @@ class PurchaseInvoiceCustom(PurchaseInvoice):
 				item.expense_account = asset_received_but_not_billed
 			elif not item.expense_account and for_validate:
 				throw(_("Expense account is mandatory for item {0}").format(item.item_code or item.item_name))
+
+	def get_gl_entries(self, warehouse_account=None):
+		self.auto_accounting_for_stock = erpnext.is_perpetual_inventory_enabled(self.company)
+		if self.auto_accounting_for_stock:
+			#self.stock_received_but_not_billed = self.get_company_default("stock_received_but_not_billed")
+			self.stock_not_billed_account = None
+			for row in self.items:
+				if self.stock_not_billed_account is None:
+					self.stock_not_billed_account = row.expense_account
+
+			self.expenses_included_in_valuation = self.get_company_default("expenses_included_in_valuation")
+		else:
+			self.stock_received_but_not_billed = None
+			self.expenses_included_in_valuation = None
+
+		self.negative_expense_to_be_booked = 0.0
+		gl_entries = []
+
+		self.make_supplier_gl_entry(gl_entries)
+		self.make_item_gl_entries(gl_entries)
+
+		if self.check_asset_cwip_enabled():
+			self.get_asset_gl_entry(gl_entries)
+
+		self.make_tax_gl_entries(gl_entries)
+		self.make_exchange_gain_loss_gl_entries(gl_entries)
+		self.make_internal_transfer_gl_entries(gl_entries)
+
+		gl_entries = make_regional_gl_entries(gl_entries, self)
+
+		gl_entries = merge_similar_entries(gl_entries)
+
+		self.make_payment_gl_entries(gl_entries)
+		self.make_write_off_gl_entry(gl_entries)
+		self.make_gle_for_rounding_adjustment(gl_entries)
+		return gl_entries
 
 
 @frappe.whitelist()

@@ -26,7 +26,7 @@ def get_data(filters):
 			sipm.nama_pemilik,
 			sipm.posting_date AS tgl_jual,
 			sipm.cost_center AS nama_area,
-			td.`outstanding_discount` AS outstanding_amount,
+			t_disc.`outstanding_amount` AS outstanding_amount,
 			dt.`nilai`,
 			dt.terbayarkan,
 			IF(t_disc.`name` IS NULL,'Belum Tagih',IF(dt.`terbayarkan`=0,'Sudah Realisasi',IF(dt.`terbayarkan`!=0 AND dt.`nilai` > dt.`terbayarkan` ,'Belum Realisasi','Sudah Tagih'))) AS status_sipm,
@@ -55,7 +55,7 @@ def get_data(filters):
 			LEFT JOIN `tabCustomer` c on c.name = td.nama_leasing
 			left join `tabItem` i on i.name = sipm.item_code
 			WHERE sipm.docstatus = 1 
-			AND sipm.posting_date <= '{}' AND td.`outstanding_discount` > 0 and t_disc.`name` IS not NULL
+			AND sipm.posting_date <= '{}' AND t_disc.`outstanding_amount` > 0 and t_disc.`name` IS not NULL
 			{}
 			GROUP BY sipm.name ORDER BY sipm.posting_date ASC
 		 """.format(filters.get('to_date'),kondisi),as_dict = 1,debug=0)

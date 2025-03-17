@@ -175,10 +175,11 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 		# Checked both rounding_adjustment and rounded_total
 		# because rounded_total had value even before introcution of posting GLE based on rounded total
 		grand_total = (self.grand_total)
+		grand_total_oli = (self.grand_total_oli)
 
 		base_grand_total = flt(self.grand_total,self.precision("grand_total"),)
 
-		if grand_total and not self.is_internal_transfer():
+		if (grand_total or grand_total_oli) and not self.is_internal_transfer():
 			# Did not use base_grand_total to book rounding loss gle
 			for i in self.items:
 				gl_entries.append(
@@ -200,6 +201,7 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 						item=self,
 					)
 				)
+			
 
 			# lama	
 			# gl_entries.append(
@@ -246,7 +248,7 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 
 		# self.make_write_off_gl_entry(gl_entries)
 		# self.make_gle_for_rounding_adjustment(gl_entries)
-
+		print(gl_entries)
 		return gl_entries
 
 	def get_tax_amounts(self, tax, enable_discount_accounting):
@@ -312,7 +314,8 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 									if account_currency == 'IDR'
 									else flt(amount, item.precision("amount"))
 								),
-								"cost_center": item.cost_center,
+								# "remarks": "sssrrts"
+								# "cost_center": item.cost_center,
 								# "project": item.project or self.project,
 							},
 							account_currency,

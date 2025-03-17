@@ -16,7 +16,8 @@ class Rule(Document):
 			cek = frappe.get_doc("Account",self.coa_receivable).account_type
 
 			if cek == 'Receivable':
-				frappe.throw("Tidak boleh menggunkan akun Receivable ! ")
+				pass
+				# frappe.throw("Tidak boleh menggunkan akun Receivable ! ")
 		elif self.coa_lawan:
 			cek = frappe.get_doc("Account",self.coa_lawan).account_type
 
@@ -102,7 +103,7 @@ class Rule(Document):
 		cek = frappe.db.sql(""" SELECT * from `tabRule` where item_group = '{0}' and category_discount = '{1}' 
 			and territory = '{2}' and customer = '{3}' 
 			and (valid_to = '{4}' or valid_from= '{4}') 
-			and name != '{5}' and disable = 0 """.format(self.item_group,self.category_discount,self.territory,self.customer,self.valid_to,self.name),as_dict=1)
+			 and disable = 0 """.format(self.item_group,self.category_discount,self.territory,self.customer,self.valid_to,self.name),as_dict=1)
 
 		tmp_cek = []
 

@@ -1,8 +1,8 @@
-// Copyright (c) 2024, w and contributors
+// Copyright (c) 2025, w and contributors
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Laporan Mutasi Stock"] = {
+frappe.query_reports["Laporan Mutasi Stock Warehouse"] = {
 	"filters": [
 		{
 			"fieldname": "company",
@@ -53,7 +53,7 @@ frappe.query_reports["Laporan Mutasi Stock"] = {
 			"fieldtype": "Link",
 			"width": "80",
 			"options": "Warehouse",
-			"hidden":1,
+			"reqd": 1,
 			get_query: () => {
 				let warehouse_type = frappe.query_report.get_filter_value("warehouse_type");
 				let company = frappe.query_report.get_filter_value("company");

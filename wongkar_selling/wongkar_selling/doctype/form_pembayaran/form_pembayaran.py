@@ -16,6 +16,26 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from frappe import _, bold, qb, throw
 
 class FormPembayaran(Document):
+	def cek_double_list_docname(self):
+		tmp= []
+		for i in self.list_doc_name:
+			tmp.append(i.docname)
+		duplikat = set()
+		unique_tagihan = set()
+
+		for item in tmp:
+			if item in unique_tagihan:
+				duplikat.add(item)
+			else:
+				unique_tagihan.add(item)
+		print(unique_tagihan, 'sadsd')
+		# Buang tagihan duplikat ke Frappe
+		for item in duplikat:
+			frappe.throw(f"Melempar {item} ke Frappe.")
+		# print(tmp)
+
+
+
 	def on_submit(self):
 		self.cek_outstanding()
 		self.make_gl_entries()
@@ -31,6 +51,7 @@ class FormPembayaran(Document):
 
 	def validate(self):
 		self.hitung_total()
+		self.cek_double_list_docname()
 
 	# def onload(self):
 	# 	if self.total == 0 and self.docstatus == 1:
@@ -202,7 +223,7 @@ class FormPembayaran(Document):
 			'fiscal_year': fiscal_year,
 			'voucher_type': self.doctype,
 			'voucher_no': self.name,
-			# 'remarks': self.get("remarks") or self.get("remark"),
+			'remarks': self.get("remarks") or self.get("remark"),
 			'debit': 0,
 			'credit': 0,
 			'debit_in_account_currency': 0,
@@ -263,10 +284,19 @@ class FormPembayaran(Document):
 
 	def make_gl_credit(self, gl_entries):
 		if self.customer  and self.type != 'Pembayaran Invoice Garansi':		
+			tmp = []
 			for d in self.list_doc_name:
+				tmp.append({
+					'docname': d.docname,
+					'reference_doctype': d.reference_doctype
+				})
+
+			unique_data = list({frozenset(item.items()): item for item in tmp}.values())
+
+			for u in unique_data:
 				data = frappe.db.sql(""" SELECT SUM(nilai) as total from `tabTagihan Payment Table` tpt 
-					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(d.docname,self.name),as_dict=1)
-				
+					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(u['docname'],self.name),as_dict=1,debug=1)
+				print(f'{data} --dataxx')
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": self.paid_from,
@@ -275,8 +305,8 @@ class FormPembayaran(Document):
 						"party_type": "Customer",
 						"party": self.customer,
 						"credit_in_account_currency": data[0]['total'],
-						"against_voucher": d.docname,
-						"against_voucher_type": d.reference_doctype,
+						"against_voucher": u['docname'],
+						"against_voucher_type": u['reference_doctype'],
 						# "cost_center": self.cost_center
 					}, item=None)
 				)
@@ -299,9 +329,18 @@ class FormPembayaran(Document):
 		# 			}, item=None)
 		# 		)
 		elif self.vendor:
+			tmp = []
 			for d in self.list_doc_name:
+				tmp.append({
+					'docname': d.docname,
+					'reference_doctype': d.reference_doctype
+				})
+
+			unique_data = list({frozenset(item.items()): item for item in tmp}.values())
+
+			for u in unique_data:
 				data = frappe.db.sql(""" SELECT SUM(nilai) as total from `tabTagihan Payment Table` tpt 
-					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(d.docname,self.name),as_dict=1)
+					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(u['docname'],self.name),as_dict=1)
 				
 				gl_entries.append(
 					self.get_gl_dict({
@@ -336,10 +375,19 @@ class FormPembayaran(Document):
 				)		
 
 	def make_gl_debit(self, gl_entries):
-		if self.customer:		
+		if self.customer:
+			tmp = []
 			for d in self.list_doc_name:
+				tmp.append({
+					'docname': d.docname,
+					'reference_doctype': d.reference_doctype
+				})
+
+			unique_data = list({frozenset(item.items()): item for item in tmp}.values())
+
+			for u in unique_data:
 				data = frappe.db.sql(""" SELECT SUM(nilai) as total from `tabTagihan Payment Table` tpt 
-					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(d.docname,self.name),as_dict=1)
+					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(u['docname'],self.name),as_dict=1)
 				
 				gl_entries.append(
 					self.get_gl_dict({
@@ -353,9 +401,18 @@ class FormPembayaran(Document):
 					}, item=None)
 				)
 		elif self.vendor:
+			tmp = []
 			for d in self.list_doc_name:
+				tmp.append({
+					'docname': d.docname,
+					'reference_doctype': d.reference_doctype
+				})
+
+			unique_data = list({frozenset(item.items()): item for item in tmp}.values())
+
+			for u in unique_data:
 				data = frappe.db.sql(""" SELECT SUM(nilai) as total from `tabTagihan Payment Table` tpt 
-					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(d.docname,self.name),as_dict=1)
+					where tpt.doc_name = '{}' and tpt.parent = '{}' """.format(u['docname'],self.name),as_dict=1)
 				
 				gl_entries.append(
 					self.get_gl_dict({
@@ -365,11 +422,13 @@ class FormPembayaran(Document):
 						"party": self.vendor,
 						"debit": data[0]['total'],
 						"debit_in_account_currency": data[0]['total'],
-						"against_voucher": d.docname,
-						"against_voucher_type": d.reference_doctype,
+						"against_voucher": u['docname'],
+						"against_voucher_type": u['reference_doctype'],
 						# "cost_center": self.cost_center
 					}, item=None)
 				)	
+
+
 
 def set_balance_in_account_currency(gl_dict, account_currency=None, conversion_rate=None, company_currency=None):
 	if (not conversion_rate) and (account_currency != company_currency):

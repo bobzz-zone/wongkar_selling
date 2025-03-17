@@ -11,6 +11,451 @@ import time
 import datetime
 from erpnext.controllers.accounts_controller import get_taxes_and_charges
 from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_amt_custom
+import pandas as pd
+
+#DEV
+
+def update_sinv_sp():
+	tmp = [
+
+	]
+	con = 1
+	for i in tmp:
+		print(con)
+		print(i)
+		doc = frappe.get_doc('Sales Invoice',i)
+		print(doc.debit_to)
+		if doc.docstatus == 1 and doc.is_pos == 1:
+			doc.debit_to = '11201.17 - PIUTANG DAGANG SPAREPART - W'
+			doc.db_update()
+		elif doc.docstatus == 1 and doc.is_pos == 0:
+			doc.debit_to = '11201.17 - PIUTANG DAGANG SPAREPART - W'
+			doc.db_update()
+		if doc.grand_total > 0:
+			if doc.update_stock == 1:
+				repair_gl_sle_entry("Sales Invoice",doc.name)
+			else:
+				repair_only_gl_entry("Sales Invoice",doc.name)
+			
+		frappe.db.commit()
+		con += 1
+		print(f'{doc.name} || {doc.debit_to} DONE')
+			
+
+def patch_je():
+	doc = frappe.get_doc("Journal Entry","ACC-JV-2023-01373")
+	print(doc.name)
+	repair_only_gl_entry("Journal Entry",doc.name)
+
+def patch_tl_oa():
+	tmp = [
+'ACC-SINVM-2024-00175'
+	]
+	akun = '11201.01 - PIUTANG DAGANG MOTOR - W'
+	customer = 'MMF'
+	for i in tmp:
+		print(i)
+		update_outstanding_amt_custom(akun,'Customer',customer,'Sales Invoice Penjualan Motor',i)
+
+def pacth_sipm():
+	frappe.flags.repair = True
+	doc = frappe.get_doc("Sales Invoice Penjualan Motor","ACC-SINVM-2024-00175")
+	print(doc.name)
+	repair_gl_sle_entry("Sales Invoice Penjualan Motor",doc.name)
+	print('DONE')
+
+def patch_rebuild_tree():
+	from frappe.utils.nestedset import rebuild_tree
+	rebuild_tree("Account", "parent_account")
+	print("DONE")
+
+def patch_sipm_akun_stnk_bpkb():
+	data = frappe.db.sql(""" SELECT a.name,a.coa_bpkb_stnk,a.cara_bayar,b.`account_type` 
+					  FROM `tabSales Invoice Penjualan Motor` a 
+					  JOIN `tabAccount` b ON b.name = a.coa_bpkb_stnk 
+					  WHERE a.coa_bpkb_stnk != '11203.03 - UANG TITIPAN BPKB & STNK - W' 
+					  AND a.docstatus=1 AND a.cara_bayar = 'Credit' AND b.`account_type` != 'Receivable' """,as_dict=1)
+	
+	# tmp = ['ACC-SINVM-2023-00043']
+	tmp =[]
+	for d in data:
+		tmp.append(d['name'])
+
+	print(len(tmp), ' tmpxx')
+	con = 1
+	for i in tmp:
+		print(con)
+		print(i, ' ixxxx')
+		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
+		doc.coa_bpkb_stnk = '11203.03 - UANG TITIPAN BPKB & STNK - W'
+		doc.db_update()
+		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
+		print('DONE')
+		con += 1
+
+
+def petch_salah_rate_prec():
+	frappe.flags.repair = True
+	col = ['name','no_rangka','harga_baru']
+	data = pd.read_excel (r'/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/patch_rate_prec.xls') 
+	df = pd.DataFrame(data, columns= col)
+	tmp = []
+	for idx in range(len(df)):
+		tmp.append({
+				'name': df[col[0]][idx],
+				'no_rangka': df[col[1]][idx],
+				'harga_baru': df[col[2]][idx],
+			})
+
+	grouped_data = {}
+	for item in tmp:
+		name = item['name']
+		if name not in grouped_data:
+			grouped_data[name] = []
+		grouped_data[name].append(item)
+
+	print(grouped_data)
+
+	for gd,info in grouped_data.items():
+		print(gd, ' gdxxx')
+		doc = frappe.get_doc('Purchase Receipt',gd)
+		for it in doc.items:
+			for inf in info:
+				if inf['no_rangka'] in it.serial_no:
+					if it.discount_amount == 0:
+						print(inf['harga_baru'], ' yyy')
+						it.price_list_rate = inf['harga_baru']
+						it.rate = inf['harga_baru']
+						# patch_po
+						if it.purchase_order:
+							po = frappe.get_doc('Purchase Order',it.purchase_order)
+							print(po.name, ' ponamexxx')
+							for poi in po.items:
+								if poi.discount_amount == 0:
+									if poi.name == it.purchase_order_item:
+										poi.price_list_rate = inf['harga_baru']
+										poi.rate = inf['harga_baru']
+								else:
+									frappe.throw('test')
+							po.run_method("calculate_taxes_and_totals")
+							po.db_update()
+							po.update_children()
+					else:
+						frappe.throw('test')
+		doc.run_method("calculate_taxes_and_totals")
+		doc.update_valuation_rate()
+		doc.db_update()
+		doc.update_children()
+		repair_gl_sle_entry('Purchase Receipt',gd)
+		print('DONE')
+
+	# tmp = ['MAT-PRE-2024-00542']
+	# frappe.flags.repair = True
+	# for i in tmp:
+	# 	doc = frappe.get_doc('Purchase Receipt',i)
+	# 	for it in doc.items:
+	# 		if 'MH1JM0314RK630645' in it.serial_no:
+	# 			if it.discount_amount == 0:
+	# 				print(it.serial_no)
+	# 				it.price_list_rate = 16779000
+	# 				it.rate = 16779000
+	# 			else:
+	# 				frappe.throw('test')
+	# 	doc.run_method("calculate_taxes_and_totals")
+	# 	doc.update_valuation_rate()
+	# 	doc.db_update()
+	# 	doc.update_children()
+	# 	repair_gl_sle_entry('Purchase Receipt',i)
+	# 	print('DONE')
+
+def patch_stock_prec():
+	data = frappe.db.sql(""" SELECT poi.`name`,poi.`parent`,poi.`item_code`,poi.`warehouse` FROM `tabPurchase Order` po
+		LEFT JOIN `tabPurchase Order Item` poi ON po.`name` = poi.`parent`
+		WHERE po.`docstatus` = 1 GROUP BY poi.`item_code`,poi.`warehouse` """,as_dict=1)
+
+	for i in data:
+		# data_order = frappe.db.sql(""" SELECT SUM((po_item.qty - po_item.received_qty)*po_item.conversion_factor) as total,po_item.item_code,po_item.warehouse
+		# 	FROM `tabPurchase Order Item` po_item, `tabPurchase Order` po
+		# 	WHERE po_item.item_code='{}' AND po_item.warehouse='{}'
+		# 	AND po_item.qty > po_item.received_qty AND po_item.parent=po.name
+		# 	AND po.status NOT IN ('Closed', 'Delivered') AND po.docstatus=1
+		# 	AND po_item.delivered_by_supplier = 0  """.format(i['item_code'],i['warehouse']),as_dict=1)
+
+		data_order = frappe.db.sql(""" 
+			SELECT po_item.qty,po_item.received_qty,po_item.conversion_factor,po_item.`parent`
+			FROM `tabPurchase Order Item` po_item, `tabPurchase Order` po
+			WHERE po_item.item_code='{}' AND po_item.warehouse='{}'
+			AND po_item.qty > po_item.received_qty AND po_item.parent=po.name
+			AND po.status NOT IN ('Closed', 'Delivered') AND po.docstatus=1
+			AND po_item.delivered_by_supplier = 0 """.format(i['item_code'],i['warehouse']),as_dict=1)
+		
+		for d in data_order:
+			if d['received_qty'] >0:
+				print(d, ' data_orderxxx')
+
+def patch_akun_pinv():
+	data = frappe.db.sql(""" SELECT pinv.name,pinv.`bill_no`,pinv.`credit_to`,pinv.`docstatus` 
+		FROM `tabPurchase Invoice` pinv 
+		WHERE pinv.`docstatus` < 2 AND pinv.`bill_no` LIKE '%INV%' AND pinv.`credit_to` != '21100.02 - HUTANG DAGANG SPAREPART - W'
+		ORDER BY pinv.`posting_date`,pinv.`name` ASC """,as_dict=1)
+	
+	tmp = []
+	# tmp = ['ACC-PINV-2023-00006']
+	for d in data:
+		tmp.append(d['name'])
+	
+	print(len(tmp), ' tmpxxx')
+	con = 1
+	for i in tmp:
+		print(con, ' conxx')
+		print(i, ' ixxx')
+		doc = frappe.get_doc('Purchase Invoice',i)
+		doc.credit_to = '21100.02 - HUTANG DAGANG SPAREPART - W'
+		doc.db_update()
+		if doc.docstatus == 1:
+			repair_only_gl_entry('Purchase Invoice',i)
+		print('DONE')
+		con += 1
+
+def patch_akun_item_pinv():
+	frappe.flags.repair_sp = True
+	# data = frappe.db.sql(""" SELECT pinv.name,pinv.`posting_date`,pinv.`bill_no`,pinv.`credit_to`,pinv.`docstatus` 
+	# 	FROM `tabPurchase Invoice` pinv 
+	# 	WHERE pinv.`docstatus` < 2 AND pinv.`bill_no` LIKE '%INV%' AND pinv.posting_date BETWEEN '2023-01-01' AND '2023-12-31'
+	# 	ORDER BY pinv.`posting_date`,pinv.`name` ASC """,as_dict=1)
+
+	# tmp = []
+	# for d in data:
+	# 	tmp.append(d['name'])
+
+	# tmp = ['ACC-PINV-2023-00006']
+	# tmp = ['ACC-PINV-2023-00007']
+	tmp = ['ACC-PINV-RET-2023-00005']
+	new_account = '21600.02 - BARANG BELUM DITAGIH - SPAREPART - W'
+	old_account = '21600.01 - BARANG BELUM DITAGIH - MOTOR - W'
+
+	cek = 0
+	con = 1
+	for i in tmp:
+		print(con, ' conxx')
+		print(i, ' ixxx')
+		doc = frappe.get_doc('Purchase Invoice',i)
+		for j in doc.items:
+			if j.expense_account != new_account:
+				j.expense_account = new_account
+				print(j.expense_account)
+				cek = 1
+		doc.set_against_expense_account()
+		doc.db_update()
+		doc.update_children()
+		if doc.docstatus == 1:
+			print('masuk sini')
+			repair_only_gl_entry('Purchase Invoice',i)
+		
+		cek_prec = frappe.db.sql(""" SELECT pr.name 
+			from `tabPurchase Receipt` pr 
+			join `tabPurchase Receipt Item` pri on pr.name = pri.parent
+			where pri.purchase_invoice = '{}' and pr.docstatus < 2 group by pr.name """.format(i),as_dict=1)
+		
+		if cek_prec:
+			print(cek_prec, ' Purchase Receiptxxx')
+			prec = frappe.get_doc('Purchase Receipt',cek_prec[0]['name'])
+			print(prec.name, ' precnamexxx')
+			for j in prec.items:
+				if j.expense_account != new_account:
+					j.expense_account = new_account
+					cek = 1
+					print(j.expense_account, ' expense_accountxxxx')
+			# print()
+			prec.db_update()
+			prec.update_children()
+			if prec.docstatus == 1:
+				print("ms")
+				repair_only_gl_entry('Purchase Receipt',cek_prec[0]['name'])
+		
+		print('DONE')
+		con += 1
+
+# def patch_akun_item_prec():
+# 	frappe.flags.repair_sp = True
+# 	tmp = ['MAT-PRE-2023-00057']
+# 	new_account = '21600.02 - BARANG BELUM DITAGIH - SPAREPART - W'
+# 	old_account = '21600.01 - BARANG BELUM DITAGIH - MOTOR - W'
+	
+# 	cek = 0
+# 	con = 1
+# 	for i in tmp:
+# 		print(con, ' conxx')
+# 		print(i, ' ixxx')
+# 		doc = frappe.get_doc('Purchase Receipt',i)
+# 		srbnb = doc.get_company_default("stock_received_but_not_billed")
+# 		print(srbnb, ' srbnb')
+# 		for j in doc.items:
+# 			if j.expense_account != new_account:
+# 				j.expense_account = new_account
+# 				cek = 1
+# 				print(j.expense_account, ' expense_accountxxxx')
+# 		# print()
+# 		doc.db_update()
+# 		doc.update_children()
+# 		if doc.docstatus == 1:
+# 			print("ms")
+# 			repair_only_gl_entry('Purchase Receipt',i)
+# 		print('DONE')
+# 		con += 1
+
+
+def pacth_akun_je():
+	data = frappe.db.sql(""" SELECT pinv.name,pinv.`bill_no`,pinv.`credit_to`,pinv.`docstatus` 
+		FROM `tabPurchase Invoice` pinv 
+		WHERE pinv.`docstatus` < 2 AND pinv.`bill_no` LIKE '%INV%' AND pinv.`credit_to` = '21100.02 - HUTANG DAGANG SPAREPART - W' 
+		AND pinv.`outstanding_amount` > 0
+		ORDER BY pinv.`posting_date`,pinv.`name` ASC """,as_dict=1)
+
+	# tmp = ['ACC-PINV-2023-00006']
+	tmp = []
+	for d in data:
+		tmp.append(d['name'])
+	
+	con = 1
+	tmp_je = []
+	for i in tmp:
+		print(con, ' conxx')
+		print(i, ' ixxx')
+		cek_pe = frappe.db.sql(""" 
+			SELECT 
+				per.name,per.parent,per.reference_name 
+			FROM `tabPayment Entry Reference` per 
+			WHERE per.reference_name = '{}' 
+			and per.docstatus < 2 """.format(i),as_dict=1)
+		if cek_pe:
+			frappe.throw('test')
+
+		cek_je = frappe.db.sql(""" 
+			SELECT 
+				jea.name,jea.parent,jea.docstatus,jea.account,jea.reference_name
+			FROM `tabJournal Entry Account` jea 
+			WHERE jea.reference_name = '{}' 
+			and jea.docstatus < 2 """.format(i),as_dict=1)
+
+		if cek_je:
+			
+			for je in cek_je:
+				print(je, ' je')
+				frappe.db.sql(""" UPDATE `tabJournal Entry Account` set account = '21100.02 - HUTANG DAGANG SPAREPART - W' 
+					where name = '{}' """.format(je['name']),debug=1)
+				if je['docstatus'] == 1:
+					tmp_je.append(je['parent'])
+		con += 1
+	
+	if len(tmp_je) >0:
+		tmp_je = list(dict.fromkeys(tmp_je))
+		print(tmp_je, ' tmp_jexxx')
+		for tje in tmp_je:
+			print(tje, ' tjexxx')
+			repair_only_gl_entry('Journal Entry',tje)
+			print("DONE")
+		
+def patch_akun_tl():
+	frappe.flags.repair = True
+	data = frappe.db.sql(""" SELECT a.name,a.customer,a.docstatus,a.coa_lawan,a.date 
+					  FROM `tabTagihan Leasing` a WHERE a.docstatus =1 
+					  AND a.date BETWEEN '2024-01-01' AND '2024-12-31' ORDER BY a.date ASC """,as_dict=1)
+	
+	tmp = ['Tagihan-PL-09-2023-00001']
+	# for d in data:
+	# 	print(d['name'])
+	# 	tmp.append(d['name'])
+	con =1
+	# tmp = [
+	# 	"Tagihan-PL-01-2024-00002-1",
+	# 	"Tagihan-PL-01-2024-00008-1",
+	# 	"Tagihan-PL-01-2024-00009-1",
+	# 	"Tagihan-PL-01-2024-00010",
+	# 	"Tagihan-PL-01-2024-00014",
+	# 	"Tagihan-PL-01-2024-00015",
+	# 	"Tagihan-PL-01-2024-00018",
+	# 	"Tagihan-PL-01-2024-00019",
+	# 	"Tagihan-PL-12-2023-00014"
+	# ]
+	# # tmp = ['Tagihan-PL-01-2024-00001']
+	print(len(tmp), ' tmpxxxx')
+	for i in tmp:
+		print(con)
+		print(i, ' ixx')
+		doc = frappe.get_doc('Tagihan Leasing',i)
+		if doc.customer == 'FIF':
+			doc.coa_lawan = '11202.01 - PIUTANG LEASING - FIF - W'
+		elif doc.customer == 'ADMF':
+			doc.coa_lawan = '11202.02 - PIUTANG LEASING - ADIRA FINANCE - W'
+		elif doc.customer == 'MMF':
+			doc.coa_lawan = '11202.03 - PIUTANG LEASING - MANDALA MULTI FINANCE - W'
+		elif doc.customer == 'MUF':
+			doc.coa_lawan = '11202.04 - PIUTANG LEASING - MANDIRI UTAMA FINANCE - W'
+		elif doc.customer == 'IMFI':
+			doc.coa_lawan = '11202.07 - PIUTANG LEASING - INDOMOBIL FINANCE INDONESIA - W'
+		elif doc.customer == 'SOF':
+			doc.coa_lawan = '11202.05 - PIUTANG LEASING - SUMMIT AUTO FINANCE - W'
+		elif doc.customer == 'WOM':
+			doc.coa_lawan = '11202.06 - PIUTANG LEASING - WOM FINANCE - W'		
+		
+		print(doc.coa_lawan)
+		doc.db_update()
+		repair_only_gl_entry('Tagihan Leasing',i)
+		print('DONE')
+		con += 1
+
+def patch_akun_fp():
+	data = frappe.db.sql(""" SELECT a.name,a.customer,a.type,a.docstatus,a.posting_date,a.paid_from FROM `tabForm Pembayaran` a 
+					  WHERE a.type = 'Pembayaran Tagihan Leasing' AND docstatus = 1 
+					  AND a.posting_date BETWEEN '2023-01-01' AND '2023-12-31' ORDER BY a.posting_date ASC """,as_dict=1)
+	
+	tmp = []
+
+	for d in data:
+		tmp.append(d['name'])
+
+	print(len(tmp), ' tmpxxx')
+	# tmp = [
+	# 	"FP-01-2024-00151",
+	# 	"FP-01-2024-00144",
+	# 	"FP-01-2024-00143-1",
+	# 	"FP-01-2024-00147",
+	# 	"FP-01-2024-00145",
+	# 	"FP-01-2024-00148-1",
+	# 	"FP-01-2024-00149",
+	# 	"FP-01-2024-00116-2",
+	# 	"FP-01-2024-00150"
+	# ]
+
+	con = 1
+	for i in tmp:
+		print(con)
+		print(i, ' ixxx')
+		doc = frappe.get_doc('Form Pembayaran',i)
+		if doc.customer == 'FIF':
+			doc.paid_from = '11202.01 - PIUTANG LEASING - FIF - W'
+		elif doc.customer == 'ADMF':
+			doc.paid_from = '11202.02 - PIUTANG LEASING - ADIRA FINANCE - W'
+		elif doc.customer == 'MMF':
+			doc.paid_from = '11202.03 - PIUTANG LEASING - MANDALA MULTI FINANCE - W'
+		elif doc.customer == 'MUF':
+			doc.paid_from = '11202.04 - PIUTANG LEASING - MANDIRI UTAMA FINANCE - W'
+		elif doc.customer == 'IMFI':
+			doc.paid_from = '11202.07 - PIUTANG LEASING - INDOMOBIL FINANCE INDONESIA - W'
+		elif doc.customer == 'SOF':
+			doc.paid_from = '11202.05 - PIUTANG LEASING - SUMMIT AUTO FINANCE - W'
+		elif doc.customer == 'WOM':
+			doc.paid_from = '11202.06 - PIUTANG LEASING - WOM FINANCE - W'
+
+		doc.db_update()
+		repair_only_gl_entry('Form Pembayaran',i)
+		print('DONE')
+
+		print(doc.customer)
+		print(doc.paid_from)
+		con	+= 1
+
 
 def patch_rate_salah_ste():
 	# patch SN
@@ -93,61 +538,148 @@ def patch_coa():
 # 		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
 # 		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 
-def patch_coa_sipm():
-	tmp = [
-"ACC-SINVM-2023-00163-1",
-"ACC-SINVM-2023-00185",
-"ACC-SINVM-2023-00088",
-"ACC-SINVM-2023-00225",
-"ACC-SINVM-2023-00072",
-"ACC-SINVM-2023-00241",
-"ACC-SINVM-2023-00084",
-"ACC-SINVM-2023-00275",
-"ACC-SINVM-2023-00271-1",
-"ACC-SINVM-2023-00261",
-"ACC-SINVM-2023-00281",
-"ACC-SINVM-2023-00184",
-"ACC-SINVM-2023-00087",
-"ACC-SINVM-2023-00175",
-"ACC-SINVM-2023-00191",
-"ACC-SINVM-2023-00244",
-"ACC-SINVM-2023-00177"
-]
-	
+def patch_submit_fp_tdl():
+	data = frappe.db.sql(""" SELECT 
+		f.`name`,f.`docstatus` FROM `tabTagihan Discount Leasing` td
+		JOIN `tabList Doc Name` l ON l.`docname` = td.`name`
+		JOIN `tabForm Pembayaran` f ON f.`name` = l.`parent`
+		WHERE f.`docstatus` = 0 and l.docstatus = 2
+		GROUP BY f.`name` limit 10 """,as_dict=1)
+
+	tmp = []
+	for d in data:
+		tmp.append(d['name'])
+
+	print(len(tmp), ' tmpxx')
+	con = 1
+
 	for i in tmp:
+		print(con, ' conxx')
+		doc = frappe.get_doc('Form Pembayaran',i)
+		print(doc.name)
+		if doc.docstatus == 0:
+			doc.submit()
+		con += 1
+		print('DONE')
+
+def patch_coa_sipm():
+	data = frappe.db.sql(""" 
+		SELECT name,posting_date 
+		FROM `tabSales Invoice Penjualan Motor`
+		WHERE docstatus = 1 AND NAME NOT IN (
+		'ACC-SINVM-2024-00965',
+		'ACC-SINVM-2024-00985',
+		'ACC-SINVM-2024-01045',
+		'ACC-SINVM-2023-00002',
+		'ACC-SINVM-2024-01091'
+		)
+		AND posting_date BETWEEN '2024-01-01' AND '2024-12-31'
+		ORDER BY posting_date,NAME ASC """,as_dict = 1)
+
+	# ACC-SINVM-2024-01091 sinv aneh gk ada ketranagan submit
+	tmp = []
+	for d in data:
+		tmp.append(d['name'])
+
+	print(len(tmp), ' tmpxx')
+	# print(tmp, ' tmp')
+
+	con = 1
+	for i in tmp:
+		print(con, ' con')
 		docname = i
 		doc = frappe.get_doc('Sales Invoice Penjualan Motor',docname)
-		
+		print(doc.name, ' xxx')
 		# r
 		for td in doc.table_discount:
-			print(td.parent, ' NAME')
+			# print(td.parent, ' NAME')
 			r = frappe.get_doc("Rule",td.rule)
 			frappe.db.sql(""" UPDATE `tabTable Discount` set coa_receivable='{}',coa_lawan='{}' where name = '{}' """.format(r.coa_receivable,r.coa_lawan,td.name))
 
 		#RDL
 		for tdl in doc.table_discount_leasing:
-			print(tdl.parent, ' NAME')
+			# print(tdl.parent, ' NAME')
 			rdl = frappe.get_doc("Rule Discount Leasing",tdl.rule)
 			frappe.db.sql(""" UPDATE `tabTable Disc Leasing` set coa='{}',coa_lawan='{}' where name = '{}' """.format(rdl.coa,rdl.coa_lawan,tdl.name))
 
 		repair_only_gl_entry('Sales Invoice Penjualan Motor',i)
 		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 		print('DONE')
+		con += 1
 
 def patch_tagihan_disc():
-	tmp = ['Tagihan-D-11-2023-00002']
+	data = frappe.db.sql(""" 
+		SELECT name FROM `tabTagihan Discount` td 
+		WHERE docstatus = 1 AND NAME NOT IN (
+		'Tagihan-D-03-2024-00006-1',
+		'Tagihan-D-04-2024-00001'
+		) """,as_dict = 1)
 
+	tmp = []
+	for i in data:
+		tmp.append(i['name'])
+	
+	# ['Tagihan-D-04-2024-00001']
+
+	con = 1
 	for i in tmp:
+		print(con, 'con')
+		print(i, ' xx')
+		doc = frappe.get_doc('Tagihan Discount',i)
+		print(doc.customer, ' cus')
+		if doc.customer == 'AHM':
+			doc.coa_tagihan_discount = '11201.03 - PIUTANG DAGANG - DISCOUNT FOR DP FROM AHM - W'
+			doc.coa_pendapatan = '42000.03 - PENDAPATAN KLAIM DISKON AHM - W'
+		elif doc.customer == 'MD':
+			doc.coa_tagihan_discount = '11201.02 - PIUTANG DAGANG - DISCOUNT FOR DP FROM MD - W'
+			doc.coa_pendapatan = '42000.02 - PENDAPATAN KLAIM DISKON MD - W'
+		
+		print(doc.coa_tagihan_discount)
+		print(doc.coa_pendapatan)
+		doc.db_update()
 		print(i, ' xx')
 		repair_only_gl_entry('Tagihan Discount',i)
 		print('DONE')
+		con += 1
+
+# DEVHONDA
+def patch_fp_tdl():
+	data = frappe.db.sql(""" 
+		SELECT 
+			f.`name`,f.`docstatus` FROM `tabTagihan Discount Leasing` td
+		JOIN `tabList Doc Name` l ON l.`docname` = td.`name`
+		JOIN `tabForm Pembayaran` f ON f.`name` = l.`parent`
+		WHERE f.`docstatus` = 1 
+		AND f.`name` NOT IN (
+		'FP-01-2024-00012',
+		'FP-01-2024-00013'
+		) GROUP BY f.`name` """,as_dict=1)
+
+	tmp = []
+
+	for d in data:
+		tmp.append(d['name'])
+
+	print(len(tmp), ' tmpxx')
+
+	con = 1
+	for i in tmp:
+		print(con, ' con')
+		doc = frappe.get_doc('Form Pembayaran',i)
+		print(doc.name, ' namexx')
+		doc.cancel()
+		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" """.format(doc.name),debug=1)
+		frappe.db.sql(""" UPDATE `tabForm Pembayaran` set docstatus=0 where name = '{}' """.format(i),debug=1)
+		print('DONE')
+		con += 1
 
 
 def patch_tagihan_disc_leasing():
-	tmp = ['Tagihan-L-05-2024-00007']
+	tmp = ['Tagihan-L-01-2024-00001']
 
 	for i in tmp:
 		doc = frappe.get_doc('Tagihan Discount Leasing',i)
+		print(i, ' xxx')
 		for d in doc.daftar_tagihan_leasing:
 			nominal = frappe.get_doc('Table Disc Leasing',{'parent':d.no_invoice,'nama_leasing':doc.customer}).nominal
 			print(nominal, ' nominalxxx')
@@ -158,11 +690,6 @@ def patch_tagihan_disc_leasing():
 		doc.update_children()
 		repair_only_gl_entry('Tagihan Discount Leasing',i)
 		print('DONE')
-
-
-		# print(i, ' xx')
-		# repair_only_gl_entry('Tagihan Discount Leasing',i)
-		# print('DONE')
 
 def patch_sn_no_rangka():
 	data = frappe.db.sql(""" SELECT name,no_rangka from `tabSerial No` where no_rangka is null limit 100 """,as_dict=1)
@@ -203,21 +730,29 @@ def patch_ec():
 		frappe.db.commit()
 		print("done")
 
-def patch_po():
-	# data = frappe.db.sql(""" SELECT po.name as name,t.`name` as t_name,po.`supplier` FROM `tabPurchase Order` po
-	# 	LEFT JOIN `tabPurchase Taxes and Charges` t ON  t.parent = po.name 
-	# 	WHERE po.supplier = 'IFMI MOTOR' AND po.`docstatus` = 1 AND t.`name` IS NULL """,as_dict=1)
+def patch_po_tax():
+	tmp = ['PUR-ORD-2023-00308']
+	conter = 1
+	for t in tmp:
+		print(conter)
+		docname = t
+		doc = frappe.get_doc("Purchase Order",docname)
+		print(doc.name)
+		taxes = get_taxes_and_charges("Purchase Taxes and Charges Template","Purchase Tax - W")
+		# print(taxes, ' taxes111')
+		doc.set_posting_time = 1
+		doc.taxes_and_charges = 'Purchase Tax - W'
+		doc.taxes = []
+		for t in taxes:
+			doc.append("taxes",t)
+		doc.run_method("calculate_taxes_and_totals")
+		doc.db_update()
+		doc.update_children()
+		frappe.db.commit()
+		print("done")
+		conter += 1
 
-	# tmp = []
-
-	# for i in data:
-	# 	tmp.append(i['name'])
-
-	# print(len(tmp))
-	# print(tmp, ' tmpppp')
-
-	
-	#  UPDATE `tabPurchase Order Item` SET price_list_rate = 14539300,rate=14539300,discount_amount=0 WHERE NAME = '3d4a0518a5'
+def patch_prac_tax():
 	tmp = ['PUR-ORD-2023-00308']
 	conter = 1
 	for t in tmp:

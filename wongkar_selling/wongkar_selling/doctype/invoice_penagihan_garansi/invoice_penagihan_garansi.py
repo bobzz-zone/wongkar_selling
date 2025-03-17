@@ -57,7 +57,7 @@ class InvoicePenagihanGaransi(Document):
 						debit_to = self.debit_to_oli
 						amount = d.amount
 						tot_amount_oli += amount
-				print(tot_amount, ' tot_amountxxx')
+				# print(tot_amount, ' tot_amountxxx')
 				i.grand_total = tot_amount_jasa
 				i.outstanding_amount = tot_amount_jasa
 				i.grand_total_oli = tot_amount_oli

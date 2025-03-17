@@ -42,7 +42,8 @@ def get_data(filters):
 		left join `tabItem` i on i.name = sipm.item_code
 		LEFT JOIN `tabList Tagihan Piutang Leasing` ll ON ll.`no_invoice` = sipm.name AND ll.`docstatus`=1
 		LEFT JOIN `tabTagihan Leasing` tl ON tl.name = ll.`parent`
-		WHERE sipm.`docstatus` = 1 AND sipm.cara_bayar = 'Credit' AND (sipm.`outstanding_amount` > 0 OR ll.`outstanding_sipm` >0) and tl.name IS NOT NULL """,as_dict=1,debug=1)
+		WHERE sipm.`docstatus` = 1 AND sipm.cara_bayar = 'Credit' AND (sipm.`outstanding_amount` > 0 OR ll.`outstanding_sipm` >0) 
+		and tl.name IS NOT NULL and sipm.posting_date between '{}' and '{}' """.format(filters.get("from_date"),filters.get("to_date")),as_dict=1,debug=1)
 
 	data_tagihan_discount_ahm = frappe.db.sql(""" 
 		SELECT 
@@ -67,10 +68,10 @@ def get_data(filters):
 		left join `tabItem` i on i.name = sipm.item_code
 		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name
 		LEFT JOIN `tabDaftar Tagihan` dt ON dt.`no_sinv` = sipm.name
-		LEFT JOIN `tabTagihan Discount` tdisc ON tdisc.`name` = dt.`parent` AND tdisc.`docstatus` = 1
-		WHERE sipm.docstatus = 1 AND td.`nominal` > 0 AND td.`customer` = 'AHM' AND (dt.`terbayarkan` > 0 OR dt.`terbayarkan` IS NULL ) and tdisc.name IS NOT NULL
+		LEFT JOIN `tabTagihan Discount` tdisc ON tdisc.`name` = dt.`parent` AND tdisc.`docstatus` = 1 
+		WHERE sipm.docstatus = 1 AND td.`nominal` > 0 AND td.`customer` = 'AHM' AND (dt.`terbayarkan` > 0 OR dt.`terbayarkan` IS NULL ) and tdisc.name IS NOT NULL and sipm.posting_date between '{}' and '{}'
 		GROUP BY sipm.name  ASC 
-		""",as_dict=1,debug=1)
+		""".format(filters.get("from_date"),filters.get("to_date")),as_dict=1,debug=1)
 
 	data_tagihan_discount_md = frappe.db.sql(""" 
 		SELECT 
@@ -96,9 +97,9 @@ def get_data(filters):
 		LEFT JOIN `tabTable Discount` td ON td.`parent` = sipm.name
 		LEFT JOIN `tabDaftar Tagihan` dt ON dt.`no_sinv` = sipm.name
 		LEFT JOIN `tabTagihan Discount` tdisc ON tdisc.`name` = dt.`parent` AND tdisc.`docstatus` = 1
-		WHERE sipm.docstatus = 1 AND td.`nominal` > 0 AND td.`customer` = 'MD' AND (dt.`terbayarkan` > 0 OR dt.`terbayarkan` IS NULL ) and tdisc.name IS NOT NULL
+		WHERE sipm.docstatus = 1 and sipm.posting_date between '{}' and '{}' AND td.`nominal` > 0 AND td.`customer` = 'MD' AND (dt.`terbayarkan` > 0 OR dt.`terbayarkan` IS NULL ) and tdisc.name IS NOT NULL
 		GROUP BY sipm.name  ASC 
-		""",as_dict=1,debug=1)
+		""".format(filters.get("from_date"),filters.get("to_date")),as_dict=1,debug=1)
 
 	data_tagihan_discount_leasing = frappe.db.sql(""" 
 		SELECT 
@@ -122,8 +123,8 @@ def get_data(filters):
 		LEFT JOIN `tabTable Disc Leasing` td ON td.`parent` = sipm.name
 		LEFT JOIN `tabDaftar Tagihan Leasing` dtl ON dtl.`no_invoice` = sipm.`name`
 		LEFT JOIN `tabTagihan Discount Leasing` tdl ON tdl.`name` = dtl.`parent`
-		WHERE sipm.docstatus = 1 AND sipm.`cara_bayar` = 'Credit' AND (dtl.`outstanding_discount` > 0 OR dtl.`outstanding_discount` IS NULL) and tdl.name IS NOT NULL
-		""",as_dict=1,debug=1)
+		WHERE sipm.docstatus = 1 and sipm.posting_date between '{}' and '{}' AND sipm.`cara_bayar` = 'Credit' AND (dtl.`outstanding_discount` > 0 OR dtl.`outstanding_discount` IS NULL) and tdl.name IS NOT NULL
+		""".format(filters.get("from_date"),filters.get("to_date")),as_dict=1,debug=1)
 							
 	for i in data_tagihan_leasing:
 		entry_date = i['tanggal']

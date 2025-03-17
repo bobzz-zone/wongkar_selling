@@ -25,6 +25,13 @@ from erpnext.stock.get_item_details import get_item_details
 # from api_integration.validation import *
 # from nextapp.nextsales import get_item
 
+@frappe.whitelist()
+def debug_submit():
+	doc = frappe.get_doc("Purchase Invoice","ACC-PINV-2024-00348-2")
+	doc.submit()
+
+
+
 LIMIT_PAGE = 20
 def update_ste():
 	data =frappe.db.sql("""select name from `tabStock Entry` where title!="Material Transfer" and docstatus=1 """,as_list=1)
@@ -854,3 +861,39 @@ def patch_sipm():
 		doc.update_against_document_in_jv()
 		print(doc.name," --DONE")
 
+def patch_pinv_account():
+	account = '21600.02 - BARANG BELUM DITAGIH - SPAREPART - W'
+	old_account = '21600.01 - BARANG BELUM DITAGIH - MOTOR - W'
+
+	#lists = frappe.db.sql(""" SELECT name from `tabPurchase Invoice` where
+	# 				   bill_no like '%INV%'
+	# """, as_dict=1)
+
+	lists = ["ACC-PINV-2024-00085","ACC-PINV-2024-00084-1","ACC-PINV-2024-00233"]
+
+	for list in lists:
+		
+		items = frappe.db.sql(""" SELECT name,expense_account,parent,docstatus from `tabPurchase Invoice Item` where
+					   parent = '%s'
+		""" % (list), as_dict=1)
+
+		repair = False
+
+		for i in items:
+			if i['expense_account'] == old_account:
+				print(i['name']+" "+i['parent'])
+				if(i['docstatus']==0):
+					frappe.db.sql(""" UPDATE `tabPurchase Invoice Item` SET expense_account = '%s' WHERE name = '%s' """ % (account,i['name'])) 
+
+				if(i['docstatus']==1):
+					repair = True
+					frappe.db.sql(""" UPDATE `tabPurchase Invoice Item` SET expense_account = '%s' WHERE name = '%s' """ % (account,i['name']))
+		
+		if(repair):
+			doc = frappe.get_doc('Purchase Invoice',i['parent'])
+			doc.set_against_expense_account()
+			doc.db_update()
+			repair_only_gl_entry('Purchase Invoice', doc.name)
+
+
+			

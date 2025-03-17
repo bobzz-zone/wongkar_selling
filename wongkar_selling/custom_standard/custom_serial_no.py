@@ -172,8 +172,7 @@ def rem_sinv(self,method):
 
 	print(str(data)+' data')
 	print(str(data_blm)+' data_blm')
-	frappe.db.commit()
-
+	
 def patch_serial_no(self,method):
 	pass
 	# frappe.msgprint("test")
