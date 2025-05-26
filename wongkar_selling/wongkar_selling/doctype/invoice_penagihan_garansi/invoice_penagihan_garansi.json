@@ -26,11 +26,15 @@
   "section_break_sbovg",
   "grand_total",
   "outstanding_amount",
+  "column_break_bvkah",
+  "grand_total_sparepart",
+  "outstanding_amount_sparepart",
   "column_break_p5vek",
   "grand_total_oli",
   "outstanding_amount_oli",
   "section_break_papqb",
   "debit_to",
+  "debit_to_sparepart",
   "debit_to_oli",
   "income",
   "conversion_rate",
@@ -216,12 +220,36 @@
    "label": "Debit To Oli",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "fetch_from": "company.customer_account_sparepart",
+   "fieldname": "debit_to_sparepart",
+   "fieldtype": "Link",
+   "label": "Debit To sparepart",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_bvkah",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "grand_total_sparepart",
+   "fieldtype": "Currency",
+   "label": "Grand Total sparepart",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount_sparepart",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount sparepart",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-25 14:06:21.968084",
+ "modified": "2025-05-10 09:54:39.021619",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Invoice Penagihan Garansi",

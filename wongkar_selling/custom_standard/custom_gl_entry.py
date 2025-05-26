@@ -460,6 +460,7 @@ def update_outstanding_amt_custom(
 				frappe.db.escape(account), frappe.db.escape(party_account),
 			)
 		else:
+			print('aldksaj')
 			account_condition = "and account in ({0}, {1})".format(
 				frappe.db.escape(account), frappe.db.escape(party_account)
 			)
@@ -477,7 +478,7 @@ def update_outstanding_amt_custom(
 		{0} {1}""".format(
 				party_condition, account_condition
 			),
-			(against_voucher_type, against_voucher),
+			(against_voucher_type, against_voucher),debug=0
 		)[0][0]
 		or 0.0
 	)
@@ -523,6 +524,11 @@ def update_outstanding_amt_custom(
 		if against_voucher_type == 'Invoice Penagihan Garansi' and voucher_type == 'Journal Entry':
 			ref_doc.outstanding_amount_oli = bal
 			frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount_oli", bal)
+		elif against_voucher_type == 'Invoice Penagihan Garansi' and voucher_type == 'Invoice Penagihan Garansi':
+			account_oli = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to_oli")
+			account_sp = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to_oli")
+			print(f"{against_voucher_type} {against_voucher} {voucher_type} {bal} {account} xxxx")
+			# frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount", bal)
 		else:
 			frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount", bal)
 		if against_voucher_type not in  ["Sales Invoice Sparepart Garansi","Invoice Penagihan Garansi"]:

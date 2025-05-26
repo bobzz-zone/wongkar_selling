@@ -15,6 +15,41 @@ import pandas as pd
 
 #DEV
 
+def debug_ipg():
+	doc = frappe.get_doc("Invoice Penagihan Garansi",'IPG-2025-00007')
+	repair_only_gl_entry("Invoice Penagihan Garansi",'IPG-2025-00007')
+def patch_oa_tr():
+	doc = frappe.get_doc("Penerimaan DP","FDP-09-2023-00137-2")
+	doc.calculate_oa_tr()
+	doc.db_update()
+	print("DONE")
+
+def patch_jual_sipm():
+	frappe.flags.repair = True
+	col = ['name','harga_baru']
+	data = pd.read_excel (r'/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/patch_rate_sipm.xls') 
+	df = pd.DataFrame(data, columns= col)
+	for idx in range(len(df)):
+		print(df[col[0]][idx], df[col[1]][idx])
+		doc = frappe.get_doc('Sales Invoice Penjualan Motor',df[col[0]][idx])
+		if doc.outstanding_amount <= 0:
+			frappe.throw("tss33")
+		
+		if doc.cek_adjustment_harga:
+			frappe.throw("tss")
+
+		if doc.tabel_biaya_motor:
+			if len(doc.tabel_biaya_motor) > 0:
+				frappe.throw("tss2")
+		doc.harga =  df[col[1]][idx] 
+		doc.otr =  df[col[1]][idx] 
+		doc.patch_harga()
+		doc.db_update()
+		doc.update_children()
+		
+		repair_gl_sle_entry("Sales Invoice Penjualan Motor",doc.name)
+		print("DONE")
+
 def update_sinv_sp():
 	tmp = [
 

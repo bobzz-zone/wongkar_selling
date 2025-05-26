@@ -1,11 +1,12 @@
 import frappe
 from frappe.utils import cint, cstr, flt, fmt_money, formatdate, get_link_to_form, nowdate
 from six import iteritems
+from erpnext.stock.get_item_details import get_item_details
 
 # from erpnext.controllers.account_controller import AccountsController
 import erpnext
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
-    SalesInvoice, check_if_return_invoice_linked_with_payment_entry, unlink_inter_company_doc,validate_inter_company_party,
+    SalesInvoice, check_if_return_invoice_linked_with_payment_entry, get_discounting_status, unlink_inter_company_doc,validate_inter_company_party,
     validate_service_stop_date,update_linked_doc
 )
 from erpnext.setup.doctype.company.company import update_company_current_month_sales
@@ -425,6 +426,37 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             # frappe.msgprint('tes')
             self.custom_missing_values()
 
+    
+    def patch_harga(self):
+        args = {
+            "item_code": self.item_code,
+            "company": self.company,
+            "doctype": self.doctype,
+            "currency": self.currency,
+            "conversion_rate": self.conversion_rate,
+            "warehouse": self.set_warehouse,
+            "price_list": self.selling_price_list
+        }
+        out = get_item_details(args,self,overwrite_warehouse=False)
+        # frappe.msgprint(str(out)+ ' out')
+        # harga_asli = self.harga - total_biaya_tanpa_dealer - total_diskon_setelah_pajak - total_diskon_leasing_setelah_pajak - nominal_diskon_sp
+        harga_asli = self.harga
+        
+        # menambah tabel item
+        self.items = []
+        out.update({
+                'serial_no':self.no_rangka,
+                'cost_center': self.cost_center,
+                # 'price_list_rate':harga_asli,
+                'rate':harga_asli,
+                'stock_uom_rate':harga_asli,
+                'amount': harga_asli
+            })
+
+        self.append("items",out)
+
+        calculate_taxes_and_totals_custom(self)
+
     def custom_missing_values(self):
         # validasi field
         if not self.cara_bayar:
@@ -728,9 +760,9 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             dpp = self.net_total
             ppn = self.taxes[0].tax_amount
             if self.docstatus == 1:
-                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(dpp,ppn,self.grand_total,self.no_rangka),debug=1)
+                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(dpp,ppn,self.grand_total,self.no_rangka),debug=0)
             elif self.docstatus == 2:
-                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(0,0,0,self.no_rangka),debug=1)
+                frappe.db.sql(""" UPDATE `tabSerial No` set dpp = {},ppn = {},harga_jual = {} where name = "{}" """.format(0,0,0,self.no_rangka),debug=0)
             print("sukses")
 
     def on_submit(self):
@@ -2067,7 +2099,7 @@ def get_rdl(doctype, txt, searchfield, start, page_len, filters):
         and rdl.valid_to >= '{1}' 
         and rdl.disable=0 
         and cd.name like "%{2}%" 
-        group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=1)
+        group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=0)
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
@@ -2095,7 +2127,7 @@ def filter_rule(doctype, txt, searchfield, start, page_len, filters):
         and rdl.valid_to >= '{1}' 
         and rdl.disable=0 
         and cd.name like "%{2}%" 
-        group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=1)
+        group by cd.name """.format(filters['item_group'],filters['posting_date'],txt),debug=0)
 
 def get_advance_payment_entries(pemilik,party_type, party, party_account, order_doctype,
         order_list=None, include_unallocated=True, against_all_orders=False, limit=None):
@@ -2192,7 +2224,7 @@ def get_advance_journal_entries_custom(
                 amount_field, dr_or_cr, reference_condition
             ),
             [party_account,party_bpkb_stnk, party_type, party] + order_list,
-            as_dict=1,debug=1,
+            as_dict=1,debug=0,
         )
     else:
          journal_entries = frappe.db.sql(
@@ -2214,7 +2246,7 @@ def get_advance_journal_entries_custom(
                 amount_field, dr_or_cr, reference_condition
             ),
             [party_account,party_bpkb_stnk, party_type, party,pemilik] + order_list,
-            as_dict=1,debug=1,
+            as_dict=1,debug=0,
         )
 
     return list(journal_entries)
@@ -2401,7 +2433,7 @@ def get_party_details(inv):
 def make_dp(name_dp):
     data = frappe.db.sql(""" SELECT sinv.*,sum(tbm.amount) as nilai from `tabSales Invoice Penjualan Motor` sinv
     left join `tabTabel Biaya Motor` tbm on tbm.parent = sinv.name and tbm.type in ('STNK','BPKB')
-    where sinv.name = '{}' """.format(name_dp),as_dict=1,debug=1)
+    where sinv.name = '{}' """.format(name_dp),as_dict=1,debug=0)
     target_doc = frappe.new_doc("Penerimaan DP")
     frappe.msgprint(str(data)+ " data")
     for i in data:
@@ -2422,4 +2454,64 @@ def make_dp(name_dp):
             # target_doc.piutang_motor = i.harga - i.nilai - i.nominal_diskon - i.total_advance
     # target_doc.set_advances()
     return target_doc.as_dict()
+
+def get_valuation_rate(item_code, warehouse, voucher_type, voucher_no,
+	allow_zero_rate=False, currency=None, company=None, raise_error_if_no_rate=True):
+	# Get valuation rate from last sle for the same item and warehouse
+	if not company:
+		company = erpnext.get_default_company()
+
+	last_valuation_rate = frappe.db.sql("""select valuation_rate
+		from `tabStock Ledger Entry`
+		where
+			item_code = %s
+			AND warehouse = %s
+			AND valuation_rate >= 0
+			AND NOT (voucher_no = %s AND voucher_type = %s)
+		order by posting_date desc, posting_time desc, name desc limit 1""", (item_code, warehouse, voucher_no, voucher_type))
+
+	if not last_valuation_rate:
+		# Get valuation rate from last sle for the item against any warehouse
+		last_valuation_rate = frappe.db.sql("""select valuation_rate
+			from `tabStock Ledger Entry`
+			where
+				item_code = %s
+				AND valuation_rate > 0
+				AND NOT(voucher_no = %s AND voucher_type = %s)
+			order by posting_date desc, posting_time desc, name desc limit 1""", (item_code, voucher_no, voucher_type))
+
+	if last_valuation_rate:
+		return flt(last_valuation_rate[0][0])
+
+	# If negative stock allowed, and item delivered without any incoming entry,
+	# system does not found any SLE, then take valuation rate from Item
+	valuation_rate = frappe.db.get_value("Item", item_code, "valuation_rate")
+
+	if not valuation_rate:
+		# try Item Standard rate
+		valuation_rate = frappe.db.get_value("Item", item_code, "standard_rate")
+
+		if not valuation_rate:
+			# try in price list
+			valuation_rate = frappe.db.get_value('Item Price',
+				dict(item_code=item_code, buying=1, currency=currency),
+				'price_list_rate')
+
+	if not allow_zero_rate and not valuation_rate and raise_error_if_no_rate \
+			and cint(erpnext.is_perpetual_inventory_enabled(company)):
+		frappe.local.message_log = []
+		form_link = get_link_to_form("Item", item_code)
+
+		message = _("Valuation Rate for the Item {0}, is required to do accounting entries for {1} {2}.").format(form_link, voucher_type, voucher_no)
+		message += "<br><br>" + _("Here are the options to proceed:")
+		solutions = "<li>" + _("If the item is transacting as a Zero Valuation Rate item in this entry, please enable 'Allow Zero Valuation Rate' in the {0} Item table.").format(voucher_type) + "</li>"
+		solutions += "<li>" + _("If not, you can Cancel / Submit this entry") + " {0} ".format(frappe.bold("after")) + _("performing either one below:") + "</li>"
+		sub_solutions = "<ul><li>" + _("Create an incoming stock transaction for the Item.") + "</li>"
+		sub_solutions += "<li>" + _("Mention Valuation Rate in the Item master.") + "</li></ul>"
+		msg = message + solutions + sub_solutions + "</li>"
+
+		frappe.throw(msg=msg, title=_("Valuation Rate Missing"))
+
+	return valuation_rate
+
 

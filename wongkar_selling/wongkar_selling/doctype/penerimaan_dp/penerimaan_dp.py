@@ -7,11 +7,17 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from datetime import datetime
 
 class PenerimaanDP(Document):
+	def calculate_oa_tr(self):
+		if self.cek_transfer == 0:
+			self.outstanding_transfer = self.piutang_motor + self.piutang_bpkb_stnk
+			print(self.outstanding_transfer, ' self.otstanding_transfer')
+	
 	def on_submit(self):
 		self.make_je()
 
 	def validate(self):
 		self.hitung_bayar()
+		self.calculate_oa_tr()
 		self.missing_value()
 
 	@frappe.whitelist()

@@ -77,7 +77,7 @@ frappe.ui.form.on('Form Pembayaran', {
 
 		filter_docname()
 
-		if(cur_frm.doc.type == "Pembayaran Invoice Garansi"){
+		if(cur_frm.doc.type == "Pembayaran Invoice Garansi Jasa" || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart"){
 			removeColumns(cur_frm,['no_sinv'],'tagihan_payment_table')
 			removeColumns(cur_frm,['no_rangka'],'tagihan_payment_table')
 			showColumns(cur_frm,['sales_invoice_sparepart_garansi'],'tagihan_payment_table')
@@ -131,8 +131,10 @@ frappe.ui.form.on('Form Pembayaran', {
 			doc_type = 'Tagihan Leasing'
 		}else if(cur_frm.doc.type == 'Pembayaran STNK' || cur_frm.doc.type == 'Pembayaran BPKB'){
 			doc_type = 'Pembayaran Tagihan Motor'
-		}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi'){
+		}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi Jasa'  || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart"){
 			doc_type = 'Invoice Penagihan Garansi'
+		}else if(cur_frm.doc.type == 'Pembayaran SIPM Antar Entitas'){
+			doc_type = 'Sales Invoice Penjualan Motor'
 		}
 
 		cur_frm.clear_table("tagihan_payment_table")
@@ -144,16 +146,18 @@ frappe.ui.form.on('Form Pembayaran', {
 				"tipe_pembayaran": cur_frm.doc.type,
 				"data": cur_frm.doc.list_doc_name,
 				"name_pe": cur_frm.doc.name,
-				"paid_from": cur_frm.doc.paid_from
+				"paid_from": cur_frm.doc.paid_from,
+				"data_tagihan": cur_frm.doc
 				// "dn": cur_frm.doc.name
 			},
 			callback: function(r) {
-				console.log(r," dataarr")
+				// console.log(r," dataarr")
 				if(r.message){
-					if(r.message.length>0){
+					if(r.message.length>0 && cur_frm.doc.type != 'Pembayaran SIPM Antar Entitas'){
 						for(var i=0;i<r.message.length;i++){
 							for( var j=0;j<r.message[i].length;j++){
 								var child = cur_frm.add_child("tagihan_payment_table");
+								console.log(r," dataarr")
 								frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i][j].no_invoice);
 								frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i][j].sales_invoice_sparepart_garansi);
 								frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i][j].pemilik);
@@ -166,7 +170,23 @@ frappe.ui.form.on('Form Pembayaran', {
 								frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i][j].parent);
 								frappe.model.set_value(child.doctype, child.name, "id_detail", r.message[i][j].id_detail);
 							}
-							
+						}
+						cur_frm.refresh_fields("tagihan_payment_table")
+					}else if(r.message.length>0 && cur_frm.doc.type == 'Pembayaran SIPM Antar Entitas'){
+						for(var i=0;i<r.message.length;i++){
+							var child = cur_frm.add_child("tagihan_payment_table");
+							console.log(r," dataarr")
+							frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i].no_invoice);
+							frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i].sales_invoice_sparepart_garansi);
+							frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i].pemilik);
+							frappe.model.set_value(child.doctype, child.name, "nama_pemilik", r.message[i].nama_pemilik);
+							frappe.model.set_value(child.doctype, child.name, "item", r.message[i].item);
+							frappe.model.set_value(child.doctype, child.name, "no_rangka", r.message[i].no_rangka);
+							frappe.model.set_value(child.doctype, child.name, "no_rangka2", r.message[i].no_rangka2);
+							frappe.model.set_value(child.doctype, child.name, "nilai", r.message[i].outstanding);
+							frappe.model.set_value(child.doctype, child.name, "doc_type", r.message[i].parenttype);
+							frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i].parent);
+							frappe.model.set_value(child.doctype, child.name, "id_detail", r.message[i].id_detail);
 						}
 						cur_frm.refresh_fields("tagihan_payment_table")
 					}
@@ -194,7 +214,7 @@ frappe.ui.form.on('List Doc Name', { // The child table is defined in a DoctType
     		d.reference_doctype = 'Tagihan Leasing'
     	}else if(cur_frm.doc.type == 'Pembayaran STNK' || cur_frm.doc.type == 'Pembayaran BPKB'){
     		d.reference_doctype = 'Pembayaran Tagihan Motor'
-    	}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi'){
+    	}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi Jasa' || cur_frm.doc.type == 'Pembayaran Invoice Garansi Sparepart'){
 			d.reference_doctype = 'Invoice Penagihan Garansi'
 		}
     	filter_docname()
@@ -396,7 +416,7 @@ var filter_docname = function(frm){
 	            ]
 	        }
         }
-	}else if(cur_frm.doc.type == "Pembayaran Invoice Garansi"){
+	}else if(cur_frm.doc.type == "Pembayaran Invoice Garansi Jasa"){
 		cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
 	   		var child = locals[cdt][cdn];
 	        // console.log(child);
@@ -416,6 +436,29 @@ var filter_docname = function(frm){
 	                ['outstanding_amount', '>',0],
 	                ['customer','=',cur_frm.doc.customer],
 	                ['debit_to','=',cur_frm.doc.paid_from]
+	            ]
+	        }
+        }
+	}else if(cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart"){
+		cur_frm.fields_dict['list_doc_name'].grid.get_field('docname').get_query = function(doc, cdt, cdn) {
+	   		var child = locals[cdt][cdn];
+	        // console.log(child);
+	    	
+	    	var child_names = [];
+			if (cur_frm.doc.list_doc_name){
+				for (var i = 0; i < cur_frm.doc.list_doc_name.length; i++) {
+					if (cur_frm.doc.list_doc_name[i].docname){
+						child_names.push(cur_frm.doc.list_doc_name[i].docname);
+					}
+				}
+			}
+	        return {    
+	            filters:[
+	                ["name","NOT IN",child_names],
+	                ['docstatus', '=', 1],
+	                ['outstanding_amount_sparepart', '>',0],
+	                ['customer','=',cur_frm.doc.customer],
+	                ['debit_to_sparepart','=',cur_frm.doc.paid_from]
 	            ]
 	        }
         }

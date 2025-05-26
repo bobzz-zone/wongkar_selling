@@ -253,7 +253,8 @@
   "auto_repeat",
   "update_auto_repeat_reference",
   "against_income_account",
-  "amended_from"
+  "amended_from",
+  "advance_paid"
  ],
  "fields": [
   {
@@ -2395,6 +2396,7 @@
    "label": "Disable Rounded Total"
   },
   {
+   "default": "43000.01 - DISKON - BEBAN DEALER - W",
    "depends_on": "eval:doc.nominal_diskon != 0",
    "fieldname": "coa_diskon",
    "fieldtype": "Link",
@@ -2415,6 +2417,7 @@
    "label": "Adjustment Harga"
   },
   {
+   "default": "11203.03 - UANG TITIPAN BPKB & STNK - W",
    "fieldname": "coa_bpkb_stnk",
    "fieldtype": "Link",
    "label": "Coa Biaya BPKB & STNK",
@@ -2500,12 +2503,19 @@
    "fieldname": "faktur_pajak",
    "fieldtype": "Data",
    "label": "Faktur Pajak"
+  },
+  {
+   "fieldname": "advance_paid",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "advance_paid",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2024-03-21 08:23:30.813030",
+ "modified": "2025-05-14 11:33:03.697249",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

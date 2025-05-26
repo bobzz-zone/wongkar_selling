@@ -21,8 +21,10 @@ class InvoicePenagihanGaransi(Document):
 				sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 				titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 				coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+				coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 				tax = (100+self.rate ) / 100
 				tot_amount_jasa = 0
+				tot_amount_sparepart = 0
 				tot_amount_oli = 0
 				amount = 0
 				for d in sp.items:
@@ -30,12 +32,18 @@ class InvoicePenagihanGaransi(Document):
 						debit_to = self.debit_to
 						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
 						tot_amount_jasa += amount
+					elif d.titipan_account == coa_claimable_sinv_garansi_sparepart:
+						debit_to = self.debit_to_sparepart
+						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						tot_amount_sparepart += amount
 					elif d.titipan_account == titipan_ahas_account_oli:
 						debit_to = self.debit_to_oli
 						amount = d.amount
 						tot_amount_oli += amount
 				i.grand_total = tot_amount_jasa
 				i.outstanding_amount = tot_amount_jasa
+				i.grand_total_sparepart = tot_amount_sparepart
+				i.outstanding_amount_sparepart = tot_amount_sparepart
 				i.grand_total_oli = tot_amount_oli
 				i.outstanding_amount_oli = tot_amount_oli
 		else:
@@ -45,14 +53,20 @@ class InvoicePenagihanGaransi(Document):
 				sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 				titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 				coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+				coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 				tax = (100+self.rate ) / 100
 				tot_amount_jasa = 0
+				tot_amount_sparepart = 0
 				tot_amount_oli = 0
 				for d in sp.items:
 					if d.titipan_account == coa_claimable_sinv_garansi_jasa:
 						debit_to = self.debit_to
 						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
 						tot_amount_jasa += amount
+					elif d.titipan_account == coa_claimable_sinv_garansi_sparepart:
+						debit_to = self.debit_to_sparepart
+						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						tot_amount_sparepart += amount
 					elif d.titipan_account == titipan_ahas_account_oli:
 						debit_to = self.debit_to_oli
 						amount = d.amount
@@ -60,18 +74,24 @@ class InvoicePenagihanGaransi(Document):
 				# print(tot_amount, ' tot_amountxxx')
 				i.grand_total = tot_amount_jasa
 				i.outstanding_amount = tot_amount_jasa
+				i.grand_total_sparepart = tot_amount_sparepart
+				i.outstanding_amount_sparepart = tot_amount_sparepart
 				i.grand_total_oli = tot_amount_oli
 				i.outstanding_amount_oli = tot_amount_oli
 
 	def hitung_total(self):
 		if self.list_invoice_penagihan_garansi and len(self.list_invoice_penagihan_garansi) >0:
 			total_jasa = 0
+			total_sp = 0
 			total_oli = 0
 			for i in self.list_invoice_penagihan_garansi:
 				total_jasa += i.grand_total
+				total_sp += i.grand_total_sparepart
 				total_oli += i.grand_total_oli
 			self.grand_total = total_jasa
 			self.outstanding_amount = self.grand_total
+			self.grand_total_sparepart = total_sp
+			self.outstanding_amount_sparepart = self.grand_total_sparepart
 			self.grand_total_oli = total_oli
 			self.outstanding_amount_oli = self.grand_total_oli
 		if not self.customer or self.customer == '':
@@ -264,9 +284,25 @@ class InvoicePenagihanGaransi(Document):
 			sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 			titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 			coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+			coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 			tax = (100+self.rate ) / 100
 			for i in sp.items:
 				if i.titipan_account == coa_claimable_sinv_garansi_jasa:
+					pph = ((i.amount/tax)*(self.pph/100))
+					print(pph, ' pphxx')
+					gl_entries.append(
+						self.get_gl_dict({
+							"account": self.pph_account,
+							"against": self.customer,
+							# "debit": pph,
+							# "debit_in_account_currency": pph,
+							"debit": pph,
+							"debit_in_account_currency": pph,
+							# "cost_center": cost_center,
+							# "remarks": "coba Lutfi pajak!"
+						}, item=None)
+					)
+				elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
 					pph = ((i.amount/tax)*(self.pph/100))
 					print(pph, ' pphxx')
 					gl_entries.append(
@@ -286,15 +322,18 @@ class InvoicePenagihanGaransi(Document):
 		# Checked both rounding_adjustment and rounded_total
 		# because rounded_total had value even before introcution of posting GLE based on rounded total
 		grand_total = (self.grand_total)
+		grand_total_oli = (self.grand_total_oli)
+		grand_total_sparepart = (self.grand_total_sparepart)
 
 		base_grand_total = flt(self.grand_total,self.precision("grand_total"),)
 
-		if grand_total:
+		if (grand_total or grand_total_sparepart):
 			# Did not use base_grand_total to book rounding loss gle
 			for i in self.list_invoice_penagihan_garansi:
 				sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 				titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 				coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+				coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 				tax = (100+self.rate ) / 100
 				for i in sp.items:
 					if i.titipan_account == titipan_ahas_account_oli:
@@ -302,6 +341,9 @@ class InvoicePenagihanGaransi(Document):
 						amount = i.amount
 					elif i.titipan_account == coa_claimable_sinv_garansi_jasa:
 						debit_to = self.debit_to
+						amount = (i.amount/tax)+((i.amount/tax)*(self.rate/100))-((i.amount/tax)*(self.pph/100))
+					elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
+						debit_to = self.debit_to_sparepart
 						amount = (i.amount/tax)+((i.amount/tax)*(self.rate/100))-((i.amount/tax)*(self.pph/100))
 
 					gl_entries.append(
@@ -421,6 +463,7 @@ class InvoicePenagihanGaransi(Document):
 			sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 			titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 			coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+			coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 			tax = (100+self.rate ) / 100
 			tot_amount = 0
 			for d in sp.items:
@@ -481,6 +524,7 @@ class InvoicePenagihanGaransi(Document):
 					sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
 					titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
 					coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+					coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
 					tax = (100+self.rate ) / 100
 					for i in sp.items:
 						if i.titipan_account == titipan_ahas_account_oli:
@@ -489,6 +533,9 @@ class InvoicePenagihanGaransi(Document):
 						elif i.titipan_account == coa_claimable_sinv_garansi_jasa:
 							account = i.titipan_account
 							against = self.debit_to
+						elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
+							account = i.titipan_account
+							against = self.debit_to_sparepart
 
 						gl_entries.append(
 							self.get_gl_dict(
@@ -609,6 +656,7 @@ def get_data(from_date,to_date):
 		isg.name,isg.customer,isg.customer_name,
 		isg.grand_total,isg.outstanding_amount,
 		isg.grand_total_oli,isg.outstanding_amount_oli,
+		isg.grand_total_sparepart,isg.outstanding_amount_sparepart,
 		isg.no_rangka_manual_atau_lama, isg.no_mesin
 		from `tabSales Invoice Sparepart Garansi` isg
 		where isg.docstatus = 1 and isg.tagihan = 0 
@@ -678,6 +726,7 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 	kondisi = ''
 	if len(filters['data_name']) > 0:
 		str_name = str(filters['data_name']).replace('[','(').replace(']',')')
+		# frappe.msgprin(str_name)
 		kondisi = ' and inv.name not in {}'.format(str_name)
 
 
@@ -686,7 +735,7 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 			JOIN `tabList Invoice Penagihan Garansi` l ON l.parent = inv.name
 			JOIN `tabSales Invoice Sparepart Garansi Item` s ON s.parent = l.sales_invoice_sparepart_garansi 
 			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} and inv.docstatus = 1
-		 """.format(txt,con,kondisi),debug=0)
+		 """.format(txt,con,kondisi),debug=1)
 
 	return data
 	# return frappe.db.sql(

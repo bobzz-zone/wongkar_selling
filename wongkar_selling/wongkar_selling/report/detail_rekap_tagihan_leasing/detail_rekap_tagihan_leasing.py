@@ -44,7 +44,7 @@ def get_data(filters):
 			AND sipm.posting_date <= '{}' and sipm.customer = '{}' 
 			{}
 			group by sipm.name order by sipm.customer,sipm.posting_date asc
-		 """.format(filters.get('to_date'),filters.get('leasing'),kondisi),as_dict = 1,debug=1)
+		 """.format(filters.get('to_date'),filters.get('leasing'),kondisi),as_dict = 1,debug=0)
 
 	result_dict = {}
 		

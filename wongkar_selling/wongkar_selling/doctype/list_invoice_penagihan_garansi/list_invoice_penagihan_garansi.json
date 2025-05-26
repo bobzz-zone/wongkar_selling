@@ -14,6 +14,9 @@
   "section_break_j7iwq",
   "grand_total",
   "outstanding_amount",
+  "column_break_p188t",
+  "grand_total_sparepart",
+  "outstanding_amount_sparepart",
   "column_break_p7jqi",
   "grand_total_oli",
   "outstanding_amount_oli"
@@ -88,12 +91,28 @@
   {
    "fieldname": "column_break_p7jqi",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_p188t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "outstanding_amount_sparepart",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount sparepart",
+   "read_only": 1
+  },
+  {
+   "fieldname": "grand_total_sparepart",
+   "fieldtype": "Currency",
+   "label": "Grand Total sparepart",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-04-25 14:25:38.165277",
+ "modified": "2025-05-10 09:53:16.076432",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "List Invoice Penagihan Garansi",

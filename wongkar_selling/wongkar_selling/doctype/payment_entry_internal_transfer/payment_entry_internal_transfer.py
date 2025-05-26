@@ -11,7 +11,10 @@ class PaymentEntryInternalTransfer(Document):
 		if self.list_penerimaan_dp:
 			if len(self.list_penerimaan_dp) > 0:
 				for i in self.list_penerimaan_dp:
-					total = total + i.total
+					paid = 0
+					if i.paid:
+						paid =  i.paid
+					total = total + paid
 
 		# list_form_pembayaran
 		# if self.list_form_pembayaran:
@@ -21,6 +24,15 @@ class PaymentEntryInternalTransfer(Document):
 
 		self.total = total + total_fp
 		self.validasi_get()
+		self.validate_paid()
+
+	def validate_paid(self):
+		for i in self.list_penerimaan_dp:
+			paid = 0
+			if i.paid:
+				paid = i.paid
+			if paid > i.outstanding:
+				frappe.throw("Paid Tidak boleh lebih besar dari outstanding ! ")
 
 	def validasi_get(self):
 		for i in self.list_penerimaan_dp:
@@ -35,8 +47,17 @@ class PaymentEntryInternalTransfer(Document):
 	def on_submit(self):
 		if self.list_penerimaan_dp:
 			if len(self.list_penerimaan_dp) > 0:
+				
 				for i in self.list_penerimaan_dp:
-					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 1 where name = '{}' """.format(i.penerimaan_dp))
+					cek_transfer = frappe.db.get_value("Penerimaan DP",i.penerimaan_dp,"cek_transfer")
+					outstanding_transfer = frappe.db.get_value("Penerimaan DP",i.penerimaan_dp,"outstanding_transfer")
+					cek_out = outstanding_transfer - i.paid
+					print(cek_out, outstanding_transfer)
+					if cek_out < 0:
+						frappe.throw(f"{i.penerimaan_dp} pembayaran lebih besar dari Outstanding !")
+					if cek_transfer == 1 and outstanding_transfer < 0:
+						frappe.throw(f"{i.penerimaan_dp} sudah pernah di transfer !")
+					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 1,outstanding_transfer= outstanding_transfer - {} where name = '{}' """.format(i.paid,i.penerimaan_dp))
 
 		# list_form_pembayaran
 		# if self.list_form_pembayaran:
@@ -52,6 +73,8 @@ class PaymentEntryInternalTransfer(Document):
 		doc_pe.paid_to = self.account_paid_to
 		doc_pe.cost_center = self.cost_center
 		doc_pe.paid_amount = self.total
+		doc_pe.reference_no = self.name
+		doc_pe.reference_date = doc_pe.posting_date
 		doc_pe.received_amount = self.total
 		doc_pe.flags.ignore_permissions = True
 		doc_pe.save()
@@ -62,7 +85,7 @@ class PaymentEntryInternalTransfer(Document):
 		if self.list_penerimaan_dp:
 			if len(self.list_penerimaan_dp) > 0:
 				for i in self.list_penerimaan_dp:
-					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 0 where name = '{}' """.format(i.penerimaan_dp))
+					frappe.db.sql(""" UPDATE `tabPenerimaan DP` set cek_transfer = 0,outstanding_transfer= outstanding_transfer + {} where name = '{}' """.format(i.paid,i.penerimaan_dp))
 
 		# list_form_pembayaran
 		# if self.list_form_pembayaran:
@@ -74,7 +97,7 @@ class PaymentEntryInternalTransfer(Document):
 
 		if data:
 			for d in data:
-				frappe.db.sql(""" UPDATE `tabPayment Entry` set payment_entry_internal_transfer = null where name = '{}' """.format(d['name']),debug=1)
+				frappe.db.sql(""" UPDATE `tabPayment Entry` set payment_entry_internal_transfer = null where name = '{}' """.format(d['name']),debug=0)
 				doc_pe = frappe.get_doc("Payment Entry",d['name'])
 				if doc_pe.docstatus == 1:
 					# doc_pe.ignore_linked_doctypes = ('Payment Entry Internal Transfer')
@@ -94,7 +117,7 @@ def get_pe(name_pe,paid_from,from_date,to_date):
 		from `tabPayment Entry` pe 
 		left join `tabCustomer` c on c.name = pe.pemilik
 		where pe.mode_of_payment like 'Cash%' and pe.paid_to = '{}' and 
-		pe.docstatus = 1 and pe.internal_transfer = 0 and pe.posting_date between '{}' and '{}' order by pe.posting_date asc """.format(paid_from,from_date,to_date),as_dict=1,debug=1)
+		pe.docstatus = 1 and pe.internal_transfer = 0 and pe.posting_date between '{}' and '{}' order by pe.posting_date asc """.format(paid_from,from_date,to_date),as_dict=1,debug=0)
 
 	return data
 
@@ -107,10 +130,11 @@ def get_dp(name_pe,paid_from,from_date,to_date):
 				tanggal,
 				IF(cara_bayar='Cash',customer,pemilik) AS pemilik,
 				IF(cara_bayar='Cash',customer_name,nama_pemilik) AS nama_pemilik,
-				IF(cara_bayar='Cash',piutang_bpkb_stnk+piutang_motor,piutang_motor) AS total
-				FROM `tabPenerimaan DP` WHERE docstatus = 1 AND cek_transfer = 0 AND paid_to = '{}'
+				IF(cara_bayar='Cash',piutang_bpkb_stnk+piutang_motor,piutang_motor) AS total,
+				outstanding_transfer as outstanding
+				FROM `tabPenerimaan DP` WHERE docstatus = 1 AND (cek_transfer = 0 or outstanding_transfer > 0) AND paid_to = '{}'
 				AND tanggal BETWEEN '{}' AND '{}' ORDER BY tanggal ASC 
-			""".format(paid_from,from_date,to_date),as_dict=1,debug=1)
+			""".format(paid_from,from_date,to_date),as_dict=1,debug=0)
 
 	return data
 
@@ -129,6 +153,6 @@ def get_fp(name_pe,paid_from,from_date,to_date):
 				AND fp.posting_date BETWEEN '{}' AND '{}' 
 				group by fp.name
 				ORDER BY tanggal ASC 
-			""".format(paid_from,from_date,to_date),as_dict=1,debug=1)
+			""".format(paid_from,from_date,to_date),as_dict=1,debug=0)
 
 	return data

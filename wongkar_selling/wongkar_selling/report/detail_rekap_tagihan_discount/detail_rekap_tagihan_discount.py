@@ -50,7 +50,7 @@ def get_data(filters):
 			AND sipm.posting_date <= '{}' AND td.customer = '{}' AND td.`nominal` > 0
 			{}
 			GROUP BY sipm.name ORDER BY sipm.posting_date ASC
-		 """.format(filters.get('to_date'),filters.get('customer'),kondisi),as_dict = 1,debug=1)
+		 """.format(filters.get('to_date'),filters.get('customer'),kondisi),as_dict = 1,debug=0)
 
 	result_dict = {}
 		

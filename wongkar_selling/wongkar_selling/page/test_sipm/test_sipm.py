@@ -10,7 +10,7 @@ def get_data(filters):
 	filters = json.loads(filters)
 	# frappe.msgprint(filters['from_date'] + ' filters')
 	data = frappe.db.sql("""  SELECT * FROM `tabSales Invoice Penjualan Motor` 
-		WHERE docstatus = 1 and posting_date between '{}' and '{}' """.format(filters['from_date'],filters['to_date']),as_dict=1,debug=1)
+		WHERE docstatus = 1 and posting_date between '{}' and '{}' """.format(filters['from_date'],filters['to_date']),as_dict=1,debug=0)
 
 	con = 1
 	for i in data:

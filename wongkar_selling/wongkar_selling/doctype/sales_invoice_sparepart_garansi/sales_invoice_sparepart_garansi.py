@@ -15,6 +15,14 @@ from erpnext.accounts.general_ledger import (
 	process_gl_map,
 )
 
+from erpnext.stock.get_item_details import (
+	_get_item_tax_template,
+	get_conversion_factor,
+	get_item_details,
+	get_item_tax_map,
+	get_item_warehouse,
+)
+
 class SalesInvoiceSparepartGaransi(SalesInvoice):
 	def ubah_akun(self):
 		beban_titipan_ahas_account = frappe.get_doc("Company",self.company).beban_titipan_ahas_account
@@ -27,17 +35,22 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 	def hitung_total(self):
 		piutang_oli = 0
 		piutang_jasa = 0
+		piutang_sparepart = 0
 		if self.items and len(self.items) > 0:
 			for i in self.items:
 				if i.titipan_account == self.debit_to:
 					piutang_jasa += i.amount
 				elif i.titipan_account == self.debit_to_oli:
 					piutang_oli += i.amount
+				elif i.titipan_account == self.debit_to_sparepart:
+					piutang_sparepart += i.amount
 
 		self.grand_total = piutang_jasa
 		self.grand_total_oli = piutang_oli
+		self.grand_total_sparepart = piutang_sparepart
 		self.outstanding_amount = self.grand_total
 		self.outstanding_amount_oli = self.grand_total_oli
+		self.outstanding_amount_sparepart = self.grand_total_sparepart
 
 	def validate(self):
 		self.hitung_total()
@@ -176,10 +189,10 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 		# because rounded_total had value even before introcution of posting GLE based on rounded total
 		grand_total = (self.grand_total)
 		grand_total_oli = (self.grand_total_oli)
-
+		grand_total_sparepart = (self.grand_total_sparepart)
 		base_grand_total = flt(self.grand_total,self.precision("grand_total"),)
 
-		if (grand_total or grand_total_oli) and not self.is_internal_transfer():
+		if (grand_total or grand_total_oli or grand_total_sparepart) and not self.is_internal_transfer():
 			# Did not use base_grand_total to book rounding loss gle
 			for i in self.items:
 				gl_entries.append(

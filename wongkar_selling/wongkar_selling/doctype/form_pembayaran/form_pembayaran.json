@@ -12,6 +12,7 @@
   "posting_date",
   "type",
   "customer",
+  "customer_name",
   "vendor",
   "column_break_bsjiw",
   "mode_of_payment",
@@ -42,12 +43,11 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
-   "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi"
+   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi Jasa\nPembayaran Invoice Garansi Sparepart"
   },
   {
-   "depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\",\"Pembayaran Invoice Garansi\"], doc.type)",
+   "depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\",\"Pembayaran Invoice Garansi Jasa\",\"Pembayaran Invoice Garansi Sparepart\",'Pembayaran SIPM Antar Entitas'], doc.type)",
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
@@ -75,7 +75,7 @@
    "fieldname": "list_doc_name",
    "fieldtype": "Table",
    "label": "List Doc Name",
-   "mandatory_depends_on": "eval:!doc.__islocal",
+   "mandatory_depends_on": "eval:!doc.__islocal && doc.type != 'Pembayaran SIPM Antar Entitas'",
    "options": "List Doc Name"
   },
   {
@@ -111,7 +111,7 @@
    "fieldname": "tagihan_payment_table",
    "fieldtype": "Table",
    "label": "Tagihan Payment Table",
-   "mandatory_depends_on": "eval:!doc.__islocal",
+   "mandatory_depends_on": "eval:!doc.__islocal && doc.type != 'Pembayaran SIPM Antar Entitas'",
    "options": "Tagihan Payment Table"
   },
   {
@@ -184,12 +184,18 @@
    "fieldtype": "Currency",
    "label": "Total",
    "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-23 09:58:49.768688",
+ "modified": "2025-05-14 11:46:05.561206",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",

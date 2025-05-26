@@ -2182,7 +2182,7 @@ def add_tanggalcair(self,method):
 		if self.tagihan_diskon_l or self.tipe_pembayaran == "Pembayaran Diskon Leasing":
 			for i in self.tagihan_payment_table:
 				# frappe.msgprint(self.posting_date+i.no_sinv)
-				frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_cair = '{}' where name='{}' """.format(self.posting_date,i.no_sinv),debug=1)
+				frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_cair = '{}' where name='{}' """.format(self.posting_date,i.no_sinv),debug=0)
 				frappe.db.commit()
 
 @frappe.whitelist()

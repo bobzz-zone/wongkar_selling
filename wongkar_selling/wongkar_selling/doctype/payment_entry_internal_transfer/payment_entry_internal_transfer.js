@@ -79,6 +79,7 @@ frappe.ui.form.on('Payment Entry Internal Transfer', {
 							frappe.model.set_value(child.doctype, child.name, "nama_pemilik", data.message[i].nama_pemilik);
 							frappe.model.set_value(child.doctype, child.name, "penerimaan_dp", data.message[i].name);
 							frappe.model.set_value(child.doctype, child.name, "total", data.message[i].total);
+							frappe.model.set_value(child.doctype, child.name, "outstanding", data.message[i].outstanding);
 						}
 						cur_frm.refresh_field("list_penerimaan_dp");
 	             	}

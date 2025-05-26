@@ -81,7 +81,7 @@ def je_query(doctype, txt, searchfield, start, page_len, filters):
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len
-		},debug=1)
+		},debug=0)
 
 @frappe.whitelist()
 def get_je(name):

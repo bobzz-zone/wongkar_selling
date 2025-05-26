@@ -68,10 +68,14 @@
   "grand_total",
   "outstanding_amount",
   "column_break_zn5ww",
+  "grand_total_sparepart",
+  "outstanding_amount_sparepart",
+  "column_break_zjfmv",
   "grand_total_oli",
   "outstanding_amount_oli",
   "section_break_1dg6i",
   "debit_to",
+  "debit_to_sparepart",
   "debit_to_oli",
   "against_income_account",
   "tagihan",
@@ -459,7 +463,8 @@
   },
   {
    "fieldname": "section_break_qgbkq",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fieldname": "column_break_zn5ww",
@@ -472,12 +477,34 @@
    "label": "Ttitipan Oli",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "fetch_from": "company.coa_claimable_sinv_garansi_sparepart",
+   "fieldname": "debit_to_sparepart",
+   "fieldtype": "Data",
+   "label": "Ttitipan sparepart",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "grand_total_sparepart",
+   "fieldtype": "Currency",
+   "label": "Grand Total sparepart"
+  },
+  {
+   "fieldname": "column_break_zjfmv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "outstanding_amount_sparepart",
+   "fieldtype": "Currency",
+   "label": "Outstanding Amount sparepart"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-25 14:00:28.631662",
+ "modified": "2025-05-10 09:34:41.926781",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Sparepart Garansi",

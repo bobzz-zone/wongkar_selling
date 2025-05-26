@@ -30,7 +30,7 @@ def get_inv(supplier,types,date_from,date_to):
 		left join `tabTabel Biaya Motor` tb on tb.parent = si.name
 		left join `tabSerial No` sn on sn.name = si.no_rangka
 		where tb.tertagih = 0 and si.docstatus = 1 and tb.vendor = '{}' and type = '{}' 
-		and si.posting_date BETWEEN '{}' and '{}' order	by si.nama_pemilik ASC """.format(supplier,types,date_from,date_to),as_dict=1,debug=1)
+		and si.posting_date BETWEEN '{}' and '{}' order	by si.nama_pemilik ASC """.format(supplier,types,date_from,date_to),as_dict=1,debug=0)
 
 	return data
 
@@ -224,8 +224,10 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 	return data
 
 @frappe.whitelist()
-def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
+def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_tagihan=None):
 	# frappe.msgprint(doc_type+" "+tipe_pembayaran)
+	if data_tagihan:
+		data_tagihan = json.loads(data_tagihan)
 	tes = json.loads(data)
 	# frappe.msgprint(str(tes)+" tes")
 	# for i in tes:
@@ -237,22 +239,23 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 	# payment_type = frappe.get_doc("Payment Entry",name_pe).payment_type
 	# frappe.msgprint(str(tes)+ " tes")
 	# frappe.msgprint(tes[0]['reference_doctype']+tes[0]['docname']+"weee")
-	if tes[0]['reference_doctype'] == 'Tagihan Discount Leasing':
-		cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
-		# frappe.msgprint(str(cek.daftar_tagihan_leasing[0].no_invoice)+ " cek")
-		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan_leasing[0].no_invoice).debit_to
-		coa_tagihan_sipm = frappe.get_doc('Tagihan Discount Leasing',tes[0]['docname']).coa_tagihan_sipm
-		if coa_tagihan_sipm != paid_from:
-			pass
-			# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+	if tes:
+		if tes[0]['reference_doctype'] == 'Tagihan Discount Leasing':
+			cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
+			# frappe.msgprint(str(cek.daftar_tagihan_leasing[0].no_invoice)+ " cek")
+			cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan_leasing[0].no_invoice).debit_to
+			coa_tagihan_sipm = frappe.get_doc('Tagihan Discount Leasing',tes[0]['docname']).coa_tagihan_sipm
+			if coa_tagihan_sipm != paid_from:
+				pass
+				# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
 
-	if tes[0]['reference_doctype'] == 'Tagihan Discount':
-		cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
-		# frappe.msgprint(str(cek.daftar_tagihan[0].no_sinv)+ " cek")
-		cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan[0].no_sinv).debit_to
-		if cek_debit_to != paid_from:
-			pass
-			# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
+		if tes[0]['reference_doctype'] == 'Tagihan Discount':
+			cek = frappe.get_doc(tes[0]['reference_doctype'],tes[0]['docname'])
+			# frappe.msgprint(str(cek.daftar_tagihan[0].no_sinv)+ " cek")
+			cek_debit_to = frappe.get_doc("Sales Invoice Penjualan Motor",cek.daftar_tagihan[0].no_sinv).debit_to
+			if cek_debit_to != paid_from:
+				pass
+				# frappe.throw("Akun paid from harus" + cek_debit_to+ " !")
 
 	if doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran STNK":
 		for i in tes:
@@ -266,7 +269,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran BPKB":
@@ -281,7 +284,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran Diskon Dealer":
@@ -296,7 +299,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -313,7 +316,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran SIPM":
@@ -328,7 +331,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -345,7 +348,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_sinv as no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabDaftar Tagihan` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -362,11 +365,11 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabList Tagihan Piutang Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabList Tagihan Piutang Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
-	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi' and not oli:
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Jasa' and not oli:
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
 				customer as pemilik,
@@ -378,10 +381,25 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				parent,
 				name as id_detail,
 				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
-				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=1)
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
-	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi' and oli:
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Sparepart' and not oli:
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				customer as pemilik,
+				customer_name as nama_pemilik,
+				sales_invoice_sparepart_garansi,
+				grand_total_sparepart as grand_total,
+				outstanding_amount_sparepart as outstanding,
+				parenttype,
+				parent,
+				name as id_detail,
+				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+			# frappe.msgprint(data)
+			tmp.append(data)
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Jasa' and oli:
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
 				customer as pemilik,
@@ -393,9 +411,24 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None):
 				parent,
 				name as id_detail,
 				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
-				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_oli > 0 """.format(i['docname']),as_dict=1,debug=1)
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_oli > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
-
+	elif doc_type == 'Sales Invoice Penjualan Motor':
+		data = frappe.db.sql(""" SELECT 
+				customer as pemilik,
+				customer_name as nama_pemilik,
+				name as no_invoice,
+				grand_total as grand_total,
+				outstanding_amount as outstanding,
+				parenttype,
+				parent,
+				no_rangka
+				from `tabSales Invoice Penjualan Motor` where docstatus = 1 and antar_entitas = 1
+				and outstanding_amount > 0 and customer = '{}' and cost_center = '{}' 
+				and debit_to = '{}' limit 3  """.format(data_tagihan['customer'],data_tagihan['cost_center'],data_tagihan['paid_from']),as_dict=1,debug=0)
+		if data:
+			for d in data:
+				tmp.append(d)
 	# frappe.msgprint(str(data))
 	return tmp

@@ -17,7 +17,7 @@ frappe.ui.form.on('Journal Entry', {
 			method: "wongkar_selling.wongkar_selling.get_invoice.get_tagihan",
 			args: {
 				"doc_type": 'Invoice Penagihan Garansi',
-				"tipe_pembayaran": 'Pembayaran Invoice Garansi',
+				"tipe_pembayaran": 'Pembayaran Invoice Garansi Jasa',
 				"data": cur_frm.doc.list_doc_name,
 				"name_pe": cur_frm.doc.name,
 				"paid_from": '',
