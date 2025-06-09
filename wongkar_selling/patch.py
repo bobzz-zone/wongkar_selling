@@ -91,15 +91,27 @@ def patch_je():
 	print(doc.name)
 	repair_only_gl_entry("Journal Entry",doc.name)
 
+
 def patch_tl_oa():
 	tmp = [
-'ACC-SINVM-2024-00175'
+"ACC-SINVM-2025-01526-1",
+"ACC-SINVM-2025-01528",
+"ACC-SINVM-2025-01517",
+"ACC-SINVM-2025-01533",
+"ACC-SINVM-2025-01529",
+"ACC-SINVM-2025-01522",
+"ACC-SINVM-2025-01534",
+"ACC-SINVM-2025-01527",
+"ACC-SINVM-2025-01532",
+"ACC-SINVM-2025-01520",
+"ACC-SINVM-2025-01530-1"
 	]
-	akun = '11201.01 - PIUTANG DAGANG MOTOR - W'
-	customer = 'MMF'
+	# akun = '11201.01 - PIUTANG DAGANG MOTOR - W'
+	# customer = 'FIF'
 	for i in tmp:
 		print(i)
-		update_outstanding_amt_custom(akun,'Customer',customer,'Sales Invoice Penjualan Motor',i)
+		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
+		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 
 def pacth_sipm():
 	frappe.flags.repair = True
