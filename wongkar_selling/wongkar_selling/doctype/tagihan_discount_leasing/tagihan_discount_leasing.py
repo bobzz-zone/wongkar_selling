@@ -66,8 +66,8 @@ class TagihanDiscountLeasing(Document):
 			valid_currency.append(currency)
 
 		if account_currency not in valid_currency:
-			frappe.throw(_("Account {0} is invalid. Account Currency must be {1}")
-				.format(account, (' ' + _("or") + ' ').join(valid_currency)))
+			frappe.throw(frappe._("Account {0} is invalid. Account Currency must be {1}")
+				.format(account, (' ' + frappe._("or") + ' ').join(valid_currency)))
 
 	def get_gl_dict(self, args, account_currency=None, item=None):
 		"""this method populates the common properties of a gl entry record"""
@@ -75,7 +75,7 @@ class TagihanDiscountLeasing(Document):
 		posting_date = args.get('date') or self.get('date')
 		fiscal_years = get_fiscal_years(posting_date, company=self.company)
 		if len(fiscal_years) > 1:
-			frappe.throw(_("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(
+			frappe.throw(frappe._("Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year").format(
 				formatdate(posting_date)))
 		else:
 			fiscal_year = fiscal_years[0][0]
@@ -581,7 +581,7 @@ def add_party_gl_entries_custom_tambah(self):
 
 def set_balance_in_account_currency(gl_dict, account_currency=None, conversion_rate=None, company_currency=None):
 	if (not conversion_rate) and (account_currency != company_currency):
-		frappe.throw(_("Account: {0} with currency: {1} can not be selected")
+		frappe.throw(frappe._("Account: {0} with currency: {1} can not be selected")
 					 .format(gl_dict.account, account_currency))
 
 	gl_dict["account_currency"] = company_currency if account_currency == company_currency \
