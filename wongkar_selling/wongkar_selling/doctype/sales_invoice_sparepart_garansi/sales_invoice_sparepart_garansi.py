@@ -50,7 +50,7 @@ class SalesInvoiceSparepartGaransi(SalesInvoice):
 		self.grand_total_sparepart = piutang_sparepart
 		self.outstanding_amount = self.grand_total
 		self.outstanding_amount_oli = self.grand_total_oli
-		self.outstanding_amount_sparepart = self.grand_total_sparepart
+		self.outstanding_amount_sparepart = piutang_sparepart
 
 	def validate(self):
 		self.hitung_total()

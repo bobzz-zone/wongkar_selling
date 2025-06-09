@@ -12,6 +12,7 @@
   {
    "fieldname": "account",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Account",
    "options": "Account"
   }
@@ -19,7 +20,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-26 11:41:49.510010",
+ "modified": "2025-06-09 09:09:39.990831",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "List Bank Induk",

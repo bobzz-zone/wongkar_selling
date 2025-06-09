@@ -66,6 +66,16 @@ def get_data(filters):
 	# 	left join `tabCost Center` cc on cc.name = ec.cost_center
 	# 	where ec.docstatus = 1 and ecd.expense_date between '{}' and '{}' 
 	# 	and ec.cost_center = '{}' order by ecd.expense_date asc """.format(from_date,to_date,filters.get("area")),as_dict=1,debug=1)
+	akun_tmp = []
+	akun = frappe.db.get_all("List Bank Induk",{'parent':filters.get("company")},'account')
+	kon_akun = ''
+	if akun:
+		for a in akun:
+			akun_tmp.append(a['account'])
+	if len(akun_tmp) > 0:
+		akun_tmp = str(akun_tmp).replace('[','(').replace(']',')')
+		kon_akun = f' and gl.account not in {akun_tmp} '
+
 
 	ec = frappe.db.sql(""" SELECT
 		gl.`posting_date` AS tgl_tanasaksi,
@@ -80,11 +90,11 @@ def get_data(filters):
 		left join `tabCost Center` cc on cc.name = gl.cost_center
 		WHERE gl.is_cancelled = 0 AND gl.voucher_type IN ('Expense Claim','Payment Entry') 
 		AND gl.docstatus = 1 AND gl.posting_date BETWEEN '{}' AND '{}' AND gl.debit > 0 
-		AND gl.cost_center = '{}' ORDER BY  gl.posting_date ASC """.format(from_date,to_date,filters.get("area")),as_dict=1,debug=1)
+		AND gl.cost_center = '{}' {} ORDER BY  gl.posting_date ASC """.format(from_date,to_date,filters.get("area"),kon_akun),as_dict=1,debug=1)
 
 	# 11.0104.01.00.00.001 - Petty Cash - CITY1 - HND
 	
-	saldo_awal = frappe.db.sql(""" SELECT sum(debit)-sum(credit) as saldo,"Saldo Awal" as description
+	saldo_awal = frappe.db.sql(""" SELECT IFNULL(sum(debit)-sum(credit),0) as saldo,"Saldo Awal" as description
 		from `tabGL Entry` gl where gl.account = '{}' 
 		and gl.is_cancelled = 0 and gl.posting_date > '{}' 
 		and gl.voucher_type = "Journal Entry" """.format(filters.get("akun"),from_date),as_dict=1,debug=1)

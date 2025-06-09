@@ -14,7 +14,16 @@ from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_a
 import pandas as pd
 
 #DEV
+def debug_penerimaan_dp():
+	tmp = [
+"FDP-05-2025-00420",
+"FDP-05-2025-00421"
+	]
 
+	for i in tmp:
+		doc = frappe.get_doc("Penerimaan DP",i)
+		doc.calculate_oa_tr()
+		doc.db_update()
 def debug_ipg():
 	doc = frappe.get_doc("Invoice Penagihan Garansi",'IPG-2025-00007')
 	repair_only_gl_entry("Invoice Penagihan Garansi",'IPG-2025-00007')
