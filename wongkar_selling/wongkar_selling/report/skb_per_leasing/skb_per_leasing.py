@@ -34,7 +34,8 @@ def get_data(filters):
 						a.`no_bpkb`,
 						a.`tanggal_terima_bpkb`,
 						a.`tanggal_serah_bpkb`,
-						b.`territory_real` AS area
+						b.`territory_real` AS area,
+					  	b.cara_bayar
 						FROM `tabSKB` a 
 					JOIN `tabSales Invoice Penjualan Motor` b ON a.`sales_invoice_penjualan_motor` = b.`name`
 					WHERE b.`cara_bayar` = 'Credit' and b.customer = '{}' 
@@ -51,6 +52,12 @@ def get_columns(filters):
 			"fieldtype": "Link",
 			"options": "Customer",
 			"width": 150
+		},
+		{
+			"label": _("Cara Bayar"),
+			"fieldname": "cara_bayar",
+			"fieldtype": "Data",
+			"width": 100
 		},
 		{
 			"label": _("No Rangka"),
