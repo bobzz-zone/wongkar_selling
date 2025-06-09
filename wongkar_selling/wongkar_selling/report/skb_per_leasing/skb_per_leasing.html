@@ -1,0 +1,53 @@
+
+<!-- <h3 class="text-center">{%= filters.leasing %}</h3> -->
+
+<style>
+    .print-format table,
+    .print-format tr,
+    .print-format td,
+    .print-format div {
+        padding: 0px !important;
+        font-size: 12px !important;
+        font-family: Calibri!important;
+    }
+</style>
+
+<td><h2 class="text-center">SERAH TERIMA BPKB</h2></td>
+
+<table style="width: 100%!important;" class="table table-bordered">
+    <colgroup>
+        <col style="width: 20%!important;"></col>
+        <col style="width: 20%!important;"></col>
+        <col style="width: 20%!important;"></col>
+        <col style="width: 20%!important;"></col>
+        <col style="width: 10%!important;"></col>
+        <col style="width: 10%!important;"></col>
+    </colgroup>
+    <tr>
+        <td style="text-align: center;">No Rangka</td>
+        <td style="text-align: center;">No Mesin</td>
+        <td style="text-align: center;">Nama Pemilik</td>
+        <td style="text-align: center;">Kode Produk Motor</td>
+        <td style="text-align: center;">No Nota Penjualan</td>
+        <td style="text-align: center;">No BPKB</td>
+    </tr>
+
+    {% for(let j=0, k=data.length; j<k; j++) { %}
+        <tr>
+            <td style="text-align: center;">{%= data[j].no_rangka %}</td>
+            <td style="text-align: center;">{%= data[j].no_mesin %}</td>
+            <td style="text-align: center;">{%= data[j].nama_pemilik %}</td>
+            <td style="text-align: center;">{%= data[j].item_code %}</td>
+            <td style="text-align: center;">{%= data[j].sales_invoice_penjualan_motor %}</td>
+            <td style="text-align: center;">{%= data[j].no_bpkb %}</td>
+        </tr>
+    {% } %}
+</table>
+
+Pada {%= frappe.datetime.now_date() %}  Telah Di Terima Oleh,
+<br>
+<br>
+<br>
+<br>
+<br>
+({%= filters.leasing %})
