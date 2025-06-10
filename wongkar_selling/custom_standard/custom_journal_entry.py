@@ -4,6 +4,10 @@ import json
 import erpnext
 from frappe.utils import cint, cstr, flt, fmt_money, formatdate, get_link_to_form, nowdate
 
+def diskon_pinv(self,method):
+	if self.purchase_invoice:
+		frappe.throw("Can't Cancel Here !")
+
 @frappe.whitelist()
 def get_adv_leasing(self,method):
 	# if frappe.local.site in ["ifmi.digitalasiasolusindo.com","bjm.digitalasiasolusindo.com","honda2.digitalasiasolusindo.com","newbjm.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com","bjm2.digitalasiasolusindo.com"]:

@@ -172,7 +172,8 @@ doc_events = {
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
 		# "on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update_je"],
 		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_journal_entry.cek_cancel_adv_leasing","wongkar_selling.custom_standard.custom_stock_entry.cek_diskon_pinv",'wongkar_selling.custom_standard.custom_journal_entry.hitung_outstanding_claim'],
-		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel","wongkar_selling.custom_standard.custom_journal_entry.get_penerimaan_dp"],
+		"before_cancel":["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing_cancel",
+                   "wongkar_selling.custom_standard.custom_journal_entry.get_penerimaan_dp","wongkar_selling.custom_standard.custom_journal_entry.diskon_pinv"],
 		"on_submit": ["wongkar_selling.custom_standard.custom_journal_entry.get_adv_leasing",'wongkar_selling.custom_standard.custom_journal_entry.hitung_outstanding_claim'],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"]
 	},
