@@ -303,8 +303,8 @@ class TagihanDiscount(Document):
 					"against": d.coa_receivable,
 					"debit": d.nilai ,
 					"debit_in_account_currency": d.nilai,
-					"against_voucher": d.no_sinv,
-					"against_voucher_type": "Sales Invoice Penjualan Motor",
+					# "against_voucher": d.no_sinv,
+					# "against_voucher_type": "Sales Invoice Penjualan Motor",
 					# "cost_center": d.cost_center
 					# "remarks": "coba Lutfi yyyyy!"
 				}, item=None)

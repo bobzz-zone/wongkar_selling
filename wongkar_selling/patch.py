@@ -14,6 +14,26 @@ from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_a
 import pandas as pd
 
 #DEV
+def repair_tagihan_disc():
+	tmp = [
+'Tagihan-D-11-2023-00001',
+'Tagihan-D-11-2023-00003',
+'Tagihan-D-03-2024-00001',
+'Tagihan-D-03-2024-00003',
+'Tagihan-D-03-2024-00005-1',
+'Tagihan-D-04-2024-00001',
+'Tagihan-D-11-2024-00001',
+'Tagihan-D-11-2024-00003',
+'Tagihan-D-11-2024-00006',
+'Tagihan-D-11-2024-00007'
+	]
+
+	con = 1
+	for i in tmp:
+		repair_only_gl_entry('Tagihan Discount',i)
+		print('DONE')
+		con += 1
+
 def debug_penerimaan_dp():
 	tmp = [
 "FDP-05-2025-00420",
