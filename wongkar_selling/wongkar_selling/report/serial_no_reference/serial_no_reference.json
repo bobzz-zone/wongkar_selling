@@ -1,0 +1,45 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2025-06-11 13:21:16.537228",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "modified": "2025-06-11 13:21:24.921082",
+ "modified_by": "Administrator",
+ "module": "wongkar_selling",
+ "name": "Serial No Reference",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Serial No",
+ "report_name": "Serial No Reference",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "S_Marketing Manager"
+  },
+  {
+   "role": "S_Sales Invoice Penjualan Motor Viewer"
+  },
+  {
+   "role": "S_Sales Invoice Penjualan Motor Creator"
+  },
+  {
+   "role": "Staff Admin Sales Entry"
+  },
+  {
+   "role": "Item Manager"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Stock User"
+  }
+ ]
+}

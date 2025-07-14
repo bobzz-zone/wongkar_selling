@@ -14,6 +14,31 @@ from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_a
 import pandas as pd
 
 #DEV
+def repair_fp_new():
+	tmp = ['FP-12-2024-00013']
+
+	con = 1
+	for i in tmp:
+		doc = frappe.get_doc('Form Pembayaran',i)
+		doc.cek_outstanding()
+		doc.calcutale_outstanding()
+		print(doc.name,'DONE')
+		con += 1
+
+def ripair_jurnal_tdl_new():
+	tmp = ['Tagihan-L-11-2024-00013']
+
+	con = 1
+	for i in tmp:
+		doc = frappe.get_doc('Tagihan Discount Leasing',i)
+		doc.hitung_pph()
+		doc.db_update()
+		doc.update_children()
+		repair_only_gl_entry('Tagihan Discount Leasing',i)
+		print('DONE')
+		con += 1
+		
+
 def repair_tagihan_disc():
 	tmp = [
 'Tagihan-D-11-2023-00001',
@@ -54,6 +79,7 @@ def patch_oa_tr():
 	print("DONE")
 
 def patch_jual_sipm():
+	# bench --site ifmi.digitalasiasolusindo.com  execute wongkar_selling.patch.patch_jual_sipm
 	frappe.flags.repair = True
 	col = ['name','harga_baru']
 	data = pd.read_excel (r'/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/patch_rate_sipm.xls') 
@@ -64,14 +90,19 @@ def patch_jual_sipm():
 		if doc.outstanding_amount <= 0:
 			frappe.throw("tss33")
 		
-		if doc.cek_adjustment_harga:
-			frappe.throw("tss")
+		
 
 		if doc.tabel_biaya_motor:
 			if len(doc.tabel_biaya_motor) > 0:
 				frappe.throw("tss2")
-		doc.harga =  df[col[1]][idx] 
-		doc.otr =  df[col[1]][idx] 
+
+		if doc.cek_adjustment_harga:
+			print("tss")
+			doc.harga =  df[col[1]][idx] 
+			doc.adjustment_harga =  df[col[1]][idx]
+		else:
+			doc.harga =  df[col[1]][idx] 
+			doc.otr =  df[col[1]][idx] 
 		doc.patch_harga()
 		doc.db_update()
 		doc.update_children()
@@ -431,7 +462,22 @@ def pacth_akun_je():
 			print(tje, ' tjexxx')
 			repair_only_gl_entry('Journal Entry',tje)
 			print("DONE")
-		
+
+def patch_akun_tdl_only():
+	frappe.flags.repair = True
+	
+	tmp = ['Tagihan-L-09-2023-00003']
+	con =1
+
+	print(len(tmp), ' tmpxxxx')
+	for i in tmp:
+		print(con)
+		print(i, ' ixx')
+		doc = frappe.get_doc('Tagihan Discount Leasing',i)
+		repair_only_gl_entry('Tagihan Discount Leasing',i)
+		print('DONE')
+		con += 1
+
 def patch_akun_tl():
 	frappe.flags.repair = True
 	data = frappe.db.sql(""" SELECT a.name,a.customer,a.docstatus,a.coa_lawan,a.date 
@@ -480,6 +526,27 @@ def patch_akun_tl():
 		repair_only_gl_entry('Tagihan Leasing',i)
 		print('DONE')
 		con += 1
+
+def patch_akun_fp_tdl_only():
+	
+	tmp = ['FP-11-2023-00013']
+
+	
+	con = 1
+	for i in tmp:
+		print(con)
+		print(i, ' ixxx')
+		doc = frappe.get_doc('Form Pembayaran',i)
+		if doc.customer == 'ADMF':
+			doc.paid_from = '11201.05 - PIUTANG DAGANG - DISCOUNT FOR DP FROM LEASING ADIRA FINANCE - W'
+
+		doc.db_update()
+		repair_only_gl_entry('Form Pembayaran',i)
+		print('DONE')
+
+		print(doc.customer)
+		print(doc.paid_from)
+		con	+= 1
 
 def patch_akun_fp():
 	data = frappe.db.sql(""" SELECT a.name,a.customer,a.type,a.docstatus,a.posting_date,a.paid_from FROM `tabForm Pembayaran` a 

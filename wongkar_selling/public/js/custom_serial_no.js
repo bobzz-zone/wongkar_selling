@@ -1,6 +1,8 @@
 frappe.ui.form.on('Serial No', {
 	refresh(frm) {
 		// your code here
+		// frappe.msgprint('askjdokajd')
+		show_general_ledger()
 	},
 	validate(frm){
 	    // frappe.msgprint("test")
@@ -13,3 +15,15 @@ frappe.ui.form.on('Serial No', {
 	    
 	}
 })
+
+var show_general_ledger= function() {
+	var me = this;
+	if(cur_frm.doc.docstatus == 0) {
+		cur_frm.add_custom_button(__('Document Refernce'), function() {
+			frappe.route_options = {
+				serial_no: cur_frm.doc.name,
+			};
+			frappe.set_route("query-report", "Serial No Reference");
+		}, __("View"));
+	}
+}
