@@ -22,6 +22,26 @@ def patch_import(data_import):
 	start_import(data_import)
 	print("DONE")
 
+def cek_children_sipm():
+	return
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.updte_cek_children_sipm
+	if frappe.local.site == "bjm2.digitalasiasolusindo.com":
+		col = ['old_name','new_name']
+		data = pd.read_excel (r'/home/frappe/frappe-bench/apps/wongkar_selling/wongkar_selling/patch_name_sipm.xls') 
+		df = pd.DataFrame(data, columns= col)
+		for idx in range(len(df)):
+			new_name = df[col[1]][idx]
+			doc = frappe.get_doc("Sales Invoice Penjualan Motor",df[col[0]][idx])
+			for d in doc.get_all_children():
+				# print(d.name,d.doctype)
+				parent = frappe.db.get_value(d.doctype,d.name,"parent")
+				frappe.db.set_value(d.doctype,d.name,"parent",new_name,debug=1)
+				print(parent," parent")
+			print(doc.doctype,doc.name, 'xxx')
+			frappe.db.set_value(doc.doctype,doc.name,"name",new_name,debug=1)
+		# frappe.throw('sss')
+
+
 def patch_pinv_only():
 	tmp = [
 'ACC-PINV-2025-00174',

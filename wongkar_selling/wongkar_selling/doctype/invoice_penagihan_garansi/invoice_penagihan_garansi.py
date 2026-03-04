@@ -333,7 +333,7 @@ class InvoicePenagihanGaransi(Document):
 
 		base_grand_total = flt(self.grand_total,self.precision("grand_total"),)
 
-		if (grand_total or grand_total_sparepart):
+		if (grand_total or grand_total_sparepart or grand_total_oli):
 			# Did not use base_grand_total to book rounding loss gle
 			for i in self.list_invoice_penagihan_garansi:
 				sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)

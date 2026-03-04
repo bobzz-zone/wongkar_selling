@@ -482,9 +482,10 @@
   {
    "fetch_from": "company.coa_claimable_sinv_garansi_sparepart",
    "fieldname": "debit_to_sparepart",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Ttitipan sparepart",
    "options": "Account",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -510,7 +511,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-03 15:09:11.923096",
+ "modified": "2026-03-03 15:07:11.700615",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Sparepart Garansi",

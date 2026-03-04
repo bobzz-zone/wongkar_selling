@@ -23,7 +23,7 @@ from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_ent
 from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_to_form, formatdate
 from erpnext.controllers.accounts_controller import get_advance_journal_entries,get_advance_journal_entries,get_advance_payment_entries
 from erpnext.accounts.utils import check_if_advance_entry_modified,validate_allocated_amount,update_reference_in_journal_entry,update_reference_in_payment_entry
-# from erpnext.accounts.general_ledger import get_round_off_account_and_cost_center
+from erpnext.accounts.general_ledger import get_round_off_account_and_cost_center
 from erpnext.stock.doctype.serial_no.serial_no import (
     get_delivery_note_serial_no,
     get_serial_nos,
@@ -1111,9 +1111,12 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
     def make_gle_for_rounding_adjustment(self, gl_entries):
         if flt(self.rounding_adjustment, self.precision("rounding_adjustment")) and self.base_rounding_adjustment \
             and not self.is_internal_transfer():
-            round_off_account, round_off_cost_center = \
-                get_round_off_account_and_cost_center(self.company)
+            # round_off_account, round_off_cost_center = \
+            #     get_round_off_account_and_cost_center(self.company)
 
+            round_off_account, round_off_cost_center = get_round_off_account_and_cost_center(
+                self.company, "Sales Invoice Penjualan Motor", self.name
+            )
             gl_entries.append(
                 self.get_gl_dict({
                     "account": round_off_account,
