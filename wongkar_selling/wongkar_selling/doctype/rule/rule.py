@@ -61,7 +61,10 @@ class Rule(Document):
 		if cek:
 			for i in cek:
 				tmp_cek.append(i['name'])
-			frappe.throw("Rule sama dengan di document "+str(tmp_cek)+" !")
+			if self.disable:
+				return
+			else:
+				frappe.throw("Rule sama dengan di document "+str(tmp_cek)+" !")
 
 		
 

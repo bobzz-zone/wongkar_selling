@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "company",
   "section_break_2",
   "type",
   "vendor",
@@ -101,11 +102,17 @@
    "label": "Item Code",
    "options": "Item",
    "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-12 09:25:41.494567",
+ "modified": "2025-12-02 09:48:49.191602",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Biaya",

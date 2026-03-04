@@ -79,6 +79,7 @@
   "set_target_warehouse",
   "penjualan_motor_section",
   "cara_bayar",
+  "program_tanpa_dp",
   "tagihan_leasing",
   "item_code",
   "item_group",
@@ -286,7 +287,7 @@
    "no_copy": 1,
    "oldfieldname": "naming_series",
    "oldfieldtype": "Select",
-   "options": "ACC-SINVM-.YYYY.-\nACC-SINVM-RET-.YYYY.-",
+   "options": "ACC-SINVM-.YYYY.-\nACC-SINVM-RET-.YYYY.-\nACC-SIPM-.YYYY.-",
    "print_hide": 1,
    "reqd": 1,
    "set_only_once": 1
@@ -2356,7 +2357,7 @@
    "fieldname": "nama_penjualan",
    "fieldtype": "Select",
    "label": "Nama Penjualan",
-   "options": "\nCS\nCRM\nMarketing\nMediator\nTitip Jual"
+   "options": "\nCS\nCRM\nMarketing\nMediator\nTitip Jual\nMediator Leasing"
   },
   {
    "allow_on_submit": 1,
@@ -2510,12 +2511,19 @@
    "hidden": 1,
    "label": "advance_paid",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "program_tanpa_dp",
+   "fieldtype": "Check",
+   "label": "Program tanpa DP",
+   "no_copy": 1
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-14 11:33:03.697249",
+ "modified": "2026-02-09 15:37:02.230238",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Penjualan Motor",

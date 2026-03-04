@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "company",
   "section_break_2",
   "nama_promo",
   "leasing",
@@ -126,11 +127,17 @@
    "label": "COA Pendapatan",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-31 15:09:02.881383",
+ "modified": "2025-12-02 09:47:49.988361",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Rule Discount Leasing",

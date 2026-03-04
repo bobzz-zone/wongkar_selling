@@ -18,39 +18,40 @@ def get_data(filters):
 	data = frappe.db.sql(""" SELECT 
 		year(sipm.posting_date) as tahun,
 		DATE_FORMAT(sipm.posting_date,'%Y%m') as bulan,
-		sle.warehouse,
-		sipm.territory_real,
-		sipm.cost_center,
-		sipm.posting_date,
-		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.nama_pemilik !="",sn.`nama_pemilik`,sipm.`nama_pemilik`),
-		sipm.item_code,
-		i.item_name,
-		sipm.no_rangka,
-		sipm.harga,
-		sipm.customer_name,
-		skb.tanggal_faktur,
-		skb.tanggal_terima_faktur,
-		skb.no_faktur,
-		skb.tanggal_serah_faktur,
-		skb.tanggal_terima_stnk,
-		skb.no_stnk,
-		skb.no_notice_stnk,
-		skb.tanggal_serah_stnk,
-		skb.tanggal_terima_plat,
-		skb.no_plat,
-		skb.tanggal_serah_plat,
-		skb.tanggal_terima_bpkb,
-		skb.no_bpkb,
-		skb.tanggal_serah_bpkb,
-		skb.keterangan_proses_skb,
-		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1),
-		skb.nama_pemilik,
-		i.tahun_rakitan, # tahun_rakit
+		sle.warehouse as cabid_jual,
+		sipm.territory_real as cab_area_jual ,
+		sipm.cost_center as namaarea,
+		sipm.posting_date as tanggaljual,
+		IF(sn.nama_pemilik or sn.nama_pemilik is not null or sn.nama_pemilik !="",sn.`nama_pemilik`,sipm.`nama_pemilik`) as name_konsumen,
+		SUBSTRING_INDEX(sipm.`item_code`,' - ', 1) AS kode_tipe,
+		i.item_name as nama_tipe,
+		SUBSTRING_INDEX(sn.name,'--', 1) AS no_mesin,
+		SUBSTRING_INDEX(sn.name,'--', -1) AS no_rangka,
+		sipm.harga as otr,
+		sipm.customer_name as namajual,
+		skb.tanggal_faktur as tglmohonfaktur,
+		skb.tanggal_terima_faktur as tglterimafaktur,
+		skb.no_faktur as nofaktur,
+		skb.tanggal_serah_faktur as tglserahfakur,
+		skb.tanggal_terima_stnk as tglterimastnk,
+		skb.no_stnk as notnk,
+		skb.no_notice_stnk as no_notice_pajak,
+		skb.tanggal_serah_stnk as tgl_serah_stnk,
+		skb.tanggal_terima_plat as tgl_terima_plat,
+		skb.no_plat as no_plat,
+		skb.tanggal_serah_plat as tgl_serah_plat,
+		skb.tanggal_terima_bpkb as tgl_terima_bpkb,
+		skb.no_bpkb as no_bpkb,
+		skb.tanggal_serah_bpkb as tgl_serah_bpkb,
+		skb.keterangan_proses_skb as ket,
+		(SELECT cost_center from `tabPurchase Receipt Item` where parent=pr.name Limit 1) as cabasal_unit,
+		skb.nama_pemilik as name_skb,
+		i.tahun_rakitan as tahun_rakit, # tahun_rakit
 		i.warna,
 		c.alamat,
 		c.no_hp,
-		(SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="STNK"),
-		(SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="BPKB")
+		IFNULL((SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="STNK"),0) as biaya_stnk,
+		IFNULL((SELECT amount from `tabTabel Biaya Motor` where parent=sipm.name and type="BPKB"),0) as biaya_skb
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
 		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
@@ -58,66 +59,67 @@ def get_data(filters):
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
 		join `tabCustomer` c on c.name = sipm.pemilik
 		left join `tabSKB` skb on skb.serial_no = sn.serial_no
-		where sipm.docstatus = 1  and (sle.voucher_type = "Purchase Receipt" or sle.voucher_type="Stock Entry") and sipm.posting_date between '{}' and '{}' """.format(filters.get('from_date'),filters.get('to_date')),as_list=1)
+		where sipm.docstatus = 1  and (sle.voucher_type = "Purchase Receipt" 
+		or sle.voucher_type="Stock Entry") and sipm.posting_date between '{}' and '{}' and sn.name = 'KB22E1056253--MH1KB2214SK056349' """.format(filters.get('from_date'),filters.get('to_date')),as_dict=1,debug=1)
 
 	output = []
 
-	for i in data:
-		kt = i[7].split("-")
-		nt = i[8].split("-")
-		w = i[8].split("-")
+	# for i in data:
+	# 	kt = i[7].split("-")
+	# 	nt = i[8].split("-")
+	# 	w = i[8].split("-")
 		
-		if len(w) > 2:
-			w2 = w[1]+" - "+w[2]
-		else:
-			w2 = w[1]
+	# 	if len(w) > 2:
+	# 		w2 = w[1]+" - "+w[2]
+	# 	else:
+	# 		w2 = w[1]
 
-		if "--" in i[9]:
-			nr = i[9].split("--")
-		elif "/" in i[9]:
-			nr = i[9].split("/")
+	# 	if "--" in i[9]:
+	# 		nr = i[9].split("--")
+	# 	elif "/" in i[9]:
+	# 		nr = i[9].split("/")
 
-		output.append([
-			i[0],
-			i[1],
-			i[27],
-			i[2],# id jual i[4]
-			i[3],
-			i[4],
-			i[5],
-			i[6],#konsumen
-			i[31],
-			i[32],
-			i[28],#skb
-			kt[0],
-			nt[0],
-			i[30],#warna
-			i[29],
-			nr[0],
-			nr[1],
-			i[10],
-			i[11],#nama_jual
-			i[33],
-			i[34],
-			i[33]+i[34],
-			i[12],
-			i[13],
-			i[14],
-			i[15],
-			i[16],
-			i[17],
-			i[18],
-			i[19],
-			i[20],
-			i[21],
-			i[22],
-			i[23],
-			i[24],
-			i[25],
-			i[26]
-			])
+		# output.append([
+		# 	i[0],
+		# 	i[1],
+		# 	i[27],
+		# 	i[2],# id jual i[4]
+		# 	i[3],
+		# 	i[4],
+		# 	i[5],
+		# 	i[6],#konsumen
+		# 	i[31],
+		# 	i[32],
+		# 	i[28],#skb
+		# 	kt[0],
+		# 	nt[0],
+		# 	i[30],#warna
+		# 	i[29],
+		# 	nr[0],
+		# 	nr[1],
+		# 	i[10],
+		# 	i[11],#nama_jual
+		# 	i[33],
+		# 	i[34],
+		# 	i[33]+i[34],
+		# 	i[12],
+		# 	i[13],
+		# 	i[14],
+		# 	i[15],
+		# 	i[16],
+		# 	i[17],
+		# 	i[18],
+		# 	i[19],
+		# 	i[20],
+		# 	i[21],
+		# 	i[22],
+		# 	i[23],
+		# 	i[24],
+		# 	i[25],
+		# 	i[26]
+		# 	])
 
-	return output
+	return data
 
 
 def get_columns(filters):
@@ -304,7 +306,7 @@ def get_columns(filters):
 		},
 		{
 			"label": _("TglTerimaPlat"),
-			"fieldname": "tgl_serah_stnk",
+			"fieldname": "tgl_terima_plat",
 			"fieldtype": "Date",
 			"width": 100
 		},

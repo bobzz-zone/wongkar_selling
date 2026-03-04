@@ -13,6 +13,16 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 import erpnext
 
 class TagihanLeasing(Document):
+	def cal_gt_oa(self):
+		gt = 0
+		oa= 0
+		for i in self.list_tagihan_piutang_leasing:
+			gt += i.tagihan_sipm
+			oa += i.outstanding_sipm
+		self.grand_total = gt
+		self.outstanding_amount = oa
+		print(self.grand_total,' ccc', self.outstanding_amount)
+
 	def on_submit(self):
 		# frappe.throw("Submitted")
 		self.add_tagihan()
@@ -22,7 +32,7 @@ class TagihanLeasing(Document):
 			doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
 			doc.tertagih = 1
 			doc.db_update()
-			frappe.db.commit()
+			# frappe.db.commit()
 			# frappe.msgprint('Berhasil !')
 		self.set_status()
 		
@@ -106,7 +116,7 @@ class TagihanLeasing(Document):
 				# print(gl_entries, ' gl_entries')
 				make_gl_entries(
 					gl_entries,
-					update_outstanding=update_outstanding,
+					update_outstanding="Yes",
 					merge_entries=False,
 					from_repost=from_repost,
 				)

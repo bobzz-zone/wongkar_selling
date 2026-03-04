@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
+from erpnext.setup.doctype.company.company import create_transaction_deletion_request
 import frappe, erpnext
+from frappe.core.doctype.data_import.data_import import start_import
 import json
 import frappe.utils
 from frappe.utils import cstr, cint, flt
@@ -14,50 +16,130 @@ from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_a
 import pandas as pd
 
 #DEV
-def repair_fp_new():
-	tmp = ['FP-12-2024-00013']
+def patch_import(data_import):
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_import --kwargs '{"data_import":"Rule Discount Leasing Import on 2026-01-14 11:06:58.919409"}'
+	print(f'start {data_import}')
+	start_import(data_import)
+	print("DONE")
 
-	con = 1
+def patch_pinv_only():
+	tmp = [
+'ACC-PINV-2025-00174',
+'ACC-PINV-2025-00240',
+'ACC-PINV-2025-00273',
+'ACC-PINV-2025-00171',
+'ACC-PINV-2025-00243',
+'ACC-PINV-2025-00178',
+'ACC-PINV-2025-00179',
+'ACC-PINV-2025-00170',
+'ACC-PINV-2025-00241',
+'ACC-PINV-2025-00172',
+'ACC-PINV-2025-00242',
+'ACC-PINV-2025-00176',
+'ACC-PINV-2025-00197',
+'ACC-PINV-2025-00265',
+'ACC-PINV-2025-00180',
+'ACC-PINV-2025-00266',
+'ACC-PINV-2025-00254',
+'ACC-PINV-2025-00177',
+'ACC-PINV-2025-00175',
+'ACC-PINV-2025-00237',
+'ACC-PINV-2025-00238',
+'ACC-PINV-2025-00244',
+'ACC-PINV-2025-00252',
+'ACC-PINV-2025-00253',
+'ACC-PINV-2025-00239',
+'ACC-PINV-2025-00323',
+'ACC-PINV-2025-00314',
+'ACC-PINV-2025-00306',
+'ACC-PINV-2025-00305',
+'ACC-PINV-2025-00304',
+'ACC-PINV-2025-00303',
+'ACC-PINV-2025-00302',
+'ACC-PINV-2025-00301',
+'ACC-PINV-2025-00300',
+'ACC-PINV-2025-00299',
+'ACC-PINV-2025-00264',
+'ACC-PINV-2025-00263',
+'ACC-PINV-2025-00408',
+'ACC-PINV-2025-00393'
+	]
 	for i in tmp:
-		doc = frappe.get_doc('Form Pembayaran',i)
-		doc.cek_outstanding()
-		doc.calcutale_outstanding()
-		print(doc.name,'DONE')
-		con += 1
+		doc = frappe.get_doc("Purchase Invoice",i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry("Purchase Invoice",doc.name)
+			print(doc.name, "DONE")
 
-def ripair_jurnal_tdl_new():
-	tmp = ['Tagihan-L-11-2024-00013']
-
-	con = 1
+def masuk_data_api():
+	# bench --site ifmi2.digitalasiasolusindo.com execute wongkar_selling.patch.masuk_data_api
+	tmp = [
+'Tagihan-B-12-2025-00003',
+'Tagihan-B-12-2025-00001'
+	]
 	for i in tmp:
-		doc = frappe.get_doc('Tagihan Discount Leasing',i)
-		doc.hitung_pph()
-		doc.db_update()
-		doc.update_children()
-		repair_only_gl_entry('Tagihan Discount Leasing',i)
-		print('DONE')
-		con += 1
+		get_doc_api("Pembayaran Tagihan Motor",i,"d43daaee85e7384","599344222d72600")
 		
 
-def repair_tagihan_disc():
-	tmp = [
-'Tagihan-D-11-2023-00001',
-'Tagihan-D-11-2023-00003',
-'Tagihan-D-03-2024-00001',
-'Tagihan-D-03-2024-00003',
-'Tagihan-D-03-2024-00005-1',
-'Tagihan-D-04-2024-00001',
-'Tagihan-D-11-2024-00001',
-'Tagihan-D-11-2024-00003',
-'Tagihan-D-11-2024-00006',
-'Tagihan-D-11-2024-00007'
-	]
 
+def get_doc_api(doctype,docname,api_key,api_secret):
+	import requests
+	url = f"https://ifmi.digitalasiasolusindo.com/api/resource/{doctype}/{docname}"
+
+	payload = ""
+	headers = {
+	'Authorization': f'token {api_key}:{api_secret}',
+	'Cookie': 'full_name=Guest; sid=Guest; system_user=no; user_id=Guest; user_image='
+	}
+
+	response = requests.request("GET", url, headers=headers, data=payload)
+	res = json.loads(response.text)
+	doc_sync_baru = frappe.get_doc(res['data'])
+	doc_sync_baru.__islocal = 1
+	doc_sync_baru.flags.name_set = 1
+	doc_sync_baru.flags.ignore_validate = True            # Abaikan semua validasi
+	doc_sync_baru.flags.ignore_mandatory = True           # Abaikan mandatory field
+	doc_sync_baru.flags.ignore_links = True               # Abaikan link checking
+	doc_sync_baru.flags.ignore_version = True
+	if doc_sync_baru.docstatus == 1:
+		doc_sync_baru.db_insert()  
+		# doc_sync_baru.insert()
+		for d in doc_sync_baru.get_all_children():
+				d.db_insert()
+		print(res)
+		print(doc_sync_baru.name)
+
+def patch_tagihan_disc_only():
+	tmp = [
+'Tagihan-D-03-2024-00005-1',
+	]
 	con = 1
 	for i in tmp:
-		repair_only_gl_entry('Tagihan Discount',i)
+		doc = frappe.get_doc('Tagihan Discount',i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry('Tagihan Discount',i)
 		print('DONE')
 		con += 1
+
+
+def debug_create_transaction_deletion_request():
+	# bench --site ifmi2.digitalasiasolusindo.com execute wongkar_selling.patch.debug_create_transaction_deletion_request
+	if frappe.local.site == 'ifmi2.digitalasiasolusindo.com':
+		company = "IFMI Motor"
+		create_transaction_deletion_request(company)
+		print("done")
+
+def update_status_ec():
+	data = frappe.db.sql(""" SELECT name,docstatus,STATUS FROM `tabExpense Claim` WHERE docstatus = 2 """,as_dict=1)
+	tmp = []
+	if data:
+		for d in data:
+			tmp.append(d['name'])
+	
+	if len(tmp) > 0:
+		for t in tmp:
+			doc = frappe.get_doc("Expense Claim",t)
+			doc.set_status(update=True)
+			print(doc.name,doc.status)
 
 def debug_penerimaan_dp():
 	tmp = [
@@ -71,12 +153,15 @@ def debug_penerimaan_dp():
 		doc.db_update()
 def debug_ipg():
 	doc = frappe.get_doc("Invoice Penagihan Garansi",'IPG-2025-00007')
-	repair_only_gl_entry("Invoice Penagihan Garansi",'IPG-2025-00007')
+	repair_only_gl_entry("Sales Invoice Penjualan Motor",'ACC-SINVM-2024-00610')
+
+
 def patch_oa_tr():
 	doc = frappe.get_doc("Penerimaan DP","FDP-09-2023-00137-2")
 	doc.calculate_oa_tr()
 	doc.db_update()
 	print("DONE")
+
 
 def patch_jual_sipm():
 	# bench --site ifmi.digitalasiasolusindo.com  execute wongkar_selling.patch.patch_jual_sipm
@@ -90,8 +175,6 @@ def patch_jual_sipm():
 		if doc.outstanding_amount <= 0:
 			frappe.throw("tss33")
 		
-		
-
 		if doc.tabel_biaya_motor:
 			if len(doc.tabel_biaya_motor) > 0:
 				frappe.throw("tss2")
@@ -108,6 +191,7 @@ def patch_jual_sipm():
 		doc.update_children()
 		
 		repair_gl_sle_entry("Sales Invoice Penjualan Motor",doc.name)
+		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 		print("DONE")
 
 def update_sinv_sp():
@@ -143,26 +227,113 @@ def patch_je():
 	repair_only_gl_entry("Journal Entry",doc.name)
 
 
-def patch_tl_oa():
+def patch_akun_tdl_only():
+	frappe.flags.repair = True
+	
 	tmp = [
-"ACC-SINVM-2025-01526-1",
-"ACC-SINVM-2025-01528",
-"ACC-SINVM-2025-01517",
-"ACC-SINVM-2025-01533",
-"ACC-SINVM-2025-01529",
-"ACC-SINVM-2025-01522",
-"ACC-SINVM-2025-01534",
-"ACC-SINVM-2025-01527",
-"ACC-SINVM-2025-01532",
-"ACC-SINVM-2025-01520",
-"ACC-SINVM-2025-01530-1"
+'Tagihan-L-03-2025-00013',
+'Tagihan-L-03-2025-00012',
+'Tagihan-L-03-2025-00015',
+'Tagihan-L-03-2025-00014',
+'Tagihan-L-03-2025-00016',
+'Tagihan-L-03-2025-00017',
+'Tagihan-L-03-2025-00018',
+'Tagihan-L-03-2025-00019',
+'Tagihan-L-03-2025-00021',
+'Tagihan-L-03-2025-00020',
+'Tagihan-L-04-2025-00001-1',
+'Tagihan-L-04-2025-00020',
+'Tagihan-L-04-2025-00002-2',
+'Tagihan-L-04-2025-00003-1',
+'Tagihan-L-04-2025-00004',
+'Tagihan-L-04-2025-00005',
+'Tagihan-L-04-2025-00021',
+'Tagihan-L-04-2025-00006',
+'Tagihan-L-04-2025-00022',
+'Tagihan-L-04-2025-00023',
+'Tagihan-L-04-2025-00024-1',
+'Tagihan-L-04-2025-00029',
+'Tagihan-L-04-2025-00027',
+'Tagihan-L-04-2025-00025',
+'Tagihan-L-04-2025-00026',
+'Tagihan-L-04-2025-00031',
+'Tagihan-L-04-2025-00028',
+'Tagihan-L-05-2025-00001',
+'Tagihan-L-04-2025-00030',
+'Tagihan-L-05-2025-00002',
+'Tagihan-L-05-2025-00004',
+'Tagihan-L-05-2025-00003',
+'Tagihan-L-05-2025-00005',
+'Tagihan-L-05-2025-00006',
+'Tagihan-L-05-2025-00007',
+'Tagihan-L-05-2025-00008',
+'Tagihan-L-05-2025-00014',
+'Tagihan-L-05-2025-00009',
+'Tagihan-L-05-2025-00010-1',
+'Tagihan-L-05-2025-00011',
+'Tagihan-L-06-2025-00005',
+'Tagihan-L-05-2025-00012',
+'Tagihan-L-05-2025-00017',
+'Tagihan-L-05-2025-00013',
+'Tagihan-L-05-2025-00015',
+'Tagihan-L-05-2025-00016',
+'Tagihan-L-06-2025-00003',
+'Tagihan-L-06-2025-00001',
+'Tagihan-L-06-2025-00018',
+'Tagihan-L-06-2025-00002',
+'Tagihan-L-06-2025-00006-1',
+'Tagihan-L-06-2025-00009',
+'Tagihan-L-06-2025-00007',
+'Tagihan-L-06-2025-00004',
+'Tagihan-L-06-2025-00012',
+'Tagihan-L-06-2025-00008',
+'Tagihan-L-06-2025-00013-1',
+'Tagihan-L-06-2025-00010',
+'Tagihan-L-06-2025-00017',
+'Tagihan-L-06-2025-00014',
+'Tagihan-L-06-2025-00011-1',
+'Tagihan-L-06-2025-00015',
+'Tagihan-L-06-2025-00016'
 	]
-	# akun = '11201.01 - PIUTANG DAGANG MOTOR - W'
-	# customer = 'FIF'
+	con =1
+
+	print(len(tmp), ' tmpxxxx')
 	for i in tmp:
+		print(con)
+		print(i, ' ixx')
+		doc = frappe.get_doc('Tagihan Discount Leasing',i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry('Tagihan Discount Leasing',i)
+		print('DONE')
+		con += 1
+
+
+def patch_tl_oa():
+	# bench --site ifmi2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_tl_oa
+	tmp = [
+"ACC-SIPM-2026-00030",
+"ACC-SIPM-2026-00027",
+"ACC-SIPM-2026-00035",
+"ACC-SIPM-2026-00029",
+"ACC-SIPM-2026-00036",
+"ACC-SIPM-2026-00031",
+"ACC-SIPM-2026-00037",
+"ACC-SIPM-2026-00034-1",
+"ACC-SIPM-2026-00032",
+"ACC-SIPM-2026-00039",
+"ACC-SIPM-2026-00041",
+"ACC-SIPM-2026-00028",
+"ACC-SIPM-2026-00038",
+"ACC-SIPM-2026-00042"
+	]	
+	
+	con = 1
+	for i in tmp:
+		print(con)
 		print(i)
 		doc = frappe.get_doc('Sales Invoice Penjualan Motor',i)
 		update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+		con += 1
 
 def pacth_sipm():
 	frappe.flags.repair = True
@@ -170,6 +341,8 @@ def pacth_sipm():
 	print(doc.name)
 	repair_gl_sle_entry("Sales Invoice Penjualan Motor",doc.name)
 	print('DONE')
+
+
 
 def patch_rebuild_tree():
 	from frappe.utils.nestedset import rebuild_tree
@@ -200,6 +373,77 @@ def patch_sipm_akun_stnk_bpkb():
 		print('DONE')
 		con += 1
 
+def get_basic_rate_ste():
+	tmp = ['MAT-STE-2024-00008']
+	for i in tmp:
+		print(i)
+		doc = frappe.get_doc("Stock Entry",i)
+		doc.calculate_rate_and_amount()
+		doc.db_update()
+		doc.update_children()
+		# repair_gl_sle_entry("Stock Entry",i)
+		print("DONE")
+
+def patch_prec_rate():
+	frappe.flags.repair = True
+	tmp = [
+'MAT-STE-2024-01359'
+	]
+	if len(tmp) > 0:
+		for i in tmp:
+			print(i)
+			repair_gl_sle_entry("Stock Entry",i)
+			print('DONE')
+
+
+def make_riv():	
+	tmp = [
+'zz'
+]
+	for i in tmp:
+		doc = frappe.new_doc("Repost Item Valuation")
+		doc.based_on = 'Transaction'
+		doc.voucher_type = 'Purchase Receipt'
+		doc.voucher_no = i
+		doc.flags.ignore_permission = True
+		doc.save()
+		doc.submit()
+		print(i, 'Done')
+
+def debug_sipm_gl():
+	tmp = [
+'ACC-SINVM-2025-00827'
+	]
+	for i in tmp:
+		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry("Sales Invoice Penjualan Motor",doc.name)
+			update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+
+def debug_ste_gl():
+	#  bench --site ifmi2.digitalasiasolusindo.com execute wongkar_selling.patch.debug_ste_gl
+	tmp = [
+'MAT-STE-2025-01850'
+	]
+	print(len(tmp), ' tmpxx')
+	con = 1
+	for i in tmp:
+		print(con, ' conxx')
+		doc = frappe.get_doc("Stock Entry",i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry("Stock Entry",doc.name)
+		print('DONE')
+		con += 1
+			
+def debug_sipm_je():
+	tmp = [
+'ACC-JV-2024-03377'
+	]
+	for i in tmp:
+		doc = frappe.get_doc("Journal Entry",i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry("Journal Entry",doc.name)
+			# update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 
 def petch_salah_rate_prec():
 	frappe.flags.repair = True
@@ -221,7 +465,7 @@ def petch_salah_rate_prec():
 			grouped_data[name] = []
 		grouped_data[name].append(item)
 
-	print(grouped_data)
+	# print(grouped_data)
 
 	for gd,info in grouped_data.items():
 		print(gd, ' gdxxx')
@@ -229,31 +473,42 @@ def petch_salah_rate_prec():
 		for it in doc.items:
 			for inf in info:
 				if inf['no_rangka'] in it.serial_no:
+					sn = it.serial_no.split('\n')
+					
 					if it.discount_amount == 0:
 						print(inf['harga_baru'], ' yyy')
 						it.price_list_rate = inf['harga_baru']
 						it.rate = inf['harga_baru']
 						# patch_po
-						if it.purchase_order:
-							po = frappe.get_doc('Purchase Order',it.purchase_order)
-							print(po.name, ' ponamexxx')
-							for poi in po.items:
-								if poi.discount_amount == 0:
-									if poi.name == it.purchase_order_item:
-										poi.price_list_rate = inf['harga_baru']
-										poi.rate = inf['harga_baru']
-								else:
-									frappe.throw('test')
-							po.run_method("calculate_taxes_and_totals")
-							po.db_update()
-							po.update_children()
+						# if it.purchase_order:
+						# 	po = frappe.get_doc('Purchase Order',it.purchase_order)
+						# 	print(po.name, ' ponamexxx')
+						# 	for poi in po.items:
+						# 		if poi.discount_amount == 0:
+						# 			if poi.name == it.purchase_order_item:
+						# 				poi.price_list_rate = inf['harga_baru']
+						# 				poi.rate = inf['harga_baru']
+						# 		else:
+						# 			frappe.throw('test')
+						# 	po.run_method("calculate_taxes_and_totals")
+						# 	po.db_update()
+						# 	po.update_children()
+					elif it.rate == inf['harga_baru']:
+						print(f"{it.rate} == {inf['harga_baru']} asddsa")
+						break
+						# frappe.throw('test sama')
 					else:
 						frappe.throw('test')
+					
+					for s in sn:
+						print(f"{sn} snxxx")
+						frappe.db.set_value('Serial No',s,'purchase_rate',inf['harga_baru'],debug=1)
+		print("update doc")
 		doc.run_method("calculate_taxes_and_totals")
 		doc.update_valuation_rate()
 		doc.db_update()
 		doc.update_children()
-		repair_gl_sle_entry('Purchase Receipt',gd)
+		# repair_gl_sle_entry('Purchase Receipt',gd)
 		print('DONE')
 
 	# tmp = ['MAT-PRE-2024-00542']
@@ -462,22 +717,7 @@ def pacth_akun_je():
 			print(tje, ' tjexxx')
 			repair_only_gl_entry('Journal Entry',tje)
 			print("DONE")
-
-def patch_akun_tdl_only():
-	frappe.flags.repair = True
-	
-	tmp = ['Tagihan-L-09-2023-00003']
-	con =1
-
-	print(len(tmp), ' tmpxxxx')
-	for i in tmp:
-		print(con)
-		print(i, ' ixx')
-		doc = frappe.get_doc('Tagihan Discount Leasing',i)
-		repair_only_gl_entry('Tagihan Discount Leasing',i)
-		print('DONE')
-		con += 1
-
+		
 def patch_akun_tl():
 	frappe.flags.repair = True
 	data = frappe.db.sql(""" SELECT a.name,a.customer,a.docstatus,a.coa_lawan,a.date 
@@ -526,27 +766,6 @@ def patch_akun_tl():
 		repair_only_gl_entry('Tagihan Leasing',i)
 		print('DONE')
 		con += 1
-
-def patch_akun_fp_tdl_only():
-	
-	tmp = ['FP-11-2023-00013']
-
-	
-	con = 1
-	for i in tmp:
-		print(con)
-		print(i, ' ixxx')
-		doc = frappe.get_doc('Form Pembayaran',i)
-		if doc.customer == 'ADMF':
-			doc.paid_from = '11201.05 - PIUTANG DAGANG - DISCOUNT FOR DP FROM LEASING ADIRA FINANCE - W'
-
-		doc.db_update()
-		repair_only_gl_entry('Form Pembayaran',i)
-		print('DONE')
-
-		print(doc.customer)
-		print(doc.paid_from)
-		con	+= 1
 
 def patch_akun_fp():
 	data = frappe.db.sql(""" SELECT a.name,a.customer,a.type,a.docstatus,a.posting_date,a.paid_from FROM `tabForm Pembayaran` a 
@@ -753,16 +972,17 @@ def patch_coa_sipm():
 def patch_tagihan_disc():
 	data = frappe.db.sql(""" 
 		SELECT name FROM `tabTagihan Discount` td 
-		WHERE docstatus = 1 AND NAME NOT IN (
-		'Tagihan-D-03-2024-00006-1',
-		'Tagihan-D-04-2024-00001'
-		) """,as_dict = 1)
+		WHERE docstatus = 1  """,as_dict = 1)
 
 	tmp = []
 	for i in data:
 		tmp.append(i['name'])
 	
 	# ['Tagihan-D-04-2024-00001']
+
+# 	tmp = [
+# 'Tagihan-D-01-2025-00004-2'
+# 	]
 
 	con = 1
 	for i in tmp:
@@ -781,7 +1001,8 @@ def patch_tagihan_disc():
 		print(doc.coa_pendapatan)
 		doc.db_update()
 		print(i, ' xx')
-		repair_only_gl_entry('Tagihan Discount',i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry('Tagihan Discount',i)
 		print('DONE')
 		con += 1
 
@@ -818,21 +1039,1535 @@ def patch_fp_tdl():
 
 
 def patch_tagihan_disc_leasing():
-	tmp = ['Tagihan-L-01-2024-00001']
+	tmp = [
+'Tagihan-L-01-2024-00002',
+'Tagihan-L-01-2024-00003-1',
+'Tagihan-L-01-2024-00004-1',
+'Tagihan-L-01-2024-00005-1',
+'Tagihan-L-01-2024-00006',
+'Tagihan-L-01-2024-00007',
+'Tagihan-L-01-2024-00008',
+'Tagihan-L-01-2024-00009',
+'Tagihan-L-01-2024-00010',
+'Tagihan-L-01-2024-00011',
+'Tagihan-L-01-2024-00012',
+'Tagihan-L-01-2024-00013-1',
+'Tagihan-L-01-2024-00014',
+'Tagihan-L-01-2024-00015-1',
+'Tagihan-L-01-2024-00016',
+'Tagihan-L-01-2024-00017',
+'Tagihan-L-01-2024-00018-2',
+'Tagihan-L-01-2024-00019',
+'Tagihan-L-01-2024-00020',
+'Tagihan-L-01-2024-00021',
+'Tagihan-L-01-2024-00022-1',
+'Tagihan-L-01-2025-00001',
+'Tagihan-L-01-2025-00002',
+'Tagihan-L-01-2025-00003-1',
+'Tagihan-L-01-2025-00004-1',
+'Tagihan-L-01-2025-00007-1',
+'Tagihan-L-01-2025-00008-1',
+'Tagihan-L-01-2025-00010',
+'Tagihan-L-01-2025-00011-1',
+'Tagihan-L-01-2025-00012',
+'Tagihan-L-01-2025-00013',
+'Tagihan-L-01-2025-00014-3',
+'Tagihan-L-01-2025-00015',
+'Tagihan-L-01-2025-00016',
+'Tagihan-L-01-2025-00017',
+'Tagihan-L-02-2024-00001-2',
+'Tagihan-L-02-2024-00002-1',
+'Tagihan-L-02-2024-00003-1',
+'Tagihan-L-02-2024-00004',
+'Tagihan-L-02-2024-00005',
+'Tagihan-L-02-2024-00006',
+'Tagihan-L-02-2024-00007-1',
+'Tagihan-L-02-2024-00008-3',
+'Tagihan-L-02-2024-00009',
+'Tagihan-L-02-2024-00010-1',
+'Tagihan-L-02-2024-00011-1',
+'Tagihan-L-02-2024-00012',
+'Tagihan-L-02-2024-00013',
+'Tagihan-L-02-2024-00014-1',
+'Tagihan-L-02-2024-00015-1',
+'Tagihan-L-02-2024-00016-1',
+'Tagihan-L-02-2025-00001',
+'Tagihan-L-02-2025-00002',
+'Tagihan-L-02-2025-00003',
+'Tagihan-L-02-2025-00004',
+'Tagihan-L-02-2025-00005',
+'Tagihan-L-02-2025-00006',
+'Tagihan-L-02-2025-00008',
+'Tagihan-L-02-2025-00009',
+'Tagihan-L-02-2025-00010',
+'Tagihan-L-02-2025-00011',
+'Tagihan-L-02-2025-00012',
+'Tagihan-L-02-2025-00013',
+'Tagihan-L-02-2025-00014-1',
+'Tagihan-L-02-2025-00015',
+'Tagihan-L-02-2025-00018',
+'Tagihan-L-02-2025-00019',
+'Tagihan-L-02-2025-00020',
+'Tagihan-L-02-2025-00021',
+'Tagihan-L-02-2025-00022',
+'Tagihan-L-02-2025-00023',
+'Tagihan-L-02-2025-00024',
+'Tagihan-L-03-2024-00001',
+'Tagihan-L-03-2024-00002',
+'Tagihan-L-03-2024-00003',
+'Tagihan-L-03-2024-00004-2',
+'Tagihan-L-03-2024-00005',
+'Tagihan-L-03-2024-00006',
+'Tagihan-L-03-2024-00007',
+'Tagihan-L-03-2024-00008',
+'Tagihan-L-03-2024-00009',
+'Tagihan-L-03-2024-00010',
+'Tagihan-L-03-2024-00013',
+'Tagihan-L-03-2024-00014',
+'Tagihan-L-03-2024-00015',
+'Tagihan-L-03-2024-00016',
+'Tagihan-L-03-2024-00017',
+'Tagihan-L-03-2024-00018-1',
+'Tagihan-L-03-2025-00001',
+'Tagihan-L-03-2025-00002',
+'Tagihan-L-03-2025-00003',
+'Tagihan-L-03-2025-00004',
+'Tagihan-L-03-2025-00006',
+'Tagihan-L-03-2025-00007',
+'Tagihan-L-03-2025-00008',
+'Tagihan-L-03-2025-00009',
+'Tagihan-L-03-2025-00010',
+'Tagihan-L-03-2025-00011',
+'Tagihan-L-03-2025-00012-2',
+'Tagihan-L-03-2025-00013',
+'Tagihan-L-03-2025-00014',
+'Tagihan-L-03-2025-00016',
+'Tagihan-L-03-2025-00017',
+'Tagihan-L-03-2025-00018',
+'Tagihan-L-03-2025-00019',
+'Tagihan-L-03-2025-00020',
+'Tagihan-L-04-2024-00001-1',
+'Tagihan-L-04-2024-00002',
+'Tagihan-L-04-2024-00003',
+'Tagihan-L-04-2024-00004',
+'Tagihan-L-04-2024-00005',
+'Tagihan-L-04-2024-00006-2',
+'Tagihan-L-04-2024-00007',
+'Tagihan-L-04-2024-00008',
+'Tagihan-L-04-2024-00009',
+'Tagihan-L-04-2024-00010',
+'Tagihan-L-04-2024-00011',
+'Tagihan-L-04-2024-00012',
+'Tagihan-L-04-2024-00013-1',
+'Tagihan-L-04-2025-00001',
+'Tagihan-L-04-2025-00002',
+'Tagihan-L-04-2025-00003',
+'Tagihan-L-04-2025-00004',
+'Tagihan-L-04-2025-00005-1',
+'Tagihan-L-04-2025-00006',
+'Tagihan-L-04-2025-00007',
+'Tagihan-L-04-2025-00008',
+'Tagihan-L-04-2025-00009-1',
+'Tagihan-L-04-2025-00010',
+'Tagihan-L-04-2025-00011',
+'Tagihan-L-04-2025-00012',
+'Tagihan-L-04-2025-00013',
+'Tagihan-L-04-2025-00014',
+'Tagihan-L-04-2025-00015',
+'Tagihan-L-04-2025-00017',
+'Tagihan-L-04-2025-00018',
+'Tagihan-L-04-2025-00019',
+'Tagihan-L-04-2025-00020',
+'Tagihan-L-04-2025-00021',
+'Tagihan-L-04-2025-00022',
+'Tagihan-L-04-2025-00023-2',
+'Tagihan-L-04-2025-00024',
+'Tagihan-L-04-2025-00025',
+'Tagihan-L-04-2025-00027',
+'Tagihan-L-04-2025-00028',
+'Tagihan-L-05-2024-00001',
+'Tagihan-L-05-2024-00002',
+'Tagihan-L-05-2024-00003',
+'Tagihan-L-05-2024-00004',
+'Tagihan-L-05-2024-00005',
+'Tagihan-L-05-2024-00006',
+'Tagihan-L-05-2024-00007',
+'Tagihan-L-05-2024-00008',
+'Tagihan-L-05-2024-00009',
+'Tagihan-L-05-2024-00010',
+'Tagihan-L-05-2024-00011',
+'Tagihan-L-05-2024-00012',
+'Tagihan-L-05-2024-00013',
+'Tagihan-L-05-2025-00001',
+'Tagihan-L-05-2025-00002',
+'Tagihan-L-05-2025-00004',
+'Tagihan-L-05-2025-00005',
+'Tagihan-L-05-2025-00006',
+'Tagihan-L-05-2025-00007',
+'Tagihan-L-05-2025-00008',
+'Tagihan-L-05-2025-00009',
+'Tagihan-L-05-2025-00010',
+'Tagihan-L-05-2025-00011',
+'Tagihan-L-05-2025-00012',
+'Tagihan-L-05-2025-00013',
+'Tagihan-L-05-2025-00014',
+'Tagihan-L-05-2025-00015',
+'Tagihan-L-05-2025-00016',
+'Tagihan-L-05-2025-00017',
+'Tagihan-L-05-2025-00018-1',
+'Tagihan-L-05-2025-00019',
+'Tagihan-L-05-2025-00021-1',
+'Tagihan-L-05-2025-00022',
+'Tagihan-L-05-2025-00023',
+'Tagihan-L-06-2024-00001',
+'Tagihan-L-06-2024-00002',
+'Tagihan-L-06-2024-00003',
+'Tagihan-L-06-2024-00004',
+'Tagihan-L-06-2024-00005',
+'Tagihan-L-06-2024-00006',
+'Tagihan-L-06-2024-00007',
+'Tagihan-L-06-2024-00009',
+'Tagihan-L-06-2024-00010',
+'Tagihan-L-06-2024-00011',
+'Tagihan-L-06-2024-00012',
+'Tagihan-L-06-2024-00013',
+'Tagihan-L-06-2025-00001',
+'Tagihan-L-06-2025-00002',
+'Tagihan-L-06-2025-00003',
+'Tagihan-L-06-2025-00004',
+'Tagihan-L-06-2025-00006',
+'Tagihan-L-06-2025-00007',
+'Tagihan-L-06-2025-00008',
+'Tagihan-L-06-2025-00009',
+'Tagihan-L-06-2025-00010',
+'Tagihan-L-06-2025-00011',
+'Tagihan-L-06-2025-00012',
+'Tagihan-L-06-2025-00013',
+'Tagihan-L-06-2025-00014',
+'Tagihan-L-06-2025-00015',
+'Tagihan-L-06-2025-00016',
+'Tagihan-L-06-2025-00018',
+'Tagihan-L-06-2025-00019',
+'Tagihan-L-06-2025-00020',
+'Tagihan-L-07-2024-00001',
+'Tagihan-L-07-2024-00002',
+'Tagihan-L-07-2024-00006',
+'Tagihan-L-07-2024-00008',
+'Tagihan-L-07-2024-00009',
+'Tagihan-L-07-2024-00010',
+'Tagihan-L-07-2024-00011',
+'Tagihan-L-07-2024-00012',
+'Tagihan-L-07-2024-00013-1',
+'Tagihan-L-07-2024-00014',
+'Tagihan-L-07-2024-00015-1',
+'Tagihan-L-07-2024-00016',
+'Tagihan-L-07-2024-00017',
+'Tagihan-L-07-2024-00018',
+'Tagihan-L-07-2024-00019',
+'Tagihan-L-07-2025-00001',
+'Tagihan-L-07-2025-00002',
+'Tagihan-L-07-2025-00004',
+'Tagihan-L-08-2024-00001',
+'Tagihan-L-08-2024-00002',
+'Tagihan-L-08-2024-00004',
+'Tagihan-L-08-2024-00005',
+'Tagihan-L-08-2024-00006',
+'Tagihan-L-08-2024-00007',
+'Tagihan-L-08-2024-00008-1',
+'Tagihan-L-08-2024-00009',
+'Tagihan-L-08-2024-00010',
+'Tagihan-L-08-2024-00011',
+'Tagihan-L-08-2024-00012',
+'Tagihan-L-08-2024-00013',
+'Tagihan-L-08-2024-00014',
+'Tagihan-L-08-2024-00015',
+'Tagihan-L-09-2023-00001-1',
+'Tagihan-L-09-2023-00003',
+'Tagihan-L-09-2024-00001-1',
+'Tagihan-L-09-2024-00002',
+'Tagihan-L-09-2024-00004',
+'Tagihan-L-09-2024-00005',
+'Tagihan-L-09-2024-00006',
+'Tagihan-L-09-2024-00007',
+'Tagihan-L-09-2024-00009',
+'Tagihan-L-09-2024-00010',
+'Tagihan-L-09-2024-00012',
+'Tagihan-L-09-2024-00013',
+'Tagihan-L-09-2024-00014',
+'Tagihan-L-09-2024-00016',
+'Tagihan-L-09-2024-00017',
+'Tagihan-L-09-2024-00018',
+'Tagihan-L-09-2024-00019',
+'Tagihan-L-09-2024-00020',
+'Tagihan-L-09-2024-00021',
+'Tagihan-L-09-2025-00002',
+'Tagihan-L-10-2023-00001',
+'Tagihan-L-10-2023-00002',
+'Tagihan-L-10-2024-00001',
+'Tagihan-L-10-2024-00002',
+'Tagihan-L-10-2024-00004',
+'Tagihan-L-10-2024-00005',
+'Tagihan-L-10-2024-00006',
+'Tagihan-L-10-2024-00007',
+'Tagihan-L-10-2024-00008',
+'Tagihan-L-10-2024-00009-2',
+'Tagihan-L-10-2024-00010-1',
+'Tagihan-L-10-2024-00011',
+'Tagihan-L-10-2024-00013',
+'Tagihan-L-10-2024-00014',
+'Tagihan-L-10-2024-00015',
+'Tagihan-L-10-2024-00016',
+'Tagihan-L-11-2023-00001',
+'Tagihan-L-11-2023-00002',
+'Tagihan-L-11-2023-00003',
+'Tagihan-L-11-2023-00004',
+'Tagihan-L-11-2023-00005',
+'Tagihan-L-11-2023-00006',
+'Tagihan-L-11-2023-00007',
+'Tagihan-L-11-2023-00008',
+'Tagihan-L-11-2023-00009',
+'Tagihan-L-11-2023-00010',
+'Tagihan-L-11-2023-00011',
+'Tagihan-L-11-2023-00012',
+'Tagihan-L-11-2023-00013',
+'Tagihan-L-11-2023-00014',
+'Tagihan-L-11-2023-00015',
+'Tagihan-L-11-2023-00016',
+'Tagihan-L-11-2023-00017',
+'Tagihan-L-11-2023-00018',
+'Tagihan-L-11-2024-00001',
+'Tagihan-L-11-2024-00002',
+'Tagihan-L-11-2024-00004',
+'Tagihan-L-11-2024-00005',
+'Tagihan-L-11-2024-00006',
+'Tagihan-L-11-2024-00007-2',
+'Tagihan-L-11-2024-00008-2',
+'Tagihan-L-11-2024-00010',
+'Tagihan-L-11-2024-00012',
+'Tagihan-L-11-2025-00016',
+'Tagihan-L-12-2023-00001',
+'Tagihan-L-12-2023-00002',
+'Tagihan-L-12-2023-00003-1',
+'Tagihan-L-12-2023-00004-3',
+'Tagihan-L-12-2023-00005-1',
+'Tagihan-L-12-2023-00006',
+'Tagihan-L-12-2023-00007-2',
+'Tagihan-L-12-2023-00008',
+'Tagihan-L-12-2023-00009',
+'Tagihan-L-12-2023-00010',
+'Tagihan-L-12-2023-00011',
+'Tagihan-L-12-2023-00012-1',
+'Tagihan-L-12-2023-00013-1',
+'Tagihan-L-12-2023-00014',
+'Tagihan-L-12-2024-00001',
+'Tagihan-L-12-2024-00002',
+'Tagihan-L-12-2024-00005',
+'Tagihan-L-12-2024-00006',
+'Tagihan-L-12-2024-00007',
+'Tagihan-L-12-2024-00008',
+'Tagihan-L-12-2024-00009',
+'Tagihan-L-12-2024-00010',
+'Tagihan-L-12-2024-00011',
+'Tagihan-L-12-2024-00012',
+'Tagihan-L-12-2024-00013',
+'Tagihan-L-12-2024-00014',
+'Tagihan-L-12-2024-00015',
+'Tagihan-L-12-2024-00016',
+'Tagihan-L-12-2024-00017',
+'Tagihan-L-12-2024-00018-1'
+	]
 
 	for i in tmp:
 		doc = frappe.get_doc('Tagihan Discount Leasing',i)
 		print(i, ' xxx')
-		for d in doc.daftar_tagihan_leasing:
-			nominal = frappe.get_doc('Table Disc Leasing',{'parent':d.no_invoice,'nama_leasing':doc.customer}).nominal
-			print(nominal, ' nominalxxx')
-			d.nilai = nominal
-			d.outstanding_discount = nominal
-		doc.hitung_pph()
-		doc.db_update()
-		doc.update_children()
-		repair_only_gl_entry('Tagihan Discount Leasing',i)
-		print('DONE')
+		if doc.docstatus == 1:
+			for d in doc.daftar_tagihan_leasing:
+				nominal = frappe.get_doc('Table Disc Leasing',{'parent':d.no_invoice,'nama_leasing':doc.customer}).nominal
+				print(nominal, ' nominalxxx')
+				d.nilai = nominal
+				d.outstanding_discount = nominal
+			doc.hitung_pph()
+			doc.db_update()
+			doc.update_children()
+			# repair_only_gl_entry('Tagihan Discount Leasing',i)
+			print('DONE')
+
+def patch_oa_fp():
+	tmp = [
+'FP-01-2024-00013',
+'FP-01-2024-00014',
+'FP-01-2024-00015-1',
+'FP-01-2024-00016-1',
+'FP-01-2024-00021-1',
+'FP-01-2024-00022-1',
+'FP-01-2024-00027-1',
+'FP-01-2024-00028-1',
+'FP-01-2024-00030',
+'FP-01-2024-00031',
+'FP-01-2024-00036',
+'FP-01-2024-00037',
+'FP-01-2024-00038',
+'FP-01-2024-00039',
+'FP-01-2024-00040',
+'FP-01-2024-00041',
+'FP-01-2024-00042',
+'FP-01-2024-00043',
+'FP-01-2024-00044',
+'FP-01-2024-00045',
+'FP-01-2024-00046',
+'FP-01-2024-00047',
+'FP-01-2024-00048',
+'FP-01-2024-00049',
+'FP-01-2024-00050',
+'FP-01-2024-00051',
+'FP-01-2024-00052-2',
+'FP-01-2024-00053',
+'FP-01-2024-00054-1',
+'FP-01-2024-00063-1',
+'FP-01-2024-00064-1',
+'FP-01-2024-00066',
+'FP-01-2024-00067-2',
+'FP-01-2024-00068',
+'FP-01-2024-00070',
+'FP-01-2024-00071-2',
+'FP-01-2024-00072',
+'FP-01-2024-00073',
+'FP-01-2024-00074',
+'FP-01-2024-00075',
+'FP-01-2024-00076',
+'FP-01-2024-00078',
+'FP-01-2024-00081',
+'FP-01-2024-00082',
+'FP-01-2024-00083',
+'FP-01-2024-00084',
+'FP-01-2024-00100-1',
+'FP-01-2024-00101-1',
+'FP-01-2024-00102-1',
+'FP-01-2024-00103',
+'FP-01-2024-00104',
+'FP-01-2024-00105-1',
+'FP-01-2024-00106',
+'FP-01-2024-00109',
+'FP-01-2024-00110-1',
+'FP-01-2024-00112-1',
+'FP-01-2024-00115-2',
+'FP-01-2024-00117',
+'FP-01-2024-00124',
+'FP-01-2024-00131',
+'FP-01-2024-00132',
+'FP-01-2024-00134',
+'FP-01-2024-00135',
+'FP-01-2024-00136',
+'FP-01-2024-00137-1',
+'FP-01-2024-00138',
+'FP-01-2024-00153-1',
+'FP-01-2024-00154',
+'FP-01-2024-00155-1',
+'FP-01-2024-00156',
+'FP-01-2024-00157',
+'FP-01-2024-00158-1',
+'FP-01-2024-00172',
+'FP-01-2024-00175',
+'FP-01-2024-00176-1',
+'FP-01-2025-00003',
+'FP-01-2025-00004',
+'FP-01-2025-00010',
+'FP-01-2025-00011',
+'FP-01-2025-00012',
+'FP-01-2025-00013',
+'FP-01-2025-00014',
+'FP-01-2025-00015',
+'FP-01-2025-00034-2',
+'FP-01-2025-00035-1',
+'FP-01-2025-00036-2',
+'FP-01-2025-00037-1',
+'FP-01-2025-00045',
+'FP-01-2025-00048-1',
+'FP-01-2025-00049-1',
+'FP-01-2025-00050',
+'FP-01-2025-00064-1',
+'FP-01-2025-00065',
+'FP-01-2025-00069',
+'FP-01-2025-00070-1',
+'FP-01-2025-00071',
+'FP-01-2025-00073-2',
+'FP-01-2025-00076',
+'FP-01-2025-00077',
+'FP-01-2025-00105',
+'FP-01-2025-00106',
+'FP-01-2025-00107',
+'FP-01-2025-00108',
+'FP-01-2025-00110-1',
+'FP-01-2025-00111-2',
+'FP-01-2025-00113-2',
+'FP-01-2025-00115-2',
+'FP-01-2025-00116-2',
+'FP-01-2025-00118-2',
+'FP-01-2025-00120',
+'FP-01-2025-00121',
+'FP-01-2025-00139',
+'FP-01-2025-00140',
+'FP-01-2025-00141',
+'FP-01-2025-00142',
+'FP-01-2025-00143-3',
+'FP-01-2025-00144-3',
+'FP-01-2025-00145-3',
+'FP-01-2025-00146-3',
+'FP-01-2025-00147-3',
+'FP-01-2025-00148-3',
+'FP-01-2025-00149-3',
+'FP-01-2025-00180',
+'FP-01-2025-00181',
+'FP-01-2025-00182',
+'FP-01-2025-00183',
+'FP-01-2025-00184',
+'FP-01-2025-00185',
+'FP-01-2025-00186',
+'FP-01-2025-00190',
+'FP-01-2025-00191',
+'FP-01-2025-00200-1',
+'FP-02-2024-00001-2',
+'FP-02-2024-00002',
+'FP-02-2024-00003',
+'FP-02-2024-00004-2',
+'FP-02-2024-00005-2',
+'FP-02-2024-00006-1',
+'FP-02-2024-00007-2',
+'FP-02-2024-00008-1',
+'FP-02-2024-00009',
+'FP-02-2024-00010',
+'FP-02-2024-00011-1',
+'FP-02-2024-00012-1',
+'FP-02-2024-00013-1',
+'FP-02-2024-00014-1',
+'FP-02-2024-00015-1',
+'FP-02-2024-00016-1',
+'FP-02-2024-00017',
+'FP-02-2024-00029',
+'FP-02-2024-00030',
+'FP-02-2024-00031',
+'FP-02-2024-00032',
+'FP-02-2024-00033',
+'FP-02-2024-00034',
+'FP-02-2024-00037',
+'FP-02-2024-00044-1',
+'FP-02-2024-00045-1',
+'FP-02-2024-00046-3',
+'FP-02-2024-00047-3',
+'FP-02-2024-00053',
+'FP-02-2024-00054',
+'FP-02-2024-00057',
+'FP-02-2024-00058',
+'FP-02-2024-00059',
+'FP-02-2024-00060',
+'FP-02-2024-00062',
+'FP-02-2024-00063',
+'FP-02-2024-00064-1',
+'FP-02-2024-00066-1',
+'FP-02-2024-00067',
+'FP-02-2024-00068-1',
+'FP-02-2024-00074-1',
+'FP-02-2024-00080',
+'FP-02-2024-00081',
+'FP-02-2024-00082',
+'FP-02-2024-00083-1',
+'FP-02-2024-00086',
+'FP-02-2024-00092',
+'FP-02-2024-00093',
+'FP-02-2024-00094',
+'FP-02-2024-00095-1',
+'FP-02-2024-00096-1',
+'FP-02-2024-00104-2',
+'FP-02-2024-00108',
+'FP-02-2024-00110',
+'FP-02-2024-00111-1',
+'FP-02-2024-00112',
+'FP-02-2024-00113-1',
+'FP-02-2024-00114-1',
+'FP-02-2025-00001',
+'FP-02-2025-00002',
+'FP-02-2025-00003',
+'FP-02-2025-00004',
+'FP-02-2025-00005',
+'FP-02-2025-00006',
+'FP-02-2025-00007',
+'FP-02-2025-00008',
+'FP-02-2025-00009',
+'FP-02-2025-00010',
+'FP-02-2025-00011',
+'FP-02-2025-00012',
+'FP-02-2025-00013',
+'FP-02-2025-00019',
+'FP-02-2025-00020',
+'FP-02-2025-00021',
+'FP-02-2025-00041',
+'FP-02-2025-00050',
+'FP-02-2025-00051',
+'FP-02-2025-00054',
+'FP-02-2025-00055',
+'FP-02-2025-00057',
+'FP-02-2025-00058',
+'FP-02-2025-00070',
+'FP-02-2025-00071',
+'FP-02-2025-00072',
+'FP-02-2025-00073',
+'FP-02-2025-00085',
+'FP-02-2025-00086',
+'FP-02-2025-00087',
+'FP-02-2025-00088',
+'FP-02-2025-00089',
+'FP-02-2025-00091-1',
+'FP-02-2025-00093',
+'FP-02-2025-00094',
+'FP-02-2025-00101',
+'FP-02-2025-00102',
+'FP-02-2025-00103',
+'FP-02-2025-00109',
+'FP-02-2025-00111',
+'FP-02-2025-00112',
+'FP-02-2025-00115',
+'FP-02-2025-00119',
+'FP-02-2025-00136',
+'FP-02-2025-00137',
+'FP-02-2025-00138',
+'FP-02-2025-00139',
+'FP-02-2025-00140',
+'FP-02-2025-00141',
+'FP-02-2025-00145',
+'FP-02-2025-00146',
+'FP-02-2025-00147',
+'FP-02-2025-00148',
+'FP-02-2025-00165',
+'FP-02-2025-00166',
+'FP-02-2025-00167',
+'FP-02-2025-00168',
+'FP-02-2025-00169',
+'FP-02-2025-00170',
+'FP-02-2025-00172',
+'FP-02-2025-00173',
+'FP-03-2024-00007-1',
+'FP-03-2024-00008',
+'FP-03-2024-00009',
+'FP-03-2024-00010',
+'FP-03-2024-00011-1',
+'FP-03-2024-00012',
+'FP-03-2024-00013',
+'FP-03-2024-00014-1',
+'FP-03-2024-00020',
+'FP-03-2024-00021',
+'FP-03-2024-00022',
+'FP-03-2024-00051-1',
+'FP-03-2024-00052-1',
+'FP-03-2024-00053',
+'FP-03-2024-00054',
+'FP-03-2024-00055-1',
+'FP-03-2024-00056',
+'FP-03-2024-00057',
+'FP-03-2024-00058',
+'FP-03-2024-00066',
+'FP-03-2024-00067-1',
+'FP-03-2024-00068',
+'FP-03-2024-00069',
+'FP-03-2024-00105',
+'FP-03-2024-00106',
+'FP-03-2024-00107',
+'FP-03-2024-00108',
+'FP-03-2024-00109-1',
+'FP-03-2024-00110',
+'FP-03-2024-00111',
+'FP-03-2024-00112',
+'FP-03-2024-00120',
+'FP-03-2024-00121',
+'FP-03-2024-00122',
+'FP-03-2024-00123',
+'FP-03-2024-00128',
+'FP-03-2024-00129',
+'FP-03-2024-00130',
+'FP-03-2024-00131',
+'FP-03-2024-00132',
+'FP-03-2024-00133',
+'FP-03-2024-00134',
+'FP-03-2024-00135',
+'FP-03-2024-00139',
+'FP-03-2024-00140',
+'FP-03-2024-00141',
+'FP-03-2024-00142',
+'FP-03-2024-00148',
+'FP-03-2024-00149',
+'FP-03-2024-00150',
+'FP-03-2024-00151',
+'FP-03-2024-00166-1',
+'FP-03-2024-00167-1',
+'FP-03-2024-00168-1',
+'FP-03-2024-00169',
+'FP-03-2024-00170',
+'FP-03-2024-00171',
+'FP-03-2024-00172',
+'FP-03-2024-00173',
+'FP-03-2024-00174',
+'FP-03-2024-00175',
+'FP-03-2025-00001',
+'FP-03-2025-00002',
+'FP-03-2025-00006-1',
+'FP-03-2025-00007',
+'FP-03-2025-00008',
+'FP-03-2025-00009',
+'FP-03-2025-00010',
+'FP-03-2025-00012',
+'FP-03-2025-00015',
+'FP-03-2025-00016',
+'FP-03-2025-00023',
+'FP-03-2025-00027',
+'FP-03-2025-00028',
+'FP-03-2025-00029',
+'FP-03-2025-00034',
+'FP-03-2025-00035',
+'FP-03-2025-00037',
+'FP-03-2025-00039',
+'FP-03-2025-00061',
+'FP-03-2025-00062',
+'FP-03-2025-00066',
+'FP-03-2025-00067',
+'FP-03-2025-00068',
+'FP-03-2025-00069',
+'FP-03-2025-00070',
+'FP-03-2025-00073',
+'FP-03-2025-00074',
+'FP-03-2025-00101',
+'FP-03-2025-00102',
+'FP-03-2025-00103',
+'FP-03-2025-00104',
+'FP-03-2025-00110-2',
+'FP-03-2025-00111-2',
+'FP-03-2025-00112-3',
+'FP-03-2025-00113-2',
+'FP-03-2025-00114-2',
+'FP-03-2025-00117',
+'FP-03-2025-00118',
+'FP-03-2025-00121',
+'FP-03-2025-00122',
+'FP-03-2025-00123',
+'FP-03-2025-00129',
+'FP-03-2025-00130',
+'FP-03-2025-00131',
+'FP-03-2025-00132',
+'FP-03-2025-00145',
+'FP-03-2025-00147',
+'FP-03-2025-00150',
+'FP-03-2025-00163',
+'FP-03-2025-00164',
+'FP-03-2025-00165',
+'FP-03-2025-00166',
+'FP-03-2025-00167',
+'FP-03-2025-00168',
+'FP-03-2025-00169',
+'FP-03-2025-00170',
+'FP-03-2025-00171',
+'FP-03-2025-00177',
+'FP-03-2025-00178',
+'FP-03-2025-00179',
+'FP-03-2025-00180',
+'FP-03-2025-00181',
+'FP-04-2024-00031-2',
+'FP-04-2024-00032-1',
+'FP-04-2024-00033-1',
+'FP-04-2024-00034-1',
+'FP-04-2024-00035',
+'FP-04-2024-00037',
+'FP-04-2024-00038',
+'FP-04-2024-00039',
+'FP-04-2024-00040',
+'FP-04-2024-00041',
+'FP-04-2024-00045-1',
+'FP-04-2024-00046',
+'FP-04-2024-00047',
+'FP-04-2024-00060',
+'FP-04-2024-00062',
+'FP-04-2024-00063-1',
+'FP-04-2024-00066',
+'FP-04-2024-00067',
+'FP-04-2024-00111-1',
+'FP-04-2024-00112',
+'FP-04-2024-00113',
+'FP-04-2024-00114-1',
+'FP-04-2024-00115',
+'FP-04-2024-00116-1',
+'FP-04-2024-00117-1',
+'FP-04-2024-00118-1',
+'FP-04-2024-00119-1',
+'FP-04-2024-00120-1',
+'FP-04-2024-00121',
+'FP-04-2024-00122',
+'FP-04-2024-00123-1',
+'FP-04-2024-00124-1',
+'FP-04-2024-00125',
+'FP-04-2024-00126',
+'FP-04-2024-00128',
+'FP-04-2024-00129',
+'FP-04-2024-00130-1',
+'FP-04-2024-00131',
+'FP-04-2024-00132',
+'FP-04-2024-00133',
+'FP-04-2024-00134-1',
+'FP-04-2024-00135',
+'FP-04-2024-00136-1',
+'FP-04-2024-00137',
+'FP-04-2024-00138',
+'FP-04-2024-00139',
+'FP-04-2024-00140',
+'FP-04-2025-00005',
+'FP-04-2025-00006',
+'FP-04-2025-00007',
+'FP-04-2025-00013-1',
+'FP-04-2025-00014',
+'FP-04-2025-00015',
+'FP-04-2025-00016',
+'FP-04-2025-00019',
+'FP-04-2025-00020',
+'FP-04-2025-00021',
+'FP-04-2025-00022',
+'FP-04-2025-00024',
+'FP-04-2025-00025-1',
+'FP-04-2025-00046',
+'FP-04-2025-00047',
+'FP-04-2025-00048',
+'FP-04-2025-00049',
+'FP-04-2025-00052',
+'FP-04-2025-00053',
+'FP-04-2025-00054-1',
+'FP-04-2025-00055-1',
+'FP-04-2025-00067',
+'FP-04-2025-00068',
+'FP-04-2025-00069',
+'FP-04-2025-00070',
+'FP-04-2025-00071',
+'FP-04-2025-00082',
+'FP-04-2025-00084',
+'FP-04-2025-00085',
+'FP-04-2025-00086',
+'FP-04-2025-00089',
+'FP-04-2025-00090',
+'FP-04-2025-00091',
+'FP-04-2025-00092',
+'FP-04-2025-00093',
+'FP-04-2025-00094',
+'FP-04-2025-00111',
+'FP-04-2025-00112',
+'FP-04-2025-00113',
+'FP-04-2025-00115',
+'FP-04-2025-00117',
+'FP-04-2025-00118',
+'FP-04-2025-00119',
+'FP-04-2025-00141',
+'FP-04-2025-00142',
+'FP-04-2025-00143',
+'FP-04-2025-00144',
+'FP-04-2025-00145',
+'FP-04-2025-00146',
+'FP-04-2025-00147',
+'FP-04-2025-00153',
+'FP-04-2025-00154',
+'FP-04-2025-00155',
+'FP-04-2025-00156',
+'FP-04-2025-00161',
+'FP-04-2025-00162',
+'FP-04-2025-00163',
+'FP-04-2025-00184',
+'FP-04-2025-00185',
+'FP-04-2025-00186',
+'FP-04-2025-00187',
+'FP-04-2025-00188',
+'FP-04-2025-00189',
+'FP-04-2025-00190',
+'FP-04-2025-00191-1',
+'FP-04-2025-00196-1',
+'FP-04-2025-00197-1',
+'FP-04-2025-00198',
+'FP-04-2025-00199-2',
+'FP-04-2025-00217',
+'FP-04-2025-00218',
+'FP-04-2025-00219-1',
+'FP-04-2025-00222',
+'FP-04-2025-00223',
+'FP-04-2025-00224',
+'FP-04-2025-00225',
+'FP-05-2024-00024',
+'FP-05-2024-00025',
+'FP-05-2024-00026',
+'FP-05-2024-00027',
+'FP-05-2024-00028-1',
+'FP-05-2024-00029-1',
+'FP-05-2024-00030',
+'FP-05-2024-00031',
+'FP-05-2024-00047',
+'FP-05-2024-00048',
+'FP-05-2024-00049',
+'FP-05-2024-00070',
+'FP-05-2024-00071',
+'FP-05-2024-00074',
+'FP-05-2024-00075',
+'FP-05-2024-00076',
+'FP-05-2024-00111',
+'FP-05-2024-00112',
+'FP-05-2024-00113',
+'FP-05-2024-00114',
+'FP-05-2024-00115',
+'FP-05-2024-00116',
+'FP-05-2024-00117',
+'FP-05-2024-00118',
+'FP-05-2024-00133',
+'FP-05-2024-00134',
+'FP-05-2024-00135',
+'FP-05-2024-00136',
+'FP-05-2024-00159',
+'FP-05-2024-00160',
+'FP-05-2024-00161',
+'FP-05-2024-00162',
+'FP-05-2024-00163',
+'FP-05-2024-00164',
+'FP-05-2024-00170',
+'FP-05-2024-00171',
+'FP-05-2024-00172',
+'FP-05-2024-00180',
+'FP-05-2024-00181',
+'FP-05-2024-00182',
+'FP-05-2024-00189',
+'FP-05-2025-00002',
+'FP-05-2025-00003',
+'FP-05-2025-00005',
+'FP-05-2025-00006',
+'FP-05-2025-00011',
+'FP-05-2025-00012',
+'FP-05-2025-00013',
+'FP-05-2025-00014',
+'FP-05-2025-00020',
+'FP-05-2025-00021',
+'FP-05-2025-00027',
+'FP-05-2025-00028',
+'FP-05-2025-00033',
+'FP-05-2025-00037',
+'FP-05-2025-00038',
+'FP-05-2025-00039',
+'FP-05-2025-00040',
+'FP-05-2025-00041',
+'FP-05-2025-00054',
+'FP-05-2025-00055',
+'FP-05-2025-00057',
+'FP-05-2025-00059',
+'FP-05-2025-00064',
+'FP-05-2025-00065',
+'FP-05-2025-00066',
+'FP-05-2025-00067',
+'FP-05-2025-00071',
+'FP-05-2025-00072',
+'FP-05-2025-00073',
+'FP-05-2025-00078',
+'FP-05-2025-00079',
+'FP-05-2025-00080',
+'FP-05-2025-00081',
+'FP-05-2025-00085',
+'FP-05-2025-00086',
+'FP-05-2025-00087',
+'FP-05-2025-00091',
+'FP-05-2025-00092',
+'FP-05-2025-00093',
+'FP-05-2025-00098',
+'FP-05-2025-00099',
+'FP-05-2025-00107',
+'FP-05-2025-00108',
+'FP-05-2025-00121',
+'FP-05-2025-00122',
+'FP-05-2025-00123-1',
+'FP-05-2025-00124-1',
+'FP-05-2025-00125-1',
+'FP-05-2025-00126-1',
+'FP-05-2025-00129',
+'FP-05-2025-00130',
+'FP-05-2025-00132',
+'FP-05-2025-00136-1',
+'FP-05-2025-00137-1',
+'FP-05-2025-00145',
+'FP-05-2025-00146',
+'FP-05-2025-00147',
+'FP-05-2025-00148',
+'FP-05-2025-00149',
+'FP-05-2025-00152-1',
+'FP-05-2025-00153',
+'FP-05-2025-00154',
+'FP-06-2024-00005-1',
+'FP-06-2024-00006',
+'FP-06-2024-00007',
+'FP-06-2024-00008',
+'FP-06-2024-00009',
+'FP-06-2024-00010',
+'FP-06-2024-00011',
+'FP-06-2024-00012',
+'FP-06-2024-00013',
+'FP-06-2024-00015',
+'FP-06-2024-00036',
+'FP-06-2024-00043',
+'FP-06-2024-00044',
+'FP-06-2024-00045',
+'FP-06-2024-00046',
+'FP-06-2024-00047',
+'FP-06-2024-00051',
+'FP-06-2024-00052',
+'FP-06-2024-00053',
+'FP-06-2024-00054',
+'FP-06-2024-00055',
+'FP-06-2024-00061',
+'FP-06-2024-00064',
+'FP-06-2024-00069',
+'FP-06-2024-00071',
+'FP-06-2024-00072',
+'FP-06-2024-00074',
+'FP-06-2024-00081',
+'FP-06-2024-00082',
+'FP-06-2024-00086',
+'FP-06-2024-00087',
+'FP-06-2024-00088',
+'FP-06-2024-00089',
+'FP-06-2024-00094',
+'FP-06-2024-00095',
+'FP-06-2024-00099',
+'FP-06-2024-00100',
+'FP-06-2024-00101',
+'FP-06-2024-00102',
+'FP-06-2024-00107',
+'FP-06-2024-00108',
+'FP-06-2024-00109',
+'FP-06-2025-00002',
+'FP-06-2025-00016',
+'FP-06-2025-00017',
+'FP-06-2025-00022',
+'FP-06-2025-00028',
+'FP-06-2025-00029',
+'FP-06-2025-00030',
+'FP-06-2025-00031',
+'FP-06-2025-00032',
+'FP-06-2025-00033',
+'FP-06-2025-00037',
+'FP-06-2025-00039',
+'FP-06-2025-00040',
+'FP-06-2025-00042',
+'FP-06-2025-00043',
+'FP-06-2025-00057',
+'FP-06-2025-00059',
+'FP-06-2025-00062',
+'FP-06-2025-00065',
+'FP-06-2025-00066',
+'FP-06-2025-00067',
+'FP-06-2025-00070',
+'FP-06-2025-00071',
+'FP-06-2025-00072',
+'FP-06-2025-00078',
+'FP-06-2025-00079',
+'FP-06-2025-00080',
+'FP-06-2025-00081',
+'FP-06-2025-00082',
+'FP-06-2025-00102',
+'FP-06-2025-00103',
+'FP-06-2025-00108',
+'FP-06-2025-00109',
+'FP-06-2025-00110',
+'FP-06-2025-00111',
+'FP-06-2025-00114',
+'FP-06-2025-00115',
+'FP-06-2025-00116',
+'FP-06-2025-00117',
+'FP-06-2025-00118',
+'FP-06-2025-00119',
+'FP-06-2025-00122',
+'FP-06-2025-00124',
+'FP-06-2025-00129',
+'FP-06-2025-00131',
+'FP-06-2025-00151',
+'FP-06-2025-00152',
+'FP-06-2025-00153',
+'FP-06-2025-00154',
+'FP-06-2025-00155',
+'FP-06-2025-00156',
+'FP-06-2025-00157',
+'FP-06-2025-00158',
+'FP-06-2025-00159',
+'FP-06-2025-00160',
+'FP-06-2025-00161',
+'FP-06-2025-00162',
+'FP-07-2024-00011',
+'FP-07-2024-00012',
+'FP-07-2024-00013',
+'FP-07-2024-00014',
+'FP-07-2024-00018',
+'FP-07-2024-00025',
+'FP-07-2024-00026',
+'FP-07-2024-00027',
+'FP-07-2024-00033',
+'FP-07-2024-00039',
+'FP-07-2024-00040',
+'FP-07-2024-00042',
+'FP-07-2024-00044',
+'FP-07-2024-00048',
+'FP-07-2024-00050',
+'FP-07-2024-00060',
+'FP-07-2024-00061',
+'FP-07-2024-00070',
+'FP-07-2024-00071',
+'FP-07-2024-00075',
+'FP-07-2024-00076',
+'FP-07-2024-00077',
+'FP-07-2024-00078',
+'FP-07-2024-00080',
+'FP-07-2024-00083-1',
+'FP-07-2024-00085',
+'FP-07-2024-00086',
+'FP-07-2024-00095',
+'FP-07-2024-00096',
+'FP-07-2024-00097',
+'FP-07-2024-00099',
+'FP-07-2024-00101',
+'FP-07-2024-00103-1',
+'FP-07-2024-00104',
+'FP-07-2024-00110',
+'FP-07-2024-00111',
+'FP-07-2024-00112',
+'FP-07-2024-00113',
+'FP-07-2025-00001',
+'FP-07-2025-00009',
+'FP-07-2025-00012',
+'FP-07-2025-00013',
+'FP-07-2025-00018',
+'FP-07-2025-00019',
+'FP-07-2025-00020',
+'FP-07-2025-00021',
+'FP-07-2025-00032',
+'FP-07-2025-00033',
+'FP-07-2025-00034',
+'FP-07-2025-00036',
+'FP-07-2025-00037',
+'FP-07-2025-00039-1',
+'FP-08-2024-00007',
+'FP-08-2024-00008',
+'FP-08-2024-00009',
+'FP-08-2024-00013',
+'FP-08-2024-00014',
+'FP-08-2024-00015',
+'FP-08-2024-00016',
+'FP-08-2024-00018',
+'FP-08-2024-00019',
+'FP-08-2024-00020',
+'FP-08-2024-00021',
+'FP-08-2024-00033',
+'FP-08-2024-00034',
+'FP-08-2024-00060',
+'FP-08-2024-00061',
+'FP-08-2024-00062',
+'FP-08-2024-00063',
+'FP-08-2024-00064',
+'FP-08-2024-00065-1',
+'FP-08-2024-00070',
+'FP-08-2024-00071-1',
+'FP-08-2024-00072-1',
+'FP-08-2024-00073',
+'FP-08-2024-00104',
+'FP-08-2024-00105',
+'FP-08-2024-00106',
+'FP-08-2024-00107',
+'FP-08-2024-00108',
+'FP-08-2024-00109',
+'FP-08-2024-00110',
+'FP-08-2024-00115',
+'FP-08-2024-00116',
+'FP-08-2024-00117',
+'FP-08-2024-00118',
+'FP-08-2024-00119',
+'FP-08-2024-00120',
+'FP-08-2024-00123',
+'FP-08-2024-00124',
+'FP-08-2024-00125',
+'FP-08-2024-00165',
+'FP-08-2024-00166',
+'FP-08-2024-00167',
+'FP-08-2024-00168',
+'FP-08-2024-00169',
+'FP-08-2024-00170',
+'FP-08-2024-00171',
+'FP-08-2024-00172',
+'FP-08-2024-00173',
+'FP-08-2024-00180',
+'FP-08-2024-00181',
+'FP-08-2024-00182',
+'FP-08-2024-00183',
+'FP-08-2024-00184',
+'FP-08-2024-00185',
+'FP-08-2024-00186',
+'FP-08-2024-00187',
+'FP-08-2024-00188',
+'FP-08-2024-00189',
+'FP-09-2024-00010-1',
+'FP-09-2024-00013',
+'FP-09-2024-00014',
+'FP-09-2024-00022',
+'FP-09-2024-00023',
+'FP-09-2024-00024',
+'FP-09-2024-00041',
+'FP-09-2024-00044',
+'FP-09-2024-00045',
+'FP-09-2024-00056',
+'FP-09-2024-00057',
+'FP-09-2024-00060',
+'FP-09-2024-00076',
+'FP-09-2024-00077',
+'FP-09-2024-00078',
+'FP-09-2024-00079',
+'FP-09-2024-00080',
+'FP-09-2024-00084',
+'FP-09-2024-00085',
+'FP-09-2024-00086',
+'FP-09-2024-00087',
+'FP-09-2024-00088',
+'FP-09-2024-00089',
+'FP-09-2024-00090',
+'FP-09-2024-00091',
+'FP-09-2024-00092',
+'FP-09-2024-00093',
+'FP-09-2024-00094',
+'FP-09-2024-00096',
+'FP-09-2024-00097',
+'FP-09-2024-00110',
+'FP-09-2024-00136-1',
+'FP-09-2024-00137-1',
+'FP-09-2024-00138',
+'FP-09-2024-00139',
+'FP-09-2024-00143',
+'FP-09-2024-00144',
+'FP-09-2024-00145',
+'FP-09-2024-00158',
+'FP-09-2024-00159',
+'FP-09-2024-00160',
+'FP-09-2024-00161',
+'FP-09-2024-00162',
+'FP-09-2024-00176',
+'FP-09-2024-00177',
+'FP-09-2025-00009',
+'FP-09-2025-00010',
+'FP-09-2025-00011',
+'FP-09-2025-00012',
+'FP-09-2025-00013',
+'FP-10-2023-00096',
+'FP-10-2024-00002',
+'FP-10-2024-00004',
+'FP-10-2024-00005',
+'FP-10-2024-00010',
+'FP-10-2024-00011',
+'FP-10-2024-00012',
+'FP-10-2024-00013',
+'FP-10-2024-00018',
+'FP-10-2024-00020',
+'FP-10-2024-00034',
+'FP-10-2024-00036',
+'FP-10-2024-00037',
+'FP-10-2024-00040',
+'FP-10-2024-00041',
+'FP-10-2024-00044',
+'FP-10-2024-00045',
+'FP-10-2024-00046',
+'FP-10-2024-00047',
+'FP-10-2024-00066',
+'FP-10-2024-00067',
+'FP-10-2024-00068',
+'FP-10-2024-00069',
+'FP-10-2024-00073',
+'FP-10-2024-00075-1',
+'FP-10-2024-00076',
+'FP-10-2024-00077-2',
+'FP-10-2024-00079-1',
+'FP-10-2024-00098',
+'FP-10-2024-00101',
+'FP-10-2024-00102',
+'FP-10-2024-00103',
+'FP-10-2024-00104',
+'FP-10-2024-00106',
+'FP-10-2024-00107',
+'FP-10-2024-00163',
+'FP-10-2024-00164',
+'FP-10-2024-00165',
+'FP-10-2024-00169',
+'FP-10-2024-00170',
+'FP-10-2024-00182',
+'FP-10-2024-00183',
+'FP-10-2024-00186',
+'FP-10-2024-00187',
+'FP-10-2024-00188',
+'FP-10-2025-00088',
+'FP-10-2025-00089',
+'FP-10-2025-00090',
+'FP-10-2025-00092',
+'FP-10-2025-00093',
+'FP-10-2025-00103',
+'FP-11-2023-00012',
+'FP-11-2023-00013',
+'FP-11-2023-00014',
+'FP-11-2023-00015',
+'FP-11-2023-00016',
+'FP-11-2023-00017-1',
+'FP-11-2023-00018-1',
+'FP-11-2023-00019',
+'FP-11-2023-00020',
+'FP-11-2023-00021',
+'FP-11-2023-00022',
+'FP-11-2023-00023',
+'FP-11-2023-00024',
+'FP-11-2023-00025',
+'FP-11-2023-00037',
+'FP-11-2023-00038-1',
+'FP-11-2023-00039',
+'FP-11-2023-00040',
+'FP-11-2023-00041',
+'FP-11-2023-00042',
+'FP-11-2023-00043',
+'FP-11-2023-00044',
+'FP-11-2023-00045',
+'FP-11-2023-00046',
+'FP-11-2023-00047',
+'FP-11-2023-00048-1',
+'FP-11-2023-00059',
+'FP-11-2023-00060',
+'FP-11-2023-00061',
+'FP-11-2023-00062',
+'FP-11-2023-00063',
+'FP-11-2023-00064',
+'FP-11-2023-00065',
+'FP-11-2023-00066',
+'FP-11-2023-00067',
+'FP-11-2023-00068',
+'FP-11-2023-00069',
+'FP-11-2023-00070',
+'FP-11-2023-00071',
+'FP-11-2023-00072',
+'FP-11-2023-00073',
+'FP-11-2023-00074',
+'FP-11-2023-00075',
+'FP-11-2023-00076',
+'FP-11-2023-00077',
+'FP-11-2023-00078',
+'FP-11-2023-00079',
+'FP-11-2023-00080',
+'FP-11-2023-00081',
+'FP-11-2023-00082',
+'FP-11-2023-00083',
+'FP-11-2023-00084',
+'FP-11-2023-00085',
+'FP-11-2023-00086',
+'FP-11-2023-00087',
+'FP-11-2023-00088',
+'FP-11-2023-00106',
+'FP-11-2023-00107',
+'FP-11-2023-00116',
+'FP-11-2023-00117',
+'FP-11-2023-00118',
+'FP-11-2023-00119',
+'FP-11-2023-00120',
+'FP-11-2023-00121',
+'FP-11-2023-00122',
+'FP-11-2023-00123',
+'FP-11-2023-00124',
+'FP-11-2023-00125',
+'FP-11-2023-00126',
+'FP-11-2023-00127',
+'FP-11-2023-00128',
+'FP-11-2023-00129',
+'FP-11-2023-00130',
+'FP-11-2023-00131',
+'FP-11-2023-00132',
+'FP-11-2023-00133',
+'FP-11-2023-00134',
+'FP-11-2023-00137',
+'FP-11-2023-00138',
+'FP-11-2023-00139',
+'FP-11-2023-00140',
+'FP-11-2023-00141',
+'FP-11-2023-00142',
+'FP-11-2023-00143',
+'FP-11-2023-00144',
+'FP-11-2023-00145',
+'FP-11-2023-00146',
+'FP-11-2023-00147',
+'FP-11-2023-00148',
+'FP-11-2023-00149',
+'FP-11-2023-00150',
+'FP-11-2023-00151',
+'FP-11-2023-00162',
+'FP-11-2023-00163',
+'FP-11-2023-00164',
+'FP-11-2023-00165',
+'FP-11-2023-00166',
+'FP-11-2023-00167',
+'FP-11-2023-00168',
+'FP-11-2023-00169',
+'FP-11-2023-00170',
+'FP-11-2023-00171',
+'FP-11-2023-00172',
+'FP-11-2023-00173',
+'FP-11-2023-00174',
+'FP-11-2023-00175',
+'FP-11-2023-00176',
+'FP-11-2023-00177',
+'FP-11-2023-00195',
+'FP-11-2023-00196',
+'FP-11-2023-00197',
+'FP-11-2023-00199',
+'FP-11-2023-00204-1',
+'FP-11-2023-00205',
+'FP-11-2023-00221-1',
+'FP-11-2023-00222',
+'FP-11-2023-00223',
+'FP-11-2023-00224',
+'FP-11-2023-00225',
+'FP-11-2023-00226',
+'FP-11-2023-00227-3',
+'FP-11-2023-00228-1',
+'FP-11-2023-00229',
+'FP-11-2023-00230',
+'FP-11-2023-00231',
+'FP-11-2023-00232',
+'FP-11-2023-00233',
+'FP-11-2023-00234-1',
+'FP-11-2024-00003',
+'FP-11-2024-00004',
+'FP-11-2024-00006',
+'FP-11-2024-00018',
+'FP-11-2024-00019',
+'FP-11-2024-00025',
+'FP-11-2024-00028',
+'FP-11-2024-00029',
+'FP-11-2024-00033',
+'FP-11-2024-00035',
+'FP-11-2024-00038',
+'FP-11-2024-00055-1',
+'FP-11-2024-00056-1',
+'FP-11-2024-00057-2',
+'FP-11-2024-00058-2',
+'FP-11-2024-00059-2',
+'FP-11-2024-00060-1',
+'FP-11-2024-00061-1',
+'FP-11-2024-00062-1',
+'FP-11-2024-00063-3',
+'FP-11-2024-00064-2',
+'FP-11-2024-00067',
+'FP-11-2024-00073',
+'FP-11-2024-00074',
+'FP-11-2024-00089',
+'FP-11-2024-00090',
+'FP-11-2024-00091',
+'FP-11-2024-00092',
+'FP-11-2024-00094',
+'FP-11-2024-00108',
+'FP-11-2024-00131',
+'FP-11-2025-00105',
+'FP-12-2023-00036-1',
+'FP-12-2023-00037',
+'FP-12-2023-00039',
+'FP-12-2023-00040',
+'FP-12-2023-00041',
+'FP-12-2023-00042',
+'FP-12-2023-00043-1',
+'FP-12-2023-00044',
+'FP-12-2023-00045-1',
+'FP-12-2023-00046-1',
+'FP-12-2023-00070-5',
+'FP-12-2023-00071-5',
+'FP-12-2023-00072-2',
+'FP-12-2023-00073-2',
+'FP-12-2023-00074',
+'FP-12-2023-00081',
+'FP-12-2023-00082',
+'FP-12-2023-00085',
+'FP-12-2023-00087',
+'FP-12-2023-00090',
+'FP-12-2023-00092-2',
+'FP-12-2023-00093',
+'FP-12-2023-00094-2',
+'FP-12-2023-00099',
+'FP-12-2023-00100',
+'FP-12-2023-00101',
+'FP-12-2023-00102',
+'FP-12-2023-00103-1',
+'FP-12-2023-00104',
+'FP-12-2023-00105-2',
+'FP-12-2023-00106-2',
+'FP-12-2023-00107',
+'FP-12-2023-00108',
+'FP-12-2023-00109',
+'FP-12-2023-00110-2',
+'FP-12-2023-00111-2',
+'FP-12-2023-00118',
+'FP-12-2023-00119-1',
+'FP-12-2023-00121-1',
+'FP-12-2023-00122',
+'FP-12-2023-00123-1',
+'FP-12-2023-00124',
+'FP-12-2023-00125',
+'FP-12-2023-00126-1',
+'FP-12-2024-00003-1',
+'FP-12-2024-00004',
+'FP-12-2024-00005',
+'FP-12-2024-00006',
+'FP-12-2024-00007',
+'FP-12-2024-00008-1',
+'FP-12-2024-00009',
+'FP-12-2024-00010',
+'FP-12-2024-00014-1',
+'FP-12-2024-00046',
+'FP-12-2024-00047',
+'FP-12-2024-00055',
+'FP-12-2024-00057',
+'FP-12-2024-00062',
+'FP-12-2024-00063',
+'FP-12-2024-00064',
+'FP-12-2024-00065',
+'FP-12-2024-00066',
+'FP-12-2024-00071',
+'FP-12-2024-00072',
+'FP-12-2024-00073',
+'FP-12-2024-00074',
+'FP-12-2024-00080',
+'FP-12-2024-00081',
+'FP-12-2024-00082',
+'FP-12-2024-00105',
+'FP-12-2024-00106',
+'FP-12-2024-00107',
+'FP-12-2024-00108',
+'FP-12-2024-00109',
+'FP-12-2024-00110',
+'FP-12-2024-00111',
+'FP-12-2024-00112',
+'FP-12-2024-00113',
+'FP-12-2024-00121',
+'FP-12-2024-00122',
+'FP-12-2024-00123',
+'FP-12-2024-00124',
+'FP-12-2024-00125',
+'FP-12-2024-00126',
+'FP-12-2024-00127',
+'FP-12-2024-00128',
+'FP-12-2024-00129',
+'FP-12-2024-00130',
+'FP-12-2024-00131',
+'FP-12-2024-00132',
+'FP-12-2024-00166',
+'FP-12-2024-00167',
+'FP-12-2024-00171-1',
+'FP-12-2024-00172-1',
+'FP-12-2024-00173-1'
+	]
+	con = 1
+	for i in tmp:
+		print(con, 'conxxx')
+		doc = frappe.get_doc('Form Pembayaran',i)
+		if doc.docstatus == 1:
+			doc.calcutale_outstanding()
+			print(doc.name, " Done")
+		con += 1
 
 def patch_sn_no_rangka():
 	data = frappe.db.sql(""" SELECT name,no_rangka from `tabSerial No` where no_rangka is null limit 100 """,as_dict=1)

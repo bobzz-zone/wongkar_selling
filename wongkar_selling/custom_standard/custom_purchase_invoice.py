@@ -1,3 +1,4 @@
+from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_amt_custom
 from wongkar_selling.wongkar_selling.doctype.sales_invoice_penjualan_motor.sales_invoice_penjualan_motor import get_warehouse_account_map
 from erpnext.assets.doctype.asset.asset import is_cwip_accounting_enabled
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
@@ -138,6 +139,11 @@ class PurchaseInvoiceCustom(PurchaseInvoice):
 			elif not item.expense_account and for_validate:
 				throw(_("Expense account is mandatory for item {0}").format(item.item_code or item.item_name))
 
+
+@frappe.whitelist()
+def cek_oa_nol(self,method):
+	if self.outstanding_amount == 0 and self.total_advance != self.grand_total:
+		update_outstanding_amt_custom(self.credit_to,'Supplier',self.supplier,'Purchase Invoice',self.name)
 
 @frappe.whitelist()
 def can_diskon_sn_ste(self,method):

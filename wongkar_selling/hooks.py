@@ -184,7 +184,9 @@ doc_events = {
 		"on_update_after_submit": ["wongkar_selling.wongkar_selling.sync_custom.test_update"],
 		"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli","wongkar_selling.custom_standard.custom_purchase_invoice.can_diskon_sn_ste"],
 		"on_trash": ["wongkar_selling.wongkar_selling.sync_custom.delete_sumber_asli"],
-		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync","wongkar_selling.custom_standard.custom_purchase_invoice.diskon_sn_ste"],
+		"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync",
+                "wongkar_selling.custom_standard.custom_purchase_invoice.diskon_sn_ste",
+                "wongkar_selling.custom_standard.custom_purchase_invoice.cek_oa_nol"],
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sales_order_log.sales_order_log.after_submit_so"]
 	},
 	"Purchase Receipt": {
@@ -260,7 +262,9 @@ doc_events = {
 		# "on_update": "wongkar_selling.custom_standard.custom_serial_no.isi_nosin",
 		"onload": ["wongkar_selling.custom_standard.custom_serial_no.rem_sinv","wongkar_selling.custom_standard.custom_serial_no.isi_nosin"]
 	},
-
+    "Stock Ledger Entry":{
+        "validate": "wongkar_selling.custom_standard.custom_stock_ledger_entry.check_future_entries_exists"
+	}
 	# "Payment Entry": {
 	# 	"on_submit": ["wongkar_selling.wongkar_selling.doctype.doc_sync_log.doc_sync_log.after_submit_sync"],
 	# 	"on_cancel": ["wongkar_selling.wongkar_selling.sync_custom.cencel_sumber_asli"],

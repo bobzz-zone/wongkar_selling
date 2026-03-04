@@ -41,6 +41,14 @@ class TagihanDiscountLeasing(Document):
 		for i in self.daftar_tagihan_leasing:
 			frappe.db.sql(""" UPDATE `tabSales Invoice Penjualan Motor` set tanggal_tagih='{}' where name='{}' """.format(self.date,i.no_invoice))
 
+	def cal_gt_oa(self):
+		gt = 0
+		oa= 0
+		for i in self.daftar_tagihan_leasing:
+			oa += i.outstanding_discount
+		self.outstanding_amount = oa
+		print(self.grand_total,' ccc', self.outstanding_amount)
+
 	def hitung_pph(self):
 		total = 0
 		for d in self.daftar_tagihan_leasing:

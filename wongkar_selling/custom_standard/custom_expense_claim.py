@@ -1,11 +1,24 @@
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 import frappe
 
-from erpnext.hr.doctype.expense_claim.expense_claim import ExpenseClaim
+from erpnext.hr.doctype.expense_claim.expense_claim import ExpenseClaim, update_reimbursed_amount
 from frappe.utils import cstr, flt, get_link_to_form
 from erpnext.accounts.general_ledger import make_gl_entries
 
 
 class custom_advance(ExpenseClaim):
+	def on_cancel(self):
+		self.update_task_and_project()
+		self.ignore_linked_doctypes = ("GL Entry", "Stock Ledger Entry")
+		if self.payable_account:
+			self.make_gl_entries(cancel=True)
+
+		if self.is_paid:
+			update_reimbursed_amount(self, -1 * self.grand_total)
+
+		self.set_status(update=True)
+		self.update_claimed_amount_in_employee_advance()
+
 	def make_gl_entries(self, cancel=False):
 		if flt(self.total_sanctioned_amount) > 0:
 			gl_entries = self.get_gl_entries()

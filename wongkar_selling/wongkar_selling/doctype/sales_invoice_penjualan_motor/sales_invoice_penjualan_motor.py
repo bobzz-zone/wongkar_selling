@@ -35,6 +35,12 @@ from frappe import _, scrub, ValidationError
 from wongkar_selling.custom_standard.custom_taxes_and_total import calculate_taxes_and_totals_custom
 
 class SalesInvoicePenjualanMotor(SalesInvoice):
+    def autoname(self):
+        # return
+        self.naming_series = 'ACC-SINVM-.YYYY.-'
+        if frappe.local.site in ["bjm2.digitalasiasolusindo.com","ifmi2.digitalasiasolusindo.com"]:
+            self.naming_series = 'ACC-SIPM-.YYYY.-'
+
     def get_advance_entries(self, include_unallocated=True):
         if self.doctype == "Sales Invoice Penjualan Motor":
             # frappe.msgprint("masuk Sales Invoice Penjualan Motor")
@@ -767,7 +773,8 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
 
     def on_submit(self):
         self.add_pemilik()
-        self.cek_advance()
+        if not self.program_tanpa_dp:
+            self.cek_advance()
         self.validate_pos_paid_amount()
         self.add_dpp_sn()
 

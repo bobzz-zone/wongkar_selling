@@ -31,6 +31,7 @@
   "nama_mekanik",
   "jam_masuk_service",
   "jam_selesai_service",
+  "no_voucher",
   "column_break_djirv",
   "nama_stnk",
   "nama_pembawa",
@@ -345,7 +346,7 @@
    "fieldname": "type_kpb",
    "fieldtype": "Select",
    "label": "Type KPB",
-   "options": "Reguler\nKPB"
+   "options": "Reguler\nKPB\nLCR"
   },
   {
    "fieldname": "column_break_s6hno",
@@ -499,12 +500,17 @@
    "fieldname": "outstanding_amount_sparepart",
    "fieldtype": "Currency",
    "label": "Outstanding Amount sparepart"
+  },
+  {
+   "fieldname": "no_voucher",
+   "fieldtype": "Data",
+   "label": "No Voucher"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-10 09:34:41.926781",
+ "modified": "2026-03-03 15:09:11.923096",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Sales Invoice Sparepart Garansi",

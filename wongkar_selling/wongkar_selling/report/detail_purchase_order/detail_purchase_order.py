@@ -40,7 +40,10 @@ def get_data(filters):
 			pri.net_rate as dpp,
 			(pri.net_rate + ((pri.net_amount * t1.tax_amount / prec.net_total) / pri.qty)) * t2.rate/100 as ppn,
 			po.faktur_pajak,
-			pii.discount_amount as diskon
+			po.transaction_date as tgl_po,
+			po.status as po_status,
+			pii.discount_amount as diskon,
+			pinv.status
 		FROM `tabStock Ledger Entry` sle
 		JOIN `tabPurchase Receipt` prec ON prec.name = sle.voucher_no
 		JOIN `tabSerial No` sn ON sle.serial_no LIKE CONCAT("%",sn.name,"%")
@@ -97,6 +100,12 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Status Invoice"),
+			"fieldname": "status",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
 			"label": _("Supplier Delivery Note"),
 			"fieldname": "supplier_delivery_note",
 			"fieldtype": "Data",
@@ -109,8 +118,20 @@ def get_columns(filters):
 			"width": 100
 		},
 		{
+			"label": _("Tanggal PO"),
+			"fieldname": "tgl_po",
+			"fieldtype": "Date",
+			"width": 100
+		},
+		{
 			"label": _("Faktur Pajak"),
 			"fieldname": "faktur_pajak",
+			"fieldtype": "Data",
+			"width": 100
+		},
+		{
+			"label": _("PO Status"),
+			"fieldname": "po_status",
 			"fieldtype": "Data",
 			"width": 100
 		},

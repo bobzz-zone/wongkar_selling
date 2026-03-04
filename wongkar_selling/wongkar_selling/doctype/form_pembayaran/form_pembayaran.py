@@ -16,6 +16,34 @@ from frappe.utils import cint, flt, getdate, add_days, cstr, nowdate, get_link_t
 from frappe import _, bold, qb, throw
 
 class FormPembayaran(Document):
+	def cek_akun(self):
+		if self.customer:
+			for i in self.list_doc_name:
+				akun = ''
+				if i.reference_doctype == 'Tagihan Discount':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'coa_tagihan_discount')
+				elif i.reference_doctype == 'Tagihan Discount Leasing':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'coa_tagihan_discount_leasing')
+				elif i.reference_doctype == 'Tagihan Leasing':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'coa_lawan')
+				elif self.type == 'Pembayaran Invoice Garansi Jasa':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'debit_to')
+				elif self.type == 'Pembayaran Invoice Garansi Sparepart':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'debit_to_sparepart')
+
+				if self.paid_from != akun:
+					frappe.throw(f'Akun Tidak Sama {self.paid_from} {akun} !' )
+		elif self.vendor:
+			for i in self.list_doc_name:
+				akun = ''
+				if self.type == 'Pembayaran BPKB':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'coa_biaya_motor_bpkb')
+				elif self.type == 'Pembayaran STNK':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'coa_biaya_motor_stnk')
+			
+				if self.paid_to != akun:
+					frappe.throw(f'Akun Tidak Sama {self.paid_from} {akun} !' )
+
 	def cek_double_list_docname(self):
 		tmp= []
 		for i in self.list_doc_name:
@@ -52,6 +80,7 @@ class FormPembayaran(Document):
 	def validate(self):
 		self.hitung_total()
 		self.cek_double_list_docname()
+		self.cek_akun()
 
 	# def onload(self):
 	# 	if self.total == 0 and self.docstatus == 1:
@@ -133,6 +162,7 @@ class FormPembayaran(Document):
 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(self.name,self.doctype))
 		frappe.db.commit()
 
+
 	def calcutale_outstanding(self):
 		for d in self.tagihan_payment_table:
 			if d.doc_type == 'Tagihan Discount':
@@ -142,7 +172,15 @@ class FormPembayaran(Document):
 			elif d.doc_type == 'Tagihan Discount Leasing':
 				doc_type = 'Daftar Tagihan Leasing'
 				field = 'outstanding_discount'
-				nilai = frappe.get_doc(doc_type,d.id_detail).nilai
+				rate = 11
+				if frappe.db.exists('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}):
+					rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_sinv,'idx':1}).rate
+				tax = (100+rate ) / 100
+				pjk = frappe.get_doc(doc_type,d.id_detail).nilai / tax
+				doc_pph = frappe.db.get_value(d.doc_type,d.doc_name,"pph")
+				pph = pjk * (doc_pph/100)
+				nilai = flt(frappe.get_doc(doc_type,d.id_detail).nilai-pph,0)
+				print(nilai, ' nilaixx')
 				outstanding = frappe.get_doc(doc_type,d.id_detail).outstanding_discount
 			elif d.doc_type == 'Tagihan Leasing':
 				doc_type = 'List Tagihan Piutang Leasing'
@@ -167,11 +205,12 @@ class FormPembayaran(Document):
 				outstanding = frappe.get_doc(doc_type,d.id_detail).outstanding_amount_sparepart
 			
 			if self.docstatus == 1:
-				hitung = outstanding - d.nilai
+				hitung = flt(outstanding - d.nilai,0)
 				if doc_type == 'Daftar Tagihan Leasing':
-					hitung_t = nilai - hitung
+					hitung_t = flt(nilai - hitung,0)
+					print(hitung_t, ' hitung_txxx')
 					if d.nilai > 0:
-						frappe.db.sql(""" UPDATE `tab{}` set {} = '{}',terbayarkan = '{}',mode_of_payment_discount = '{}' where name = '{}' """.format(doc_type,field,hitung,hitung_t,self.mode_of_payment,d.id_detail))
+						frappe.db.sql(""" UPDATE `tab{}` set {} = '{}',terbayarkan = '{}',mode_of_payment_discount = '{}' where name = '{}' """.format(doc_type,field,hitung,hitung_t,self.mode_of_payment,d.id_detail),debug=1)
 				elif doc_type == 'List Tagihan Piutang Leasing':
 					hitung_t = nilai - hitung
 					if d.nilai > 0:
@@ -179,9 +218,9 @@ class FormPembayaran(Document):
 				else:
 					frappe.db.sql(""" UPDATE `tab{}` set {} = '{}' where name = '{}' """.format(doc_type,field,hitung,d.id_detail))
 			elif self.docstatus == 2:
-				hitung = outstanding + d.nilai
+				hitung = flt(outstanding + d.nilai,0)
 				if doc_type == 'Daftar Tagihan Leasing':
-					hitung_t = nilai - hitung
+					hitung_t = flt(nilai - hitung,0)
 					frappe.db.sql(""" UPDATE `tab{}` set {} = '{}',terbayarkan = '{}' where name = '{}' """.format(doc_type,field,hitung,hitung_t,d.id_detail))
 				elif doc_type == 'List Tagihan Piutang Leasing':
 					hitung_t = nilai - hitung
@@ -220,7 +259,9 @@ class FormPembayaran(Document):
 			elif i.reference_doctype == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Sparepart':
 				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_sparepart", data[0]['total']);
 			else:
+				print(data[0]['total'], ' xxx')
 				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount", data[0]['total']);
+
 
 	def get_gl_dict(self, args, account_currency=None, item=None):
 		"""this method populates the common properties of a gl entry record"""
@@ -559,28 +600,30 @@ def get_form_pemabayaran(dt, dn, type_bayar = None):
 			no_rangka = d.no_rangka+"--"+d.no_mesin
 
 		if d.parenttype != 'Invoice Penagihan Garansi':
-			fp.append("tagihan_payment_table", {
-				'no_sinv': no_sinv,
-				'pemilik': d.pemilik,
-				'nama_pemilik': d.nama_pemilik,
-				'item': d.item,
-				'no_rangka': d.no_rangka,
-				'nilai': nilai,
-				'doc_type': dt,
-				'doc_name': dn,
-				'id_detail': d.name
-			})
+			if nilai > 0:
+				fp.append("tagihan_payment_table", {
+					'no_sinv': no_sinv,
+					'pemilik': d.pemilik,
+					'nama_pemilik': d.nama_pemilik,
+					'item': d.item,
+					'no_rangka': d.no_rangka,
+					'nilai': nilai,
+					'doc_type': dt,
+					'doc_name': dn,
+					'id_detail': d.name
+				})
 		elif d.parenttype == 'Invoice Penagihan Garansi':
-			fp.append("tagihan_payment_table", {
-				'sales_invoice_sparepart_garansi': no_sinv,
-				'pemilik': d.customer,
-				'nama_pemilik': d.customer_name,
-				'item': None,
-				'no_rangka2': no_rangka,
-				'nilai': nilai,
-				'doc_type': dt,
-				'doc_name': dn,
-				'id_detail': d.name
-			})
+			if nilai > 0:
+				fp.append("tagihan_payment_table", {
+					'sales_invoice_sparepart_garansi': no_sinv,
+					'pemilik': d.customer,
+					'nama_pemilik': d.customer_name,
+					'item': None,
+					'no_rangka2': no_rangka,
+					'nilai': nilai,
+					'doc_type': dt,
+					'doc_name': dn,
+					'id_detail': d.name
+				})
 
 	return fp

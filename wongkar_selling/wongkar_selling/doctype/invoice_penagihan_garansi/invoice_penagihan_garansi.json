@@ -71,6 +71,7 @@
    "reqd": 1
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "list_invoice_penagihan_garansi",
    "fieldtype": "Table",
    "label": "List Invoice Penagihan Garansi",
@@ -249,7 +250,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-10 09:54:39.021619",
+ "modified": "2026-03-04 09:17:12.057701",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Invoice Penagihan Garansi",

@@ -269,7 +269,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' and outstanding_stnk > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran BPKB":
@@ -284,7 +284,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' and outstanding_bpkb > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Pembayaran Tagihan Motor" and tipe_pembayaran == "Pembayaran Diskon Dealer":
@@ -299,7 +299,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabChild Tagihan Biaya Motor` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabChild Tagihan Biaya Motor` where parent = '{}' and terbayarkan > 0  """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -316,7 +316,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabDaftar Tagihan Leasing` where parent = '{}' and outstanding_discount > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == "Tagihan Discount Leasing" and tipe_pembayaran == "Pembayaran SIPM":
@@ -331,7 +331,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabDaftar Tagihan Leasing` where parent = '{}' and outstanding_sipm > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -348,7 +348,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_sinv as no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabDaftar Tagihan` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabDaftar Tagihan` where parent = '{}' and terbayarkan > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -365,7 +365,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				no_invoice,
 				nama_pemilik,
 				name as id_detail
-				from `tabList Tagihan Piutang Leasing` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabList Tagihan Piutang Leasing` where parent = '{}' and outstanding_sipm > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 
@@ -381,7 +381,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				parent,
 				name as id_detail,
 				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
-				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Sparepart' and not oli:
@@ -396,7 +396,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				parent,
 				name as id_detail,
 				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
-				from `tabList Invoice Penagihan Garansi` where parent = '{}' """.format(i['docname']),as_dict=1,debug=0)
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_sparepart > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
 	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Jasa' and oli:

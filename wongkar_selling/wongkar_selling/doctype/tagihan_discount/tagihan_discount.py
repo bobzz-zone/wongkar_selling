@@ -250,7 +250,7 @@ class TagihanDiscount(Document):
 		# cost_center = frappe.get_value("Company",{"name" : self.company}, "round_off_cost_center")
 		data = frappe.db.sql(""" SELECT SUM(td.nominal) AS nilai,cost_center,sinv.debit_to,td.coa_receivable,td.coa_lawan,td.rule,td.parent as no_sinv FROM `tabDaftar Tagihan` cd
 			JOIN `tabSales Invoice Penjualan Motor` sinv ON sinv.name = cd.`no_sinv` 
-			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY cost_center,td.customer """.format(self.name,self.customer),as_dict=1)
+			JOIN `tabTable Discount` td on td.parent = sinv.name WHERE cd.parent = '{}' and td.customer = '{}' GROUP BY sinv.name """.format(self.name,self.customer),as_dict=1)
 
 		for d in data:
 			cost_center = frappe.get_value("Sales Invoice Penjualan Motor",{"name" : d.no_sinv}, "cost_center")

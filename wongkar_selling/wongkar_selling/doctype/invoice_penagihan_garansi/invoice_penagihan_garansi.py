@@ -34,7 +34,10 @@ class InvoicePenagihanGaransi(Document):
 						tot_amount_jasa += amount
 					elif d.titipan_account == coa_claimable_sinv_garansi_sparepart:
 						debit_to = self.debit_to_sparepart
-						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						print(f"({d.amount}/{tax})+(({d.amount}/{tax})*({self.rate}/100))-(({d.amount}/{tax})*({self.pph}/100)) xxx")
+						# yang sparepart tidak pakai pph 18-11-2025
+						# amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						amount =  d.amount
 						tot_amount_sparepart += amount
 					elif d.titipan_account == titipan_ahas_account_oli:
 						debit_to = self.debit_to_oli
@@ -65,7 +68,9 @@ class InvoicePenagihanGaransi(Document):
 						tot_amount_jasa += amount
 					elif d.titipan_account == coa_claimable_sinv_garansi_sparepart:
 						debit_to = self.debit_to_sparepart
-						amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						# yang sparepart tidak pakai pph 18-11-2025
+						# amount = (d.amount/tax)+((d.amount/tax)*(self.rate/100))-((d.amount/tax)*(self.pph/100))
+						amount = d.amount
 						tot_amount_sparepart += amount
 					elif d.titipan_account == titipan_ahas_account_oli:
 						debit_to = self.debit_to_oli
@@ -302,21 +307,22 @@ class InvoicePenagihanGaransi(Document):
 							# "remarks": "coba Lutfi pajak!"
 						}, item=None)
 					)
-				elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
-					pph = ((i.amount/tax)*(self.pph/100))
-					print(pph, ' pphxx')
-					gl_entries.append(
-						self.get_gl_dict({
-							"account": self.pph_account,
-							"against": self.customer,
-							# "debit": pph,
-							# "debit_in_account_currency": pph,
-							"debit": pph,
-							"debit_in_account_currency": pph,
-							# "cost_center": cost_center,
-							# "remarks": "coba Lutfi pajak!"
-						}, item=None)
-					)
+				# yang sparepart tidak pakai pph 18-11-2025
+				# elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
+				# 	pph = ((i.amount/tax)*(self.pph/100))
+				# 	print(pph, ' pphxx')
+				# 	gl_entries.append(
+				# 		self.get_gl_dict({
+				# 			"account": self.pph_account,
+				# 			"against": self.customer,
+				# 			# "debit": pph,
+				# 			# "debit_in_account_currency": pph,
+				# 			"debit": pph,
+				# 			"debit_in_account_currency": pph,
+				# 			# "cost_center": cost_center,
+				# 			# "remarks": "coba Lutfi pajak!"
+				# 		}, item=None)
+				# 	)
 
 	def make_customer_gl_entry(self, gl_entries):
 		# Checked both rounding_adjustment and rounded_total
@@ -344,7 +350,9 @@ class InvoicePenagihanGaransi(Document):
 						amount = (i.amount/tax)+((i.amount/tax)*(self.rate/100))-((i.amount/tax)*(self.pph/100))
 					elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
 						debit_to = self.debit_to_sparepart
-						amount = (i.amount/tax)+((i.amount/tax)*(self.rate/100))-((i.amount/tax)*(self.pph/100))
+						amount = i.amount
+						# yang sparepart tidak pakai pph 18-11-2025
+						# amount = (i.amount/tax)+((i.amount/tax)*(self.rate/100))-((i.amount/tax)*(self.pph/100))
 
 					gl_entries.append(
 						self.get_gl_dict(
@@ -687,7 +695,8 @@ def make_je(dt, dn):
 			elif d.titipan_account == coa_claimable_sinv_garansi_jasa:
 				# frappe.throw('masuk sini !')
 				debit_to = doc.debit_to_jasa
-				amount_jasa = (d.amount/tax)+((d.amount/tax)*(doc.rate/100))-((d.amount/tax)*(doc.pph/100))
+				# amount_jasa = (d.amount/tax)+((d.amount/tax)*(doc.rate/100))-((d.amount/tax)*(doc.pph/100))
+				amount_jasa = d.amount
 				tot_amount_jasa += amount_jasa
 
 

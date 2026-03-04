@@ -14,6 +14,22 @@ from erpnext.accounts.general_ledger import make_gl_entries
 import erpnext
 
 class PembayaranTagihanMotor(Document):
+	def cal_gt_oa(self):
+		gt_stnk = 0
+		oa_stnk = 0
+		gt_bpkb = 0
+		oa_bpkb = 0
+		for i in self.tagihan_biaya_motor:
+			gt_stnk += i.nilai_stnk
+			oa_stnk += i.outstanding_stnk
+			gt_bpkb += i.nilai_bpkb
+			oa_bpkb += i.outstanding_bpkb
+		self.total_stnk = gt_stnk
+		self.outstanding_amount_stnk = oa_stnk
+		self.total_bpkb = gt_bpkb
+		self.outstanding_amount_bpkb = oa_bpkb
+		print(self.outstanding_amount_stnk,' ccc', self.outstanding_amount_stnk)
+
 	def before_cancel(self):
 		# cek = frappe.db.sql(""" SELECT pe.name from `tabPayment Entry Reference` per 
 		# 	join `tabPayment Entry` pe on pe.name = per.parent

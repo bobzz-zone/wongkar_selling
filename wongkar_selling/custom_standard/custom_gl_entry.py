@@ -47,7 +47,7 @@ class custom_advance(GLEntry):
 
 			# Update outstanding amt on against voucher menambahkan voucher untuk sipm
 			if (
-				self.against_voucher_type in ["Journal Entry", "Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor","Invoice Penagihan Garansi"]
+				self.against_voucher_type in ["Journal Entry", "Sales Invoice", "Purchase Invoice", "Fees","Sales Invoice Penjualan Motor","Invoice Penagihan Garansi","Tagihan Leasing"]
 				and self.against_voucher
 				and self.flags.update_outstanding == "Yes"
 				and not frappe.flags.is_reverse_depr_entry
@@ -530,6 +530,7 @@ def update_outstanding_amt_custom(
 			print(f"{against_voucher_type} {against_voucher} {voucher_type} {bal} {account} xxxx")
 			# frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount", bal)
 		else:
+			print(f"{against_voucher_type} {against_voucher} {voucher_type} {bal} {account} yyyy")
 			frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount", bal)
 		if against_voucher_type not in  ["Sales Invoice Sparepart Garansi","Invoice Penagihan Garansi"]:
 			ref_doc.set_status(update=True)

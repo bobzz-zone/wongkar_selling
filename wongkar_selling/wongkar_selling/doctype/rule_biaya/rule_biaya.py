@@ -10,8 +10,7 @@ class RuleBiaya(Document):
 	def before_insert(self):
 		cek = frappe.db.sql(""" SELECT * from `tabRule Biaya` where item_group = '{0}' 
 			and type = '{1}' and territory = '{2}' 
-			and (valid_to = '{3}' or valid_from = '{3}') and vendor = '{4}' 
-			 and disable=0 """.format(self.item_group,self.type,self.territory,self.valid_to,self.vendor,self.name),as_dict=1)
+			and (valid_to = '{3}' or valid_from = '{3}') and vendor = '{4}' and disable = 0 """.format(self.item_group,self.type,self.territory,self.valid_to,self.vendor,self.name),as_dict=1)
 		
 		tmp_cek = []
 		if cek:
@@ -44,7 +43,8 @@ class RuleBiaya(Document):
 		
 		# item_group
 		# cek = frappe.db.get_value("Rule Biaya",{"item_group": self.item_group,"type": self.type,"territory": self.territory,"valid_to":self.valid_to,"vendor":self.vendor}, "name")
-
+		if self.disable:
+			return
 		cek = frappe.db.sql(""" SELECT * from `tabRule Biaya` where item_group = '{0}' 
 			and type = '{1}' and territory = '{2}' 
 			and (valid_to = '{3}' or valid_from = '{3}') and vendor = '{4}' 

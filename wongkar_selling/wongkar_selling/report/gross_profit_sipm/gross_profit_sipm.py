@@ -6,7 +6,7 @@ from frappe.utils import flt
 def execute(filters=None):
 	columns, data = [], []
 	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Data:100","No Mesin:Link/Serial No:200","Nama Type:Data:150","Item:Link/Item:150","ID Jual:Data:150","Cabang Jual:Data:150","Nama Area:Data:150","OTR:Currency:150","Potongan:Currency:150","Adjustment:Currency:150","Harga Jual:Currency:150",
-		"COGS:Currency:150","Gross Profit:Currency:150","Cost STNK:Currency:150","Cost BPKB:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
+		"COGS:Currency:150","Gross Profit:Currency:150","Gross Profit - Pot:Currency:150","Cost STNK:Currency:150","Cost BPKB:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 #	columns=["Date:Date:100","Invoice:Link/Sales Invoice Penjualan Motor:150","Leasing:Link/Customer:100","Item:Link/Item:150","Harga Jual:Currency:150",
 #               "COGS:Currency:150","Gross Profit:Currency:150","GP Percentage:Percent:100","ROI:Percent:100"]
 	#dapatkan data salesinvoice yang related
@@ -32,11 +32,13 @@ def execute(filters=None):
 	total_sales=0
 	total_cogs=0
 	total_gp=0
+	total_gp_disc=0
 	result=[]
 	for row in data:
 		total_sales+=flt(row[12])+flt(row[11])
 		total_cogs+=flt(row[13])
 		total_gp+=flt(row[12])-flt(row[13])
+		total_gp_disc+=flt(row[12])-flt(row[13])-flt(row[10])
 		row8=0
 		row9=0
 		try:
@@ -47,9 +49,9 @@ def execute(filters=None):
 			row9=(100*((flt(row[12])-flt(row[13]))/flt(row[13])))
 		except:
 			row9=0
-		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],flt(row[12])+flt(row[11]),row[13],flt(row[12])-flt(row[13]),row[14],row[15],row8,row9])
+		result.append([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],flt(row[12])+flt(row[11]),row[13],flt(row[12])-flt(row[13]),flt(row[12])-flt(row[13])-flt(row[10]),row[14],row[15],row8,row9])
 	try:
-		result.append(["","","","","","","","","","","","",total_sales,total_cogs,total_gp,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
+		result.append(["","","","","","","","","","","","",total_sales,total_cogs,total_gp,total_gp_disc,"","",100*(total_gp/total_sales) or 0,100*(total_gp/total_cogs) or 0])
 	except:
 		pass
 	return columns,result

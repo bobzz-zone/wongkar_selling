@@ -124,18 +124,21 @@ def get_sn(filters):
 			sn.item_code,
 			sn.item_name,
 			sn.warehouse AS wh,
+			sn.`delivery_date`,
+			sn.delivery_document_type,
+			sn.delivery_document_no,
 			SUBSTRING_INDEX(sn.name,'--',1) AS no_mesin,
 			SUBSTRING_INDEX(sn.name,'--',-1) AS no_rangka,
-			IF(sn.warehouse IS NULL,0,IF(sn.`purchase_date` < CURRENT_DATE(),sn.purchase_rate,0))  AS opening_val,
-			IF(sn.warehouse IS NULL,0,IF(sn.`purchase_date` < CURRENT_DATE(),1,0)) AS opening_qty,
-			IF(sn.warehouse IS NOT NULL,IF(sn.`purchase_date` < CURRENT_DATE(),0,sn.purchase_rate),0) AS in_val,
-			IF(sn.warehouse IS NOT NULL,IF(sn.`purchase_date` < CURRENT_DATE(),0,1),0) AS in_qty,
-			IF(sn.warehouse IS NOT NULL,0,1) AS out_qty,
-			IF(sn.warehouse IS NOT NULL,0,sn.purchase_rate) AS out_val,
-			IF(sn.warehouse IS NOT NULL,sn.purchase_rate,0) AS bal_val,
+			IF(sn.warehouse IS NULL,0,IF(sn.`purchase_date` < '{1}' ,sn.purchase_rate,0))  AS opening_val,
+			IF(sn.warehouse IS NULL,0,IF(sn.`purchase_date` < '{1}' ,1,0)) AS opening_qty,
+			IF(sn.`warehouse` IS NULL AND sn.`delivery_date` <= '{2}',0,sn.`purchase_rate`)  AS in_val,
+			IF(sn.`warehouse` IS NULL AND sn.`delivery_date` <= '{2}',0,1) AS in_qty,
+			IF(sn.warehouse IS NULL AND sn.`delivery_date` > '{2}',0,1) AS out_qty,
+			IF(sn.warehouse IS NULL AND sn.`delivery_date` > '{2}',0,sn.purchase_rate) AS out_val,
+			IF(sn.`warehouse` IS NULL AND sn.`delivery_date` <= '{2}',0,sn.`purchase_rate`) AS bal_val,
 			IF(sn.warehouse IS NULL,IF(sn.delivery_document_type IS NOT NULL,
 			(SELECT set_warehouse FROM `tabSales Invoice Penjualan Motor` WHERE NAME = sn.delivery_document_no),sn.warehouse),sn.warehouse) AS warehouse
-		from `tabSerial No` sn where  {}  sn.purchase_date between '{}' and '{}' """.format(conditions,from_date,to_date),as_dict=1,debug=1)
+		from `tabSerial No` sn where  {0}  sn.purchase_date between '{1}' and '{2}' """.format(conditions,from_date,to_date),as_dict=1,debug=1)
 
 	return data_sn
 

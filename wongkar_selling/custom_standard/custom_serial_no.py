@@ -50,34 +50,36 @@ def rem_sinv(self,method):
 
 	data = frappe.db.sql(""" SELECT 
 		sipm.cost_center as cost_center_jual,
-		(SELECT cc2.parent_cost_center from 
+		ifnull((SELECT cc2.parent_cost_center from 
 			`tabPurchase Receipt Item` pri 
 			JOIN `tabCost Center` cc ON cc.name = pri.cost_center 
 			JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-			where pri.parent=pr.name and pri.serial_no like '%{0}%' ) as cc_beli,
-		pr.posting_date as tanggal_beli,
+			where pri.parent=pr.name and pri.serial_no like '%{0}%' ),"") as cc_beli,
+		ifnull(if(pr.posting_date is not null,pr.posting_date,se.posting_date),"") as tanggal_beli,
 		cc2.parent_cost_center as cc_jual
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
-		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%") 
+		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%") and sle.is_cancelled = 0
 		join `tabItem` i on i.name = sipm.item_code
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
+		left join `tabStock Entry` se on se.name = sle.voucher_no and se.stock_entry_type = 'Material Receipt'
 		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
 		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-		where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1)
+		where sipm.docstatus = 1  and sle.voucher_type in ("Purchase Receipt","Stock Entry") and sn.name = '{0}' """.format(self.name),as_dict=1)
 
 	data_blm = frappe.db.sql(""" SELECT 
-		(SELECT cc2.parent_cost_center from 
+		ifnull((SELECT cc2.parent_cost_center from 
 			`tabPurchase Receipt Item` pri 
 			JOIN `tabCost Center` cc ON cc.name = pri.cost_center 
 			JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-			where pri.parent=pr.name and pri.serial_no like '%{0}%') as cc_beli,
-		pr.posting_date as tanggal_beli
+			where pri.parent=pr.name and pri.serial_no like '%{0}%'),"") as cc_beli,
+		ifnull(if(pr.posting_date is not null,pr.posting_date,se.posting_date),"") as tanggal_beli
 		from `tabSerial No` sn
-		join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
+		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%") and sle.is_cancelled = 0
 		join `tabItem` i on i.name = sn.item_code
 		left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
-		where sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(self.name),as_dict=1)
+		left join `tabStock Entry` se on se.name = sle.voucher_no and se.stock_entry_type = 'Material Receipt'
+		where sle.voucher_type in ("Purchase Receipt","Stock Entry")  and sn.name = '{0}' """.format(self.name),as_dict=1)
 
 	data_repack = frappe.db.sql(""" SELECT 
 		(SELECT cc2.parent_cost_center from 
@@ -87,7 +89,7 @@ def rem_sinv(self,method):
 			where sed.parent=se.name and sed.serial_no like '%{0}%' Limit 1) as cc_beli,
 		se.posting_date as tanggal_beli
 		from `tabSerial No` sn
-		join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
+		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%")
 		join `tabItem` i on i.name = sn.item_code
 		left join `tabStock Entry` se on se.name = sle.voucher_no
 		where sle.voucher_type = "Stock Entry" and se.stock_entry_type = 'Repack' and sn.name = '{0}' """.format(self.name),as_dict=1)
@@ -103,13 +105,14 @@ def rem_sinv(self,method):
 		cc2.parent_cost_center as cc_jual
 		from `tabSales Invoice Penjualan Motor` sipm
 		join `tabSerial No` sn on sn.name = sipm.no_rangka
-		join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
+		join `tabStock Ledger Entry` sle on sle.serial_no LIKE CONCAT("%",sn.name,"%")
 		join `tabItem` i on i.name = sipm.item_code
 		left join `tabStock Entry` se on se.name = sle.voucher_no
 		JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
 		JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
 		where sipm.docstatus = 1  and sle.voucher_type = "Stock Entry" and se.stock_entry_type = 'Repack' and sn.name = '{0}' """.format(self.name),as_dict=1)
-
+	print(str(data)+' data')
+	print(str(data_blm)+' data_blm')
 	asal_jual = ''
 	asal_beli= ''
 	tanggal_beli = ''
@@ -123,18 +126,24 @@ def rem_sinv(self,method):
 			asal_beli = 'BJM'
 		else:
 			asal_beli = 'IFMI'
-
-		tanggal_beli = data[0]['tanggal_beli']
+		
+		for i in data:
+			if i['tanggal_beli']:
+				tanggal_beli = i['tanggal_beli']
+		
 
 	if data_blm:
-		# frappe.msgprint(str(data_blm)+" data_blm")
+		
 		if data_blm[0]['cc_beli']:
+			
 			if 'BJM' in data_blm[0]['cc_beli']:
 				asal_beli = 'BJM'
 			else:
 				asal_beli = 'IFMI'
 
-			tanggal_beli = data_blm[0]['tanggal_beli']
+		for i in data_blm:
+			if i['tanggal_beli']:
+				tanggal_beli = i['tanggal_beli']
 		
 
 	if data_repack_jual:
@@ -159,19 +168,18 @@ def rem_sinv(self,method):
 			asal_beli = 'IFMI'
 
 		tanggal_beli = data_repack[0]['tanggal_beli']
-
+	print(tanggal_beli, ' tanggal_belixx')
 	if tanggal_beli != "":
-		frappe.db.sql(""" UPDATE `tabSerial No` set asal_beli='{}',asal_jual='{}',tanggal_beli='{}' where name = '{}' """.format(asal_beli,asal_jual,tanggal_beli,self.name))
+		# frappe.msgprint(str(tanggal_beli)+" tanggal_beli")
+		frappe.db.sql(""" UPDATE `tabSerial No` set asal_beli='{}',asal_jual='{}',tanggal_beli='{}' where name = '{}' """.format(asal_beli,asal_jual,tanggal_beli,self.name),debug=1)
 	print(self.name)
 
-	print(str(data)+' data')
-	print(str(data_blm)+' data_blm')
+	
 	
 	print(self.name, ' doc.name')
 	print(self.asal_beli, ' doc.asal_beli')
 
-	print(str(data)+' data')
-	print(str(data_blm)+' data_blm')
+	
 	
 def patch_serial_no(self,method):
 	pass
@@ -303,126 +311,15 @@ def patch_serial_no(self,method):
 
 def patch_serial_all():
 	# if frappe.local.site == 'honda2.digitalasiasolusindo.com':
-	serial = frappe.db.sql(""" Select name from `tabSerial No` """,as_dict=1)
+	serial = frappe.db.sql(""" Select name from `tabSerial No` where (tanggal_beli is null OR tanggal_beli = '') """,as_dict=1)
 	print(len(serial), " --len")
 	conter = 1
 	for i in serial:
-		print(conter, " --conter")
-		# doc = frappe.get_doc('Serial No',i['name'])
-		data = frappe.db.sql(""" SELECT 
-			sipm.cost_center as cost_center_jual,
-			(SELECT cc2.parent_cost_center from 
-				`tabPurchase Receipt Item` pri 
-				JOIN `tabCost Center` cc ON cc.name = pri.cost_center 
-				JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-				where pri.parent=pr.name and pri.serial_no like '%{0}%' ) as cc_beli,
-			pr.posting_date as tanggal_beli,
-			cc2.parent_cost_center as cc_jual
-			from `tabSales Invoice Penjualan Motor` sipm
-			join `tabSerial No` sn on sn.name = sipm.no_rangka
-			join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
-			join `tabItem` i on i.name = sipm.item_code
-			left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
-			JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
-			JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-			where sipm.docstatus = 1  and sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(i['name']),as_dict=1)
-
-		data_blm = frappe.db.sql(""" SELECT 
-			(SELECT cc2.parent_cost_center from 
-				`tabPurchase Receipt Item` pri 
-				JOIN `tabCost Center` cc ON cc.name = pri.cost_center 
-				JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-				where pri.parent=pr.name and pri.serial_no like '%{0}%') as cc_beli,
-			pr.posting_date as tanggal_beli
-			from `tabSerial No` sn
-			join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
-			join `tabItem` i on i.name = sn.item_code
-			left join `tabPurchase Receipt` pr on pr.name = sle.voucher_no
-			where sle.voucher_type = "Purchase Receipt" and sn.name = '{0}' """.format(i['name']),as_dict=1)
-
-		data_repack = frappe.db.sql(""" SELECT 
-			(SELECT cc2.parent_cost_center from 
-				`tabStock Entry Detail` sed 
-				JOIN `tabCost Center` cc ON cc.name = sed.cost_center 
-				JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-				where sed.parent=se.name and sed.serial_no like '%{0}%' Limit 1) as cc_beli,
-			se.posting_date as tanggal_beli
-			from `tabSerial No` sn
-			join `tabStock Ledger Entry` sle on sle.serial_no = sn.name
-			join `tabItem` i on i.name = sn.item_code
-			left join `tabStock Entry` se on se.name = sle.voucher_no
-			where sle.voucher_type = "Stock Entry" and se.stock_entry_type = 'Repack' and sn.name = '{0}' """.format(i['name']),as_dict=1)
-
-		data_repack_jual = frappe.db.sql(""" SELECT 
-			sipm.cost_center as cost_center_jual,
-			(SELECT cc2.parent_cost_center from 
-				`tabStock Entry Detail` sed 
-				JOIN `tabCost Center` cc ON cc.name = sed.cost_center 
-				JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-				where sed.parent=se.name and sed.serial_no like '%{0}%' Limit 1) as cc_beli,
-			se.posting_date as tanggal_beli,
-			cc2.parent_cost_center as cc_jual
-			from `tabSales Invoice Penjualan Motor` sipm
-			join `tabSerial No` sn on sn.name = sipm.no_rangka
-			join `tabStock Ledger Entry` sle on sle.serial_no = sipm.no_rangka
-			join `tabItem` i on i.name = sipm.item_code
-			left join `tabStock Entry` se on se.name = sle.voucher_no
-			JOIN `tabCost Center` cc ON cc.name = sipm.cost_center 
-			JOIN `tabCost Center` cc2 ON cc2.`name` = cc.`parent_cost_center`
-			where sipm.docstatus = 1  and sle.voucher_type = "Stock Entry" and se.stock_entry_type = 'Repack' and sn.name = '{0}' """.format(i['name']),as_dict=1)
-
-		asal_jual = ''
-		if data:
-			if 'BJM' in data[0]['cc_jual']:
-				asal_jual = 'BJM'
-			else:
-				asal_jual = 'IFMI'
-
-			if 'BJM' in data[0]['cc_beli']:
-				asal_beli = 'BJM'
-			else:
-				asal_beli = 'IFMI'
-
-			tanggal_beli = data[0]['tanggal_beli']
-
-		if data_blm:
-			if 'BJM' in data_blm[0]['cc_beli']:
-				asal_beli = 'BJM'
-			else:
-				asal_beli = 'IFMI'
-
-			tanggal_beli = data_blm[0]['tanggal_beli']
-			
-
-		if data_repack_jual:
-			print("masuk Sini")
-			if 'BJM' in data_repack_jual[0]['cc_jual']:
-				asal_jual = 'BJM'
-			else:
-				asal_jual = 'IFMI'
-
-			if 'BJM' in data_repack_jual[0]['cc_beli']:
-				asal_beli = 'BJM'
-			else:
-				asal_beli = 'IFMI'
-
-			tanggal_beli = data_repack_jual[0]['tanggal_beli']
-			
-
-		if data_repack:
-			if 'BJM' in data_repack[0]['cc_beli']:
-				asal_beli = 'BJM'
-			else:
-				asal_beli = 'IFMI'
-
-			tanggal_beli = data_repack[0]['tanggal_beli']
-
-
-		frappe.db.sql(""" UPDATE `tabSerial No` set asal_beli='{}',asal_jual='{}',tanggal_beli='{}' where name = '{}' """.format(asal_beli,asal_jual,tanggal_beli,i['name']))
-		print(i['name'])
-
-		print(str(data)+' data')
-		print(str(data_blm)+' data_blm')
+		doc= frappe.get_doc("Serial No",i.name)
+		rem_sinv(doc,"onload")
+		print(conter)
+		print(i.name)
+		frappe.db.commit()
 		conter = conter + 1
 
 def pacth_total_harga():

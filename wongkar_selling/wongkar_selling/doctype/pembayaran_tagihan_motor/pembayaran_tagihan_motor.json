@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-14 12:54:06.430346",
  "doctype": "DocType",
@@ -11,6 +12,7 @@
   "tagihan_stnk",
   "tagihan_bpkb",
   "date",
+  "cut_off",
   "date_from",
   "date_to",
   "vendor",
@@ -272,12 +274,21 @@
    "fieldname": "note",
    "fieldtype": "Text",
    "label": "Note"
+  },
+  {
+   "default": "0",
+   "fieldname": "cut_off",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Cut Off",
+   "read_only": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-12 10:20:49.277023",
+ "modified": "2025-12-03 14:25:00.961296",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Pembayaran Tagihan Motor",

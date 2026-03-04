@@ -57,6 +57,8 @@ class RuleDiscountLeasing(Document):
 	def validate(self):
 		# return
 		self.cek_akun()
+		if self.disable:
+			return
 		# item_code
 		# cek = frappe.db.get_value("Rule Discount Leasing",{"item_code": self.item_code,"nama_promo": self.nama_promo,"territory": self.territory,
 		# 	"leasing": self.leasing,"valid_to":self.valid_to}, "name")

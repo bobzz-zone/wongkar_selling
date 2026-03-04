@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2021-09-14 12:54:06.430346",
  "doctype": "DocType",
@@ -9,6 +10,7 @@
   "naming_series",
   "section_break_2",
   "date",
+  "cut_off",
   "vendor",
   "supplier",
   "nama_vendor",
@@ -125,19 +127,26 @@
    "hidden": 1,
    "label": "Status",
    "options": "\nDraft\nSubmitted\nPaid\nUnpaid\nCancelled"
+  },
+  {
+   "default": "0",
+   "fieldname": "cut_off",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Cut Off",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-28 09:27:04.503474",
+ "modified": "2025-12-03 14:25:39.101930",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Biaya Motor",
  "owner": "Administrator",
  "permissions": [],
- "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
