@@ -1,4 +1,7 @@
 from __future__ import unicode_literals
+
+from wongkar_selling.custom_standard.custom_journal_entry import get_outstanding_custom
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_outstanding
 from erpnext.setup.doctype.company.company import create_transaction_deletion_request
 import frappe, erpnext
 from frappe.core.doctype.data_import.data_import import start_import
@@ -16,14 +19,21 @@ from wongkar_selling.custom_standard.custom_gl_entry import update_outstanding_a
 import pandas as pd
 
 #DEV
+def patch_gl_ipg():
+	tmp = [
+'IPG-2025-00005'
+	]
+
+	for i in tmp:
+		doc = frappe.get_doc("Invoice Penagihan Garansi",i)
+		if doc.docstatus == 1:
+			repair_only_gl_entry("Invoice Penagihan Garansi",doc.name)
+
 def patch_import(data_import):
 	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_import --kwargs '{"data_import":"Rule Discount Leasing Import on 2026-01-14 11:06:58.919409"}'
 	print(f'start {data_import}')
 	start_import(data_import)
 	print("DONE")
-
-def update_outstadin_amunt_sig():
-	update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
 
 def cek_children_sipm():
 	return
@@ -245,9 +255,45 @@ def update_sinv_sp():
 			
 
 def patch_je():
-	doc = frappe.get_doc("Journal Entry","ACC-JV-2023-01373")
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_je
+	doc = frappe.get_doc("Journal Entry","ACC-JV-2025-20896")
 	print(doc.name)
 	repair_only_gl_entry("Journal Entry",doc.name)
+
+def get_oa_dp():
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.get_oa_dp
+	tmp = 'ACC-SIPM-2025-00122||FDP-12-2025-00216'
+	tmp = tmp.split("||")
+	sipm = frappe.get_doc("Sales Invoice Penjualan Motor",tmp[0])
+	
+	piutang_motor = frappe.db.get_value("GL Entry",{"voucher_type":"Sales Invoice Penjualan Motor","voucher_no":tmp[0],"account":sipm.debit_to},"debit",)
+	piutang_bpkb = frappe.db.get_value("GL Entry",{"voucher_type":"Sales Invoice Penjualan Motor","voucher_no":tmp[0],"account":sipm.coa_bpkb_stnk},"debit",)
+	frappe.db.sql(""" UPDATE `tabPenerimaan DP` SET piutang_motor={},piutang_bpkb_stnk={} WHERE NAME = '{}' """.format(piutang_motor, piutang_bpkb, tmp[1]),debug=1)
+	make_je_dp(tmp[1])
+	print(piutang_motor)
+	print(piutang_bpkb)
+	print(piutang_motor+piutang_bpkb)
+
+def cen_je():
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.cen_je
+	frappe.flags.repair = True
+	doc = frappe.get_doc("Journal Entry","ACC-JV-2025-20045")
+	doc.cancel()
+	doc.delete()
+	print(doc.name)
+
+def make_je_dp(docname):
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.make_je_dp
+	doc = frappe.get_doc("Penerimaan DP",docname)
+	doc.make_je()
+	print(doc.name)
+
+def patch_tl():
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_tl
+	frappe.flags.repair = True
+	doc = frappe.get_doc("Tagihan Leasing","Tagihan-PL-12-2025-00043")
+	print(doc.name)
+	repair_only_gl_entry("Tagihan Leasing",doc.name)
 
 
 def patch_akun_tdl_only():
@@ -332,22 +378,334 @@ def patch_akun_tdl_only():
 
 
 def patch_tl_oa():
-	# bench --site ifmi2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_tl_oa
+	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.patch_tl_oa
 	tmp = [
-"ACC-SIPM-2026-00030",
-"ACC-SIPM-2026-00027",
-"ACC-SIPM-2026-00035",
-"ACC-SIPM-2026-00029",
-"ACC-SIPM-2026-00036",
-"ACC-SIPM-2026-00031",
-"ACC-SIPM-2026-00037",
-"ACC-SIPM-2026-00034-1",
-"ACC-SIPM-2026-00032",
-"ACC-SIPM-2026-00039",
-"ACC-SIPM-2026-00041",
-"ACC-SIPM-2026-00028",
-"ACC-SIPM-2026-00038",
-"ACC-SIPM-2026-00042"
+'ACC-SIPM-2026-00966',
+'ACC-SIPM-2026-00947-1',
+'ACC-SIPM-2026-00929',
+'ACC-SIPM-2026-00981',
+'ACC-SIPM-2026-00940',
+'ACC-SIPM-2026-00896',
+'ACC-SIPM-2026-01015',
+'ACC-SIPM-2026-01084',
+'ACC-SIPM-2026-00912',
+'ACC-SIPM-2026-01090',
+'ACC-SIPM-2026-01077',
+'ACC-SIPM-2026-00986',
+'ACC-SIPM-2026-01058',
+'ACC-SIPM-2026-00997',
+'ACC-SIPM-2026-01046',
+'ACC-SIPM-2026-01171-1',
+'ACC-SIPM-2026-01142',
+'ACC-SIPM-2026-00993',
+'ACC-SIPM-2026-01074',
+'ACC-SIPM-2026-01042',
+'ACC-SIPM-2026-01098',
+'ACC-SIPM-2026-01130',
+'ACC-SIPM-2026-01129',
+'ACC-SIPM-2026-01145',
+'ACC-SIPM-2026-01161',
+'ACC-SIPM-2026-01175',
+'ACC-SIPM-2026-01079',
+'ACC-SIPM-2026-01198',
+'ACC-SIPM-2026-00955',
+'ACC-SIPM-2026-01225',
+'ACC-SIPM-2026-01185',
+'ACC-SIPM-2026-01187',
+'ACC-SIPM-2026-01136',
+'ACC-SIPM-2026-01043',
+'ACC-SIPM-2026-01210',
+'ACC-SIPM-2026-00988',
+'ACC-SIPM-2026-01179-1',
+'ACC-SIPM-2026-01248-1',
+'ACC-SIPM-2026-01232',
+'ACC-SIPM-2026-01254',
+'ACC-SIPM-2026-01164',
+'ACC-SIPM-2026-01191',
+'ACC-SIPM-2026-01186',
+'ACC-SIPM-2026-01167',
+'ACC-SIPM-2026-01105',
+'ACC-SIPM-2026-01243',
+'ACC-SIPM-2026-01229',
+'ACC-SIPM-2026-01273-1',
+'ACC-SIPM-2026-01209',
+'ACC-SIPM-2026-01170',
+'ACC-SIPM-2026-01312',
+'ACC-SIPM-2026-01195',
+'ACC-SIPM-2026-01218',
+'ACC-SIPM-2026-01280',
+'ACC-SIPM-2026-01208',
+'ACC-SIPM-2026-01173',
+'ACC-SIPM-2026-01286',
+'ACC-SIPM-2026-01148',
+'ACC-SIPM-2026-01340',
+'ACC-SIPM-2026-01253',
+'ACC-SIPM-2026-01309',
+'ACC-SIPM-2026-01350',
+'ACC-SIPM-2026-01319',
+'ACC-SIPM-2026-01135',
+'ACC-SIPM-2026-01251',
+'ACC-SIPM-2026-01324',
+'ACC-SIPM-2026-01346',
+'ACC-SIPM-2026-01300',
+'ACC-SIPM-2026-01320',
+'ACC-SIPM-2026-01337',
+'ACC-SIPM-2026-01317',
+'ACC-SIPM-2026-01259',
+'ACC-SIPM-2026-01222',
+'ACC-SIPM-2026-01290',
+'ACC-SIPM-2026-01344',
+'ACC-SIPM-2026-01318',
+'ACC-SIPM-2026-01339',
+'ACC-SIPM-2026-01355',
+'ACC-SIPM-2026-01347',
+'ACC-SIPM-2026-01448',
+'ACC-SIPM-2026-01410',
+'ACC-SIPM-2026-01403',
+'ACC-SIPM-2026-01230',
+'ACC-SIPM-2026-01388',
+'ACC-SIPM-2026-01390',
+'ACC-SIPM-2026-01284',
+'ACC-SIPM-2026-01374',
+'ACC-SIPM-2026-01212',
+'ACC-SIPM-2026-01332',
+'ACC-SIPM-2026-01348',
+'ACC-SIPM-2026-01159',
+'ACC-SIPM-2026-01401',
+'ACC-SIPM-2026-01219',
+'ACC-SIPM-2026-01343',
+'ACC-SIPM-2026-01487',
+'ACC-SIPM-2026-01466',
+'ACC-SIPM-2026-01464',
+'ACC-SIPM-2026-01265',
+'ACC-SIPM-2026-01392',
+'ACC-SIPM-2026-01382',
+'ACC-SIPM-2026-01427-1',
+'ACC-SIPM-2026-01473',
+'ACC-SIPM-2026-01306',
+'ACC-SIPM-2026-01307',
+'ACC-SIPM-2026-00984',
+'ACC-SIPM-2026-01296',
+'ACC-SIPM-2026-01178',
+'ACC-SIPM-2026-01227',
+'ACC-SIPM-2026-01354',
+'ACC-SIPM-2026-01423',
+'ACC-SIPM-2026-01262',
+'ACC-SIPM-2026-01366',
+'ACC-SIPM-2026-01183',
+'ACC-SIPM-2026-01174',
+'ACC-SIPM-2026-01233',
+'ACC-SIPM-2026-01282',
+'ACC-SIPM-2026-01281',
+'ACC-SIPM-2026-01371',
+'ACC-SIPM-2026-01360',
+'ACC-SIPM-2026-01378',
+'ACC-SIPM-2026-01323',
+'ACC-SIPM-2026-01407',
+'ACC-SIPM-2026-01217',
+'ACC-SIPM-2026-01438',
+'ACC-SIPM-2026-01365',
+'ACC-SIPM-2026-01520',
+'ACC-SIPM-2026-01372',
+'ACC-SIPM-2026-01333',
+'ACC-SIPM-2026-01244',
+'ACC-SIPM-2026-01314',
+'ACC-SIPM-2026-01241-1',
+'ACC-SIPM-2026-01197',
+'ACC-SIPM-2026-01393',
+'ACC-SIPM-2026-01316',
+'ACC-SIPM-2026-01422',
+'ACC-SIPM-2026-01228',
+'ACC-SIPM-2026-01529',
+'ACC-SIPM-2026-01502',
+'ACC-SIPM-2026-01483',
+'ACC-SIPM-2026-01497',
+'ACC-SIPM-2026-01554',
+'ACC-SIPM-2026-01557',
+'ACC-SIPM-2026-01530-1',
+'ACC-SIPM-2026-01573',
+'ACC-SIPM-2026-01576',
+'ACC-SIPM-2026-01451',
+'ACC-SIPM-2026-01165',
+'ACC-SIPM-2026-01458',
+'ACC-SIPM-2026-01459',
+'ACC-SIPM-2026-01457',
+'ACC-SIPM-2026-01417',
+'ACC-SIPM-2026-01247',
+'ACC-SIPM-2026-01166',
+'ACC-SIPM-2026-01504',
+'ACC-SIPM-2026-01367',
+'ACC-SIPM-2026-01559',
+'ACC-SIPM-2026-01399',
+'ACC-SIPM-2026-01596',
+'ACC-SIPM-2026-01528',
+'ACC-SIPM-2026-01523',
+'ACC-SIPM-2026-01454',
+'ACC-SIPM-2026-01561',
+'ACC-SIPM-2026-01397',
+'ACC-SIPM-2026-01440-1',
+'ACC-SIPM-2026-01586',
+'ACC-SIPM-2026-01642',
+'ACC-SIPM-2026-01501',
+'ACC-SIPM-2026-01488-1',
+'ACC-SIPM-2026-01477-1',
+'ACC-SIPM-2026-01396',
+'ACC-SIPM-2026-01507',
+'ACC-SIPM-2026-01547',
+'ACC-SIPM-2026-01552',
+'ACC-SIPM-2026-01505',
+'ACC-SIPM-2026-01619',
+'ACC-SIPM-2026-01517',
+'ACC-SIPM-2026-01539',
+'ACC-SIPM-2026-01495',
+'ACC-SIPM-2026-01480',
+'ACC-SIPM-2026-01512',
+'ACC-SIPM-2026-01627',
+'ACC-SIPM-2026-01513',
+'ACC-SIPM-2026-01444',
+'ACC-SIPM-2026-01630',
+'ACC-SIPM-2026-01551',
+'ACC-SIPM-2026-01137',
+'ACC-SIPM-2026-01582',
+'ACC-SIPM-2026-01585',
+'ACC-SIPM-2026-01482',
+'ACC-SIPM-2026-01341',
+'ACC-SIPM-2026-01570',
+'ACC-SIPM-2026-01349',
+'ACC-SIPM-2026-01368',
+'ACC-SIPM-2026-01538',
+'ACC-SIPM-2026-01602',
+'ACC-SIPM-2026-01605',
+'ACC-SIPM-2026-01476-1',
+'ACC-SIPM-2026-01590',
+'ACC-SIPM-2026-01594',
+'ACC-SIPM-2026-01420',
+'ACC-SIPM-2026-01184',
+'ACC-SIPM-2026-01124',
+'ACC-SIPM-2026-01433',
+'ACC-SIPM-2026-01437',
+'ACC-SIPM-2026-01463',
+'ACC-SIPM-2026-01549',
+'ACC-SIPM-2026-01514',
+'ACC-SIPM-2026-01634',
+'ACC-SIPM-2026-01591',
+'ACC-SIPM-2026-01428',
+'ACC-SIPM-2026-01546',
+'ACC-SIPM-2026-01445',
+'ACC-SIPM-2026-01409',
+'ACC-SIPM-2026-01542',
+'ACC-SIPM-2026-01499',
+'ACC-SIPM-2026-01416',
+'ACC-SIPM-2026-01494',
+'ACC-SIPM-2026-01394-1',
+'ACC-SIPM-2026-01441-1',
+'ACC-SIPM-2026-01609-1',
+'ACC-SIPM-2026-01608-1',
+'ACC-SIPM-2026-01535',
+'ACC-SIPM-2026-01491',
+'ACC-SIPM-2026-01623',
+'ACC-SIPM-2026-01563',
+'ACC-SIPM-2026-01599',
+'ACC-SIPM-2026-01598',
+'ACC-SIPM-2026-01597',
+'ACC-SIPM-2026-01672',
+'ACC-SIPM-2026-01636',
+'ACC-SIPM-2026-01670-1',
+'ACC-SIPM-2026-01575',
+'ACC-SIPM-2026-01655',
+'ACC-SIPM-2026-01646',
+'ACC-SIPM-2026-01690',
+'ACC-SIPM-2026-01610',
+'ACC-SIPM-2026-01658',
+'ACC-SIPM-2026-01683',
+'ACC-SIPM-2026-01685',
+'ACC-SIPM-2026-01651',
+'ACC-SIPM-2026-01687',
+'ACC-SIPM-2026-01644',
+'ACC-SIPM-2026-01677',
+'ACC-SIPM-2026-01558',
+'ACC-SIPM-2026-01640',
+'ACC-SIPM-2026-01641',
+'ACC-SIPM-2026-01579',
+'ACC-SIPM-2026-01647',
+'ACC-SIPM-2026-01331',
+'ACC-SIPM-2026-01688',
+'ACC-SIPM-2026-01664',
+'ACC-SIPM-2026-01562',
+'ACC-SIPM-2026-01616',
+'ACC-SIPM-2026-01684',
+'ACC-SIPM-2026-01671',
+'ACC-SIPM-2026-01628',
+'ACC-SIPM-2026-01681',
+'ACC-SIPM-2026-01661',
+'ACC-SIPM-2026-01700-1',
+'ACC-SIPM-2026-01682',
+'ACC-SIPM-2026-01691',
+'ACC-SIPM-2026-01666',
+'ACC-SIPM-2026-01761',
+'ACC-SIPM-2026-01625',
+'ACC-SIPM-2026-01595',
+'ACC-SIPM-2026-01678',
+'ACC-SIPM-2026-01773',
+'ACC-SIPM-2026-01565-1',
+'ACC-SIPM-2026-01697',
+'ACC-SIPM-2026-01462',
+'ACC-SIPM-2026-01632',
+'ACC-SIPM-2026-01617',
+'ACC-SIPM-2026-01809',
+'ACC-SIPM-2026-01674',
+'ACC-SIPM-2026-01566',
+'ACC-SIPM-2026-01676',
+'ACC-SIPM-2026-01239',
+'ACC-SIPM-2026-01321',
+'ACC-SIPM-2026-01294',
+'ACC-SIPM-2026-01192',
+'ACC-SIPM-2026-01381',
+'ACC-SIPM-2026-01376',
+'ACC-SIPM-2026-01703-1',
+'ACC-SIPM-2026-01461',
+'ACC-SIPM-2026-01758',
+'ACC-SIPM-2026-01929',
+'ACC-SIPM-2026-01592',
+'ACC-SIPM-2026-01357',
+'ACC-SIPM-2026-01649',
+'ACC-SIPM-2026-01656',
+'ACC-SIPM-2026-01675',
+'ACC-SIPM-2026-01669',
+'ACC-SIPM-2026-01804',
+'ACC-SIPM-2026-01588',
+'ACC-SIPM-2026-01654',
+'ACC-SIPM-2026-01800',
+'ACC-SIPM-2026-01702',
+'ACC-SIPM-2026-01846',
+'ACC-SIPM-2026-01525',
+'ACC-SIPM-2026-01425',
+'ACC-SIPM-2026-01637',
+'ACC-SIPM-2026-01848',
+'ACC-SIPM-2026-01962',
+'ACC-SIPM-2026-01667',
+'ACC-SIPM-2026-01930',
+'ACC-SIPM-2026-01819',
+'ACC-SIPM-2026-01622',
+'ACC-SIPM-2026-01927',
+'ACC-SIPM-2026-01765',
+'ACC-SIPM-2026-01937-1',
+'ACC-SIPM-2026-02056',
+'ACC-SIPM-2026-01668',
+'ACC-SIPM-2026-01963',
+'ACC-SIPM-2026-01914',
+'ACC-SIPM-2026-02003',
+'ACC-SIPM-2026-02005',
+'ACC-SIPM-2026-01913',
+'ACC-SIPM-2026-01766',
+'ACC-SIPM-2026-01311',
+'ACC-SIPM-2026-01607',
+'ACC-SIPM-2026-01326',
+'ACC-SIPM-2026-00964',
+'ACC-SIPM-2026-01387',
+'ACC-SIPM-2026-01379',
+'ACC-SIPM-2026-01443-1',
+'ACC-SIPM-2026-01492'
 	]	
 	
 	con = 1
@@ -435,7 +793,7 @@ def make_riv():
 
 def debug_sipm_gl():
 	tmp = [
-'ACC-SINVM-2025-00827'
+'ACC-SIPM-2026-00664'
 	]
 	for i in tmp:
 		doc = frappe.get_doc("Sales Invoice Penjualan Motor",i)
