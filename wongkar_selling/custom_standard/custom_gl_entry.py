@@ -524,6 +524,13 @@ def update_outstanding_amt_custom(
 		if against_voucher_type == 'Invoice Penagihan Garansi' and voucher_type == 'Journal Entry':
 			ref_doc.outstanding_amount_oli = bal
 			frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount_oli", bal)
+		elif against_voucher_type == 'Invoice Penagihan Garansi' and voucher_type == 'Form Pembayaran':
+			# frappe.throw('lkasdjiosajd')
+			cek_type = frappe.db.get_value(voucher_type,voucher_no,'type')
+			if cek_type == 'Pembayaran Invoice Garansi Oli LCR':
+				# frappe.throw('lkasdjiosajdxxx')
+				ref_doc.outstanding_amount_oli = bal
+				frappe.db.set_value(against_voucher_type, against_voucher, "outstanding_amount_oli", bal)
 		elif against_voucher_type == 'Invoice Penagihan Garansi' and voucher_type == 'Invoice Penagihan Garansi':
 			account_oli = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to_oli")
 			account_sp = frappe.db.get_value(against_voucher_type, against_voucher, "debit_to_oli")

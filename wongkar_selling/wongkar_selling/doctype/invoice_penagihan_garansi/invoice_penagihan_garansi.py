@@ -1,6 +1,7 @@
 # Copyright (c) 2024, w and contributors
 # For license information, please see license.txt
 
+from erpnext.accounts.doctype.journal_entry.journal_entry import get_outstanding
 import frappe
 from frappe.model.document import Document
 import erpnext
@@ -107,10 +108,33 @@ class InvoicePenagihanGaransi(Document):
 		self.hitung_pph()
 		self.hitung_total()
 		
-
+	def update_oa_tag(self):
+		for i in self.list_invoice_penagihan_garansi:
+			tot_tagihan = frappe.db.sql(""" 
+							Select 
+								ifnull(sum(l.grand_total),0) as tertagih_grand_total,
+							   	ifnull(sum(l.grand_total_oli),0) as tertagih_grand_total_oli,
+							   	ifnull(sum(l.grand_total_sparepart),0) as tertagih_grand_total_sparepart
+							from `tabInvoice Penagihan Garansi` inv
+							join `tabList Invoice Penagihan Garansi` l on inv.name = l.parent
+							where inv.docstatus = 1 and l.sales_invoice_sparepart_garansi = '{}'
+							group by l.sales_invoice_sparepart_garansi  """.format(i.sales_invoice_sparepart_garansi),as_dict=1)
+			print(tot_tagihan)
+			if tot_tagihan:
+				if tot_tagihan[0]['tertagih_grand_total'] > i.grand_total or tot_tagihan[0]['tertagih_grand_total_oli'] > i.grand_total_oli or tot_tagihan[0]['tertagih_grand_total_sparepart'] > i.grand_total_sparepart:
+					frappe.throw(f"tertagih lebih besar dari tagihan {i.sales_invoice_sparepart_garansi} !")
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount',i.grand_total-tot_tagihan[0]['tertagih_grand_total'],debug=0)
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount_oli',i.grand_total_oli-tot_tagihan[0]['tertagih_grand_total_oli'],debug=0)
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount_sparepart',i.grand_total_sparepart-tot_tagihan[0]['tertagih_grand_total_sparepart'],debug=0)
+			else:
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount',i.grand_total,debug=0)
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount_oli',i.grand_total_oli,debug=0)
+				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount_sparepart',i.grand_total_sparepart,debug=0)
 	def update_tagihan(self):
 		for i in self.list_invoice_penagihan_garansi:
 			cek = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
+		
+
 			if self.docstatus == 1:
 				if cek.docstatus == 1:
 					if cek.tagihan == 1:
@@ -129,11 +153,13 @@ class InvoicePenagihanGaransi(Document):
 	def on_submit(self):
 		self.make_gl_entries()
 		self.update_tagihan()
+		self.update_oa_tag()
 
 	def on_cancel(self):
 		self.make_gl_entries_on_cancel()
 		self.ignore_linked_doctypes = ("GL Entry", "Stock Ledger Entry", "Repost Item Valuation")
 		self.update_tagihan()
+		self.update_oa_tag()
 
 	def on_trash(self):
 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_type = '{}' and voucher_no = "{}" """.format(self.doctype,self.name))
@@ -527,64 +553,66 @@ class InvoicePenagihanGaransi(Document):
 	def make_item_gl_entries(self, gl_entries):
 		# income account gl entries
 		for item in self.get("list_invoice_penagihan_garansi"):
-			if flt(item.grand_total, item.precision("grand_total")):
-				for i in self.list_invoice_penagihan_garansi:
-					sp = frappe.get_doc("Sales Invoice Sparepart Garansi",i.sales_invoice_sparepart_garansi)
-					titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
-					coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
-					coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
-					tax = (100+self.rate ) / 100
-					for i in sp.items:
-						if i.titipan_account == titipan_ahas_account_oli:
-							account = i.titipan_account
-							against = self.debit_to_oli
-						elif i.titipan_account == coa_claimable_sinv_garansi_jasa:
-							account = i.titipan_account
-							against = self.debit_to
-						elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
-							account = i.titipan_account
-							against = self.debit_to_sparepart
+			if flt(item.grand_total, item.precision("grand_total")) or flt(item.grand_total_sparepart, item.precision("grand_total_sparepart")) or flt(item.grand_total_oli, item.precision("grand_total_oli")):
+				# for i in self.list_invoice_penagihan_garansi:
+				sp = frappe.get_doc("Sales Invoice Sparepart Garansi",item.sales_invoice_sparepart_garansi)
+				titipan_ahas_account_oli = frappe.get_doc('Company',sp.company).titipan_ahas_account # oli
+				coa_claimable_sinv_garansi_jasa = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_jasa
+				coa_claimable_sinv_garansi_sparepart = frappe.get_doc('Company',sp.company).coa_claimable_sinv_garansi_sparepart
+				tax = (100+self.rate ) / 100
+				for i in sp.items:
+					if i.titipan_account == titipan_ahas_account_oli:
+						account = i.titipan_account
+						against = self.debit_to_oli
+					elif i.titipan_account == coa_claimable_sinv_garansi_jasa:
+						account = i.titipan_account
+						against = self.debit_to
+					elif i.titipan_account == coa_claimable_sinv_garansi_sparepart:
+						account = i.titipan_account
+						against = self.debit_to_sparepart
 
-						gl_entries.append(
-							self.get_gl_dict(
-								{
-									"account": i.income_account,
-									# "party_type": "Customer",
-									# "party": item.customer,
-									"against": against,
-									"debit": flt(i.amount, item.precision("grand_total")),
-									"debit_in_account_currency": (
-										flt(i.amount, item.precision("grand_total"))
-									),
-									"against_voucher": sp.name,
-									"against_voucher_type": sp.doctype,
-									# "cost_center": beban[0]['cost_center'],
-									# "project": item.project or self.project,
-								},
-								'IDR',
-								item=self.list_invoice_penagihan_garansi,
-							)
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": i.income_account,
+								# "party_type": "Customer",
+								# "party": item.customer,
+								"against": against,
+								"debit": flt(i.amount, item.precision("grand_total")),
+								"debit_in_account_currency": (
+									flt(i.amount, item.precision("grand_total"))
+								),
+								"against_voucher": sp.name,
+								"against_voucher_type": sp.doctype,
+								# "remarks": "Pengakuan Pendapatan 123"
+								# "cost_center": beban[0]['cost_center'],
+								# "project": item.project or self.project,
+							},
+							'IDR',
+							item=self.list_invoice_penagihan_garansi,
 						)
+					)
 
-						gl_entries.append(
-							self.get_gl_dict(
-								{
-									"account": account,
-									# "party_type": "Customer",
-									# "party": self.customer,
-									# "due_date": self.due_date,
-									"against": against,
-									"credit": i.amount,
-									"credit_in_account_currency": i.amount,
-									# "against_voucher": self.name,
-									# "against_voucher_type": self.doctype,
-									# "cost_center": sp.cost_center,
-									# "project": self.project,
-								},
-								'IDR',
-								item=self.list_invoice_penagihan_garansi,
-							)
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": account,
+								# "party_type": "Customer",
+								# "party": self.customer,
+								# "due_date": self.due_date,
+								"against": against,
+								"credit": i.amount,
+								"credit_in_account_currency": i.amount,
+								# "against_voucher": self.name,
+								# "against_voucher_type": self.doctype,
+								# "cost_center": sp.cost_center,
+								# "project": self.project,
+								# "remarks": "Pengakuan Pendapatan sadasd"
+							},
+							'IDR',
+							item=self.list_invoice_penagihan_garansi,
 						)
+					)
 
 				
 
@@ -659,7 +687,13 @@ class InvoicePenagihanGaransi(Document):
 
 
 @frappe.whitelist()
-def get_data(from_date,to_date):
+def get_data(from_date,to_date,type_kpb):
+	con = ''
+	if type_kpb == 'Non LCR':
+		con = ' and type_kpb != "LCR" '
+	else:
+		con = ' and type_kpb = "LCR" '
+
 	data = frappe.db.sql(""" SELECT 
 		isg.name,isg.customer,isg.customer_name,
 		isg.grand_total,isg.outstanding_amount,
@@ -667,8 +701,8 @@ def get_data(from_date,to_date):
 		isg.grand_total_sparepart,isg.outstanding_amount_sparepart,
 		isg.no_rangka_manual_atau_lama, isg.no_mesin
 		from `tabSales Invoice Sparepart Garansi` isg
-		where isg.docstatus = 1 and isg.tagihan = 0 
-		and isg.posting_date between '{}' and '{}' """.format(from_date,to_date),as_dict=1)
+		where isg.docstatus = 1 and isg.tagihan = 0 {}
+		and isg.posting_date between '{}' and '{}' """.format(con,from_date,to_date),as_dict=1,debug=0)
 
 	return data
 
@@ -744,7 +778,7 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 			JOIN `tabList Invoice Penagihan Garansi` l ON l.parent = inv.name
 			JOIN `tabSales Invoice Sparepart Garansi Item` s ON s.parent = l.sales_invoice_sparepart_garansi 
 			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} and inv.docstatus = 1
-		 """.format(txt,con,kondisi),debug=1)
+		 """.format(txt,con,kondisi),debug=0)
 
 	return data
 	# return frappe.db.sql(
@@ -771,7 +805,15 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 @frappe.whitelist()
 def make_je_claim(dt, dn, type_bayar = None):
 	doc = frappe.get_doc(dt,dn)
-
+	args = {
+			"doctype":dt,
+			"docname":dn,
+			"party":doc.supplier,
+			"account":doc.credit_to,
+			"account_currency":doc.currency,
+			"company":doc.company}
+	outstanding = get_outstanding(args)
+	# frappe.msgprint(str(outstanding)+ ' outstandingxx')
 	je = frappe.new_doc("Journal Entry")
 	je.claim = 1
 	for i in doc.list_doc_name:
@@ -786,11 +828,13 @@ def make_je_claim(dt, dn, type_bayar = None):
 		'party': doc.supplier,
 		'reference_type': dt,
 		'reference_name': dn,
+		'debit_in_account_currency': outstanding['debit_in_account_currency'],
 		'cost_center': None,
 	}
 
 	je.append('accounts',hutang_pinv)
 	return je
+
 
 @frappe.whitelist()
 def make_data_claim(data,data_awal,company):

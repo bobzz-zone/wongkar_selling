@@ -13,7 +13,8 @@ class PenerimaanDP(Document):
 			print(self.outstanding_transfer, ' self.otstanding_transfer')
 	
 	def on_submit(self):
-		self.make_je()
+		if not self.cut_off:
+			self.make_je()
 
 	def validate(self):
 		self.hitung_bayar()
@@ -34,7 +35,7 @@ class PenerimaanDP(Document):
 					if row.valid_from <= getdate(self.tanggal) and row.valid_to >= getdate(self.tanggal):
 						if row.type in ['STNK','BPKB']:
 							total_biaya_tanpa_dealer += row.amount
-			if self.paid_amount < self.harga - total_biaya_tanpa_dealer:
+			if self.paid_amount < self.harga - total_biaya_tanpa_dealer and not self.nominal_diskon:
 				self.piutang_motor = self.paid_amount
 				self.piutang_bpkb_stnk = 0
 			elif self.paid_amount > self.harga - total_biaya_tanpa_dealer and not self.off_the_road:
@@ -45,6 +46,10 @@ class PenerimaanDP(Document):
 				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
 			elif self.paid_amount == self.harga - total_biaya_tanpa_dealer:
 				self.piutang_motor = self.harga - total_biaya_tanpa_dealer - self.nominal_diskon
+				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
+			elif self.paid_amount == self.harga - total_biaya_tanpa_dealer - self.nominal_diskon and self.nominal_diskon:
+				# frappe.msgprint(f'sssxx {self.harga - total_biaya_tanpa_dealer}++{self.harga} - {total_biaya_tanpa_dealer}')
+				self.piutang_motor = self.harga - self.nominal_diskon - total_biaya_tanpa_dealer
 				self.piutang_bpkb_stnk = total_biaya_tanpa_dealer
 		if self.off_the_road:
 			self.piutang_bpkb_stnk = 0

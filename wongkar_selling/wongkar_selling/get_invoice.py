@@ -224,7 +224,7 @@ def get_inv_stnk_bpkb(supplier_stnk,supplier_bpkb,date_from,date_to):
 	return data
 
 @frappe.whitelist()
-def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_tagihan=None):
+def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_tagihan=None,oa=None):
 	# frappe.msgprint(doc_type+" "+tipe_pembayaran)
 	if data_tagihan:
 		data_tagihan = json.loads(data_tagihan)
@@ -399,7 +399,7 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_sparepart > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
-	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Jasa' and oli:
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Oli LCR' and not oli:
 		for i in tes:
 			data = frappe.db.sql(""" SELECT 
 				customer as pemilik,
@@ -414,6 +414,36 @@ def get_tagihan(doc_type,tipe_pembayaran,data,name_pe,paid_from,oli=None,data_ta
 				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_oli > 0 """.format(i['docname']),as_dict=1,debug=0)
 			# frappe.msgprint(data)
 			tmp.append(data)
+	elif doc_type == 'Invoice Penagihan Garansi' and tipe_pembayaran == 'Pembayaran Invoice Garansi Jasa' and oli:
+		oa = flt(oa)
+		tmp_oa = 0
+		for i in tes:
+			data = frappe.db.sql(""" SELECT 
+				customer as pemilik,
+				customer_name as nama_pemilik,
+				sales_invoice_sparepart_garansi,
+				grand_total_oli as grand_total,
+				outstanding_amount_oli as outstanding,
+				parenttype,
+				parent,
+				name as id_detail,
+				CONCAT(no_rangka,"--",no_mesin) as no_rangka2
+				from `tabList Invoice Penagihan Garansi` where parent = '{}' and outstanding_amount_oli > 0 """.format(i['docname']),as_dict=1,debug=0)
+			# frappe.msgprint(data)
+			# tmp.append(data)
+			for d in data:
+				if tmp_oa + d['outstanding'] <= oa:
+					tmp.append(d)
+					tmp_oa += d['outstanding']
+				else:
+					if d['outstanding'] > (oa-tmp_oa):
+						d['outstanding'] = oa-tmp_oa
+						tmp.append(d)
+						tmp_oa += d['outstanding']
+					elif tmp_oa == 'oa':
+					
+						frappe.msgprint(f"{d['outstanding']}++{tmp_oa-oa}++{d['id_detail']}")
+						break
 	elif doc_type == 'Sales Invoice Penjualan Motor':
 		data = frappe.db.sql(""" SELECT 
 				customer as pemilik,

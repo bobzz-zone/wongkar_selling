@@ -14,6 +14,8 @@
   "cara_bayar",
   "dp_ke_2",
   "off_the_road",
+  "cut_off",
+  "data_rfo8c",
   "section_break_pkua8",
   "customer",
   "customer_name",
@@ -282,12 +284,25 @@
    "fieldtype": "Currency",
    "label": "Outstanding Transfer",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cut_off",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "cut off",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "data_rfo8c",
+   "fieldtype": "Data"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-09 15:52:38.157913",
+ "modified": "2026-03-31 10:27:49.554613",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

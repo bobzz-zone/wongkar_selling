@@ -25,6 +25,15 @@ from erpnext.stock.utils import get_bin
 from erpnext.buying.doctype.purchase_order.purchase_order import set_missing_values
 
 @frappe.whitelist()
+def cek_oli_lcr(self,method):
+	if self.list_doc_name and len(self.list_doc_name) > 0:
+		for i in self.list_doc_name:
+			cek = frappe.db.get_value(i.reference_doctype,i.docname,'type_kpb')
+			if cek == 'LCR':
+				frappe.throw('LCR not allowed !')
+
+
+@frappe.whitelist()
 def make_purchase_invoice_custom(source_name, target_doc=None):
 	# frappe.msgprint('12333432')
 	return get_mapped_purchase_invoice(source_name, target_doc)

@@ -44,7 +44,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi Jasa\nPembayaran Invoice Garansi Sparepart"
+   "options": "\nPembayaran Diskon\nPembayaran Diskon Leasing\nPembayaran Tagihan Leasing\nPembayaran STNK\nPembayaran BPKB\nPembayaran Invoice Garansi Jasa\nPembayaran Invoice Garansi Sparepart\nPembayaran Invoice Garansi Oli LCR"
   },
   {
    "depends_on": "eval:in_list([\"Pembayaran Diskon\",\"Pembayaran Diskon Leasing\",\"Pembayaran Tagihan Leasing\",\"Pembayaran Invoice Garansi Jasa\",\"Pembayaran Invoice Garansi Sparepart\",'Pembayaran SIPM Antar Entitas'], doc.type)",
@@ -195,7 +195,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-14 11:46:05.561206",
+ "modified": "2026-03-05 08:39:05.234324",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Form Pembayaran",

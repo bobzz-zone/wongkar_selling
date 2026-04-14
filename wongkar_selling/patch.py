@@ -22,6 +22,9 @@ def patch_import(data_import):
 	start_import(data_import)
 	print("DONE")
 
+def update_outstadin_amunt_sig():
+	update_outstanding_amt_custom(doc.debit_to,'Customer',doc.customer,'Sales Invoice Penjualan Motor',doc.name)
+
 def cek_children_sipm():
 	return
 	# bench --site bjm2.digitalasiasolusindo.com execute wongkar_selling.patch.updte_cek_children_sipm

@@ -77,7 +77,8 @@ frappe.ui.form.on('Form Pembayaran', {
 
 		filter_docname()
 
-		if(cur_frm.doc.type == "Pembayaran Invoice Garansi Jasa" || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart"){
+		if(cur_frm.doc.type == "Pembayaran Invoice Garansi Jasa" || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart" ||  cur_frm.doc.type == "Pembayaran Invoice Garansi Oli LCR"){
+			// frappe.msgprint("asdaskdj")
 			removeColumns(cur_frm,['no_sinv'],'tagihan_payment_table')
 			removeColumns(cur_frm,['no_rangka'],'tagihan_payment_table')
 			showColumns(cur_frm,['sales_invoice_sparepart_garansi'],'tagihan_payment_table')
@@ -131,7 +132,7 @@ frappe.ui.form.on('Form Pembayaran', {
 			doc_type = 'Tagihan Leasing'
 		}else if(cur_frm.doc.type == 'Pembayaran STNK' || cur_frm.doc.type == 'Pembayaran BPKB'){
 			doc_type = 'Pembayaran Tagihan Motor'
-		}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi Jasa'  || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart"){
+		}else if(cur_frm.doc.type == 'Pembayaran Invoice Garansi Jasa'  || cur_frm.doc.type == "Pembayaran Invoice Garansi Sparepart" || cur_frm.doc.type == "Pembayaran Invoice Garansi Oli LCR"){
 			doc_type = 'Invoice Penagihan Garansi'
 		}else if(cur_frm.doc.type == 'Pembayaran SIPM Antar Entitas'){
 			doc_type = 'Sales Invoice Penjualan Motor'

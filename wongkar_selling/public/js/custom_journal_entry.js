@@ -21,36 +21,61 @@ frappe.ui.form.on('Journal Entry', {
 				"data": cur_frm.doc.list_doc_name,
 				"name_pe": cur_frm.doc.name,
 				"paid_from": '',
-				"oli": true
+				"oli": true,
+				"oa": cur_frm.doc.accounts[0].debit_in_account_currency
 				// "dn": cur_frm.doc.name
 			},
 			callback: function(r) {
 				// console.log(r," dataarr")
+				// if(r.message){
+				// 	if(r.message.length>0){
+				// 		for(var i=0;i<r.message.length;i++){
+				// 			for( var j=0;j<r.message[i].length;j++){
+				// 				var child = cur_frm.add_child("tagihan_payment_table");
+				// 				frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i][j].no_invoice);
+				// 				frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i][j].sales_invoice_sparepart_garansi);
+				// 				frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i][j].pemilik);
+				// 				frappe.model.set_value(child.doctype, child.name, "nama_pemilik", r.message[i][j].nama_pemilik);
+				// 				frappe.model.set_value(child.doctype, child.name, "item", r.message[i][j].item);
+				// 				frappe.model.set_value(child.doctype, child.name, "no_rangka", r.message[i][j].no_rangka);
+				// 				frappe.model.set_value(child.doctype, child.name, "no_rangka2", r.message[i][j].no_rangka2);
+				// 				frappe.model.set_value(child.doctype, child.name, "nilai", r.message[i][j].outstanding);
+				// 				frappe.model.set_value(child.doctype, child.name, "doc_type", r.message[i][j].parenttype);
+				// 				frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i][j].parent);
+				// 				frappe.model.set_value(child.doctype, child.name, "id_detail", r.message[i][j].id_detail);
+				// 				frappe.model.set_value(child.doctype, child.name, "cek_realisasi", 1);
+								
+				// 			}
+							
+				// 		}
+				// 		cur_frm.refresh_fields("tagihan_payment_table")
+				// 	}
+				// }
+				
 				if(r.message){
 					if(r.message.length>0){
+						console.log(r," dataarr")
 						for(var i=0;i<r.message.length;i++){
-							for( var j=0;j<r.message[i].length;j++){
-								var child = cur_frm.add_child("tagihan_payment_table");
-								frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i][j].no_invoice);
-								frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i][j].sales_invoice_sparepart_garansi);
-								frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i][j].pemilik);
-								frappe.model.set_value(child.doctype, child.name, "nama_pemilik", r.message[i][j].nama_pemilik);
-								frappe.model.set_value(child.doctype, child.name, "item", r.message[i][j].item);
-								frappe.model.set_value(child.doctype, child.name, "no_rangka", r.message[i][j].no_rangka);
-								frappe.model.set_value(child.doctype, child.name, "no_rangka2", r.message[i][j].no_rangka2);
-								frappe.model.set_value(child.doctype, child.name, "nilai", r.message[i][j].outstanding);
-								frappe.model.set_value(child.doctype, child.name, "doc_type", r.message[i][j].parenttype);
-								frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i][j].parent);
-								frappe.model.set_value(child.doctype, child.name, "id_detail", r.message[i][j].id_detail);
-								frappe.model.set_value(child.doctype, child.name, "cek_realisasi", 1);
+							
+							var child = cur_frm.add_child("tagihan_payment_table");
+							frappe.model.set_value(child.doctype, child.name, "no_sinv",r.message[i].no_invoice);
+							frappe.model.set_value(child.doctype, child.name, "sales_invoice_sparepart_garansi",r.message[i].sales_invoice_sparepart_garansi);
+							frappe.model.set_value(child.doctype, child.name, "pemilik",r.message[i].pemilik);
+							frappe.model.set_value(child.doctype, child.name, "nama_pemilik", r.message[i].nama_pemilik);
+							frappe.model.set_value(child.doctype, child.name, "item", r.message[i].item);
+							frappe.model.set_value(child.doctype, child.name, "no_rangka", r.message[i].no_rangka);
+							frappe.model.set_value(child.doctype, child.name, "no_rangka2", r.message[i].no_rangka2);
+							frappe.model.set_value(child.doctype, child.name, "nilai", r.message[i].outstanding);
+							frappe.model.set_value(child.doctype, child.name, "doc_type", r.message[i].parenttype);
+							frappe.model.set_value(child.doctype, child.name, "doc_name", r.message[i].parent);
+							frappe.model.set_value(child.doctype, child.name, "id_detail", r.message[i].id_detail);
+							frappe.model.set_value(child.doctype, child.name, "cek_realisasi", 1);
 								
-							}
 							
 						}
 						cur_frm.refresh_fields("tagihan_payment_table")
 					}
 				}
-				
 			}
 		});
 		// }

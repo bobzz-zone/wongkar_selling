@@ -30,6 +30,8 @@ class FormPembayaran(Document):
 					akun = frappe.db.get_value(i.reference_doctype,i.docname,'debit_to')
 				elif self.type == 'Pembayaran Invoice Garansi Sparepart':
 					akun = frappe.db.get_value(i.reference_doctype,i.docname,'debit_to_sparepart')
+				elif self.type == 'Pembayaran Invoice Garansi Oli LCR':
+					akun = frappe.db.get_value(i.reference_doctype,i.docname,'debit_to_oli')
 
 				if self.paid_from != akun:
 					frappe.throw(f'Akun Tidak Sama {self.paid_from} {akun} !' )
@@ -150,12 +152,15 @@ class FormPembayaran(Document):
 			elif i.doc_type == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Sparepart':
 				doctype = 'List Invoice Penagihan Garansi'
 				outstanding = frappe.get_doc(doctype,i.id_detail).outstanding_amount_sparepart
+			elif i.doc_type == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Oli LCR':
+				doctype = 'List Invoice Penagihan Garansi'
+				outstanding = frappe.get_doc(doctype,i.id_detail).outstanding_amount_oli
 			elif self.type == 'Pembayaran SIPM Antar Entitas':
 				doctype = 'Sales Invoice Penjualan Motor'
 				outstanding = frappe.get_doc(doctype,i.no_sinv).outstanding_amount
 
 			if i.nilai > outstanding:
-				frappe.throw("Nilai yang dimasukkan lebih besar dari outstanding "+i.no_sinv+' !') 
+				frappe.throw(f"Nilai yang dimasukkan lebih besar dari outstanding {i.no_sinv} {i.sales_invoice_sparepart_garansi} !") 
 		
 
 	def on_trash(self):
@@ -203,6 +208,10 @@ class FormPembayaran(Document):
 				doc_type = 'List Invoice Penagihan Garansi'
 				field = 'outstanding_amount_sparepart'
 				outstanding = frappe.get_doc(doc_type,d.id_detail).outstanding_amount_sparepart
+			elif d.doc_type == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Oli LCR':
+				doc_type = 'List Invoice Penagihan Garansi'
+				field = 'outstanding_amount_oli'
+				outstanding = frappe.get_doc(doc_type,d.id_detail).outstanding_amount_oli
 			
 			if self.docstatus == 1:
 				hitung = flt(outstanding - d.nilai,0)
@@ -250,17 +259,22 @@ class FormPembayaran(Document):
 			elif i.reference_doctype == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Sparepart':
 				doc_type = 'List Invoice Penagihan Garansi'
 				field = 'outstanding_amount_sparepart'
+			elif i.reference_doctype == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Oli LCR':
+				doc_type = 'List Invoice Penagihan Garansi'
+				field = 'outstanding_amount_oli'
 
 			data = frappe.db.sql(""" SELECT sum({}) as total from `tab{}` where parent = '{}' """.format(field,doc_type,i.docname),as_dict=1)
 			if i.reference_doctype == 'Pembayaran Tagihan Motor' and self.type == 'Pembayaran STNK':
-				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_stnk", data[0]['total']);
+				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_stnk", data[0]['total'])
 			elif i.reference_doctype == 'Pembayaran Tagihan Motor' and self.type == 'Pembayaran BPKB':
-				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_bpkb", data[0]['total']);
+				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_bpkb", data[0]['total'])
 			elif i.reference_doctype == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Sparepart':
-				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_sparepart", data[0]['total']);
+				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_sparepart", data[0]['total'])
+			elif i.reference_doctype == 'Invoice Penagihan Garansi' and self.type == 'Pembayaran Invoice Garansi Oli LCR':
+				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount_oli", data[0]['total'])
 			else:
 				print(data[0]['total'], ' xxx')
-				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount", data[0]['total']);
+				frappe.db.set_value(i.reference_doctype, i.docname, "outstanding_amount", data[0]['total'])
 
 
 	def get_gl_dict(self, args, account_currency=None, item=None):
@@ -542,6 +556,11 @@ def get_form_pemabayaran(dt, dn, type_bayar = None):
 		grand_total = doc.grand_total_sparepart
 		outstanding = doc.outstanding_amount_sparepart
 		data = frappe.db.get_list("List Invoice Penagihan Garansi",filters={'parent': dn},fields=['*'],order_by='customer asc')
+	elif dt == 'Invoice Penagihan Garansi' and type_bayar == 'Oli LCR':
+		type_fp = 'Pembayaran Invoice Garansi Oli LCR'
+		grand_total = doc.grand_total_oli
+		outstanding = doc.outstanding_amount_oli
+		data = frappe.db.get_list("List Invoice Penagihan Garansi",filters={'parent': dn},fields=['*'],order_by='customer asc')
 
 	fp = frappe.new_doc("Form Pembayaran")
 	fp.type = type_fp
@@ -566,6 +585,9 @@ def get_form_pemabayaran(dt, dn, type_bayar = None):
 	elif dt == 'Invoice Penagihan Garansi' and type_bayar == 'SP':
 		fp.customer = doc.customer
 		fp.paid_from = doc.debit_to_sparepart
+	elif dt == 'Invoice Penagihan Garansi' and type_bayar == 'Oli LCR':
+		fp.customer = doc.customer
+		fp.paid_from = doc.debit_to_oli
 
 	fp.append("list_doc_name",{
 		'reference_doctype': dt,
@@ -597,6 +619,10 @@ def get_form_pemabayaran(dt, dn, type_bayar = None):
 		elif d.parenttype  == 'Invoice Penagihan Garansi'  and type_bayar == 'SP':
 			no_sinv = d.sales_invoice_sparepart_garansi
 			nilai = d.outstanding_amount_sparepart
+			no_rangka = d.no_rangka+"--"+d.no_mesin
+		elif d.parenttype  == 'Invoice Penagihan Garansi'  and type_bayar == 'Oli LCR':
+			no_sinv = d.sales_invoice_sparepart_garansi
+			nilai = d.outstanding_amount_oli
 			no_rangka = d.no_rangka+"--"+d.no_mesin
 
 		if d.parenttype != 'Invoice Penagihan Garansi':

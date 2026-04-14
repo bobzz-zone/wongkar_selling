@@ -772,6 +772,7 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             print("sukses")
 
     def on_submit(self):
+        self.cek_dp()
         self.add_pemilik()
         if not self.program_tanpa_dp:
             self.cek_advance()
@@ -846,6 +847,18 @@ class SalesInvoicePenjualanMotor(SalesInvoice):
             manage_invoice_submit_cancel(self, "on_submit")
 
         self.process_common_party_accounting()
+
+    # update 11-04-2026
+    def cek_dp(self):
+        if self.advances and len(self.advances) > 0:
+            for i in self.advances:
+                if i.reference_type == "Journal Entry":
+                    dp = frappe.db.get_value(i.reference_type,i.reference_name,'penerimaan_dp')
+                    if dp:
+                        ter = frappe.db.get_value('Penerimaan DP',dp,'territory')
+                        if ter != self.territory_biaya:
+                            frappe.throw('Territory Biaya Tidak Sama !')
+
 
     def update_serial_no(self, in_cancel=False):
         """update Sales Invoice refrence in Serial No"""

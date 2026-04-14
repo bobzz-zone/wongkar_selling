@@ -22,6 +22,7 @@
   "pph_account",
   "pph",
   "section_break_rjz0l",
+  "type_kpb",
   "list_invoice_penagihan_garansi",
   "section_break_sbovg",
   "grand_total",
@@ -245,12 +246,19 @@
    "fieldtype": "Currency",
    "label": "Outstanding Amount sparepart",
    "read_only": 1
+  },
+  {
+   "default": "Non LCR",
+   "fieldname": "type_kpb",
+   "fieldtype": "Select",
+   "label": "Type KPB",
+   "options": "Non LCR\nLCR"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-04 09:17:12.057701",
+ "modified": "2026-03-05 08:22:56.174451",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Invoice Penagihan Garansi",

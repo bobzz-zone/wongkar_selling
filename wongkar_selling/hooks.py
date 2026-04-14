@@ -189,6 +189,9 @@ doc_events = {
                 "wongkar_selling.custom_standard.custom_purchase_invoice.cek_oa_nol"],
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sales_order_log.sales_order_log.after_submit_so"]
 	},
+    "Purchase Order":{
+		"validate": "wongkar_selling.custom_standard.custom_purchase_order.cek_oli_lcr"
+	},
 	"Purchase Receipt": {
 		# "before_submit" : ["wongkar_selling.wongkar_selling.selling.overide_make_gl"]
 		# "on_submit": ["wongkar_selling.wongkar_selling.doctype.sync_log.sync_log.after_submit_sync"],
