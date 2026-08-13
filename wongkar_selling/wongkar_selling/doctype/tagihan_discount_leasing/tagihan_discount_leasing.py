@@ -63,6 +63,16 @@ class TagihanDiscountLeasing(Document):
 		self.base_grand_total = total
 		self.outstanding_amount = total
 
+	def hitung_pph_debug(self):
+		total = 0
+		for d in self.daftar_tagihan_leasing:
+			rate = frappe.get_doc('Sales Taxes and Charges',{'parent':d.no_invoice,'idx':1}).rate
+			tax = (100+rate ) / 100
+			pjk = d.nilai / tax
+			pph = pjk * (self.pph/100)
+			tot_pph = flt(d.nilai - pph,0)
+			print(tot_pph, "||" ,d.terbayarkan)
+
 	def set_status(self):
 		if self.docstatus == 2:
 			self.status = 'Cancelled'
@@ -484,13 +494,15 @@ class TagihanDiscountLeasing(Document):
 		for i in data:
 			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
 			doc = frappe.get_doc('Table Disc Leasing',{'parent': i['no_invoice'],'nama_leasing': self.customer}) 
+			if doc.tertagih:
+				frappe.throw('Sudah Submit !')
 			doc.tertagih = 1
 			doc.db_update()
 			
 			doc_parent = frappe.get_doc("Sales Invoice Penjualan Motor",doc.parent)
 			doc_parent.outstanding_amount = doc_parent.outstanding_amount - i.tagihan_sipm
 			doc_parent.db_update()
-			frappe.db.commit()
+			# frappe.db.commit()
 			# frappe.msgprint('Berhasil !')
 		self.set_status()
 

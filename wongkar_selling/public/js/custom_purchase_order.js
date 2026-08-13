@@ -75,7 +75,8 @@ var filter_docname = function(frm){
 				query: "wongkar_selling.wongkar_selling.doctype.invoice_penagihan_garansi.invoice_penagihan_garansi.get_inv",
 				filters: {
 					'data': tmp,
-					'data_name': child_names
+					'data_name': child_names,
+					'type_kpb': 'Non LCR'
 				}
 		}
     }

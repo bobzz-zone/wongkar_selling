@@ -106,18 +106,21 @@ frappe.ui.form.on('Journal Entry', {
 					cur_frm.refresh_fields('accounts')
 					for(var i =0;i<r.message.length;i++){
 						// console.log(r.message[i],' pppxx')
-						var child = cur_frm.add_child("accounts");
+						if(r.message[i].credit > 0 || r.message[i].debit > 0){
+							var child = cur_frm.add_child("accounts");
      
-			            frappe.model.set_value(child.doctype, child.name, "account", r.message[i].account)
-			            frappe.model.set_value(child.doctype, child.name, "party_type", r.message[i].party_type)
-			            frappe.model.set_value(child.doctype, child.name, "party", r.message[i].party)
-			            frappe.model.set_value(child.doctype, child.name, "reference_type", r.message[i].reference_type)
-			            frappe.model.set_value(child.doctype, child.name, "reference_name", r.message[i].reference_name)			            
-			            frappe.model.set_value(child.doctype, child.name, "cost_center", r.message[i].cost_center)
-			            frappe.model.set_value(child.doctype, child.name, "debit", r.message[i].debit)
-			            frappe.model.set_value(child.doctype, child.name, "debit_in_account_currency", r.message[i].debit_in_account_currency)
-			            frappe.model.set_value(child.doctype, child.name, "credit", r.message[i].credit)
-			            frappe.model.set_value(child.doctype, child.name, "credit_in_account_currency", r.message[i].credit_in_account_currency)
+							frappe.model.set_value(child.doctype, child.name, "account", r.message[i].account)
+							frappe.model.set_value(child.doctype, child.name, "party_type", r.message[i].party_type)
+							frappe.model.set_value(child.doctype, child.name, "party", r.message[i].party)
+							frappe.model.set_value(child.doctype, child.name, "reference_type", r.message[i].reference_type)
+							frappe.model.set_value(child.doctype, child.name, "reference_name", r.message[i].reference_name)			            
+							frappe.model.set_value(child.doctype, child.name, "cost_center", r.message[i].cost_center)
+							frappe.model.set_value(child.doctype, child.name, "debit", r.message[i].debit)
+							frappe.model.set_value(child.doctype, child.name, "debit_in_account_currency", r.message[i].debit_in_account_currency)
+							frappe.model.set_value(child.doctype, child.name, "credit", r.message[i].credit)
+							frappe.model.set_value(child.doctype, child.name, "credit_in_account_currency", r.message[i].credit_in_account_currency)
+						}
+						
 					}
 					cur_frm.refresh_field("accounts")
 				}

@@ -777,7 +777,8 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 			FROM `tabInvoice Penagihan Garansi` inv 
 			JOIN `tabList Invoice Penagihan Garansi` l ON l.parent = inv.name
 			JOIN `tabSales Invoice Sparepart Garansi Item` s ON s.parent = l.sales_invoice_sparepart_garansi 
-			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} and inv.docstatus = 1
+			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} 
+			and inv.docstatus = 1 and inv.type_kpb = 'Non LCR'
 		 """.format(txt,con,kondisi),debug=0)
 
 	return data

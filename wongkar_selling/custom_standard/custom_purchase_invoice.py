@@ -294,29 +294,30 @@ def diskon_sn_ste(self,method):
 			if cek:
 				frappe.throw("Document JE is Exsit !")
 			else:
-				je = frappe.new_doc('Journal Entry')
-				je.posting_date = posting_date
-				je.purchase_invoice = self.name
-				deb = {
-					'account' : frappe.get_doc('Company',self.company).je_debit, # '21600.01 - BARANG BELUM DITAGIH - MOTOR - W',
-					'debit': selisih,
-					'debit_in_account_currency': selisih,
-					'cost_center': self.cost_center
-				} 
+				pass
+				# je = frappe.new_doc('Journal Entry')
+				# je.posting_date = posting_date
+				# je.purchase_invoice = self.name
+				# deb = {
+				# 	'account' : frappe.get_doc('Company',self.company).je_debit, # '21600.01 - BARANG BELUM DITAGIH - MOTOR - W',
+				# 	'debit': selisih,
+				# 	'debit_in_account_currency': selisih,
+				# 	'cost_center': self.cost_center
+				# } 
 
-				cre = {
-					'account' : frappe.get_doc('Company',self.company).je_credit, # '71000.01 - BIAYA KERUGIAN STOCK - W',
-					'credit': selisih,
-					'credit_in_account_currency': selisih,
-					'cost_center': self.cost_center
-				} 
+				# cre = {
+				# 	'account' : frappe.get_doc('Company',self.company).je_credit, # '71000.01 - BIAYA KERUGIAN STOCK - W',
+				# 	'credit': selisih,
+				# 	'credit_in_account_currency': selisih,
+				# 	'cost_center': self.cost_center
+				# } 
 
-				je.append('accounts',deb)
-				je.append('accounts',cre)
-				je.save()
-				je.submit()
-				je.flags.ignore_permission=True
-				print(je.name, ' je_name')
+				# je.append('accounts',deb)
+				# je.append('accounts',cre)
+				# je.save()
+				# je.submit()
+				# je.flags.ignore_permission=True
+				# print(je.name, ' je_name')
 
 	frappe.db.sql(""" UPDATE `tabSingles` SET value = 0 WHERE field = "allow_negative_stock" """)
 

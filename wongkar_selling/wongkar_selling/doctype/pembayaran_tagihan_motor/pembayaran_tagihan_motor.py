@@ -334,16 +334,18 @@ class PembayaranTagihanMotor(Document):
 			data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
 			for i in data:
 				doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
+				if doc.tertagih:
+					frappe.throw('Sudah Submit !')
 				doc.tertagih = 1
 				doc.db_update()
-				frappe.db.commit()
+				# frappe.db.commit()
 		elif self.type == "STNK dan BPKB":
 			# data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
 			for i in self.tagihan_biaya_motor:
 				frappe.db.sql(""" UPDATE `tabTabel Biaya Motor` set tertagih = 1 
 					where parent = '{}' and (type = 'STNK' or type = "BPKB") 
 					and (vendor = '{}' or vendor = '{}') """.format(i.no_invoice,self.supplier_stnk,self.supplier_bpkb))
-				frappe.db.commit()
+				# frappe.db.commit()
 		self.set_status()
 
 	def on_cancel(self):
@@ -356,7 +358,7 @@ class PembayaranTagihanMotor(Document):
 				doc = frappe.get_doc('Tabel Biaya Motor',{'parent': i['no_invoice'],'vendor': self.supplier,'type': self.type})
 				doc.tertagih = 0
 				doc.db_update()
-				frappe.db.commit()
+				# frappe.db.commit()
 				# frappe.msgprint('Berhasil !')
 		elif self.type == "STNK dan BPKB":
 			# data = frappe.db.get_list('Child Tagihan Biaya Motor',filters={'parent': self.name,'type': self.type},fields=['*'])
@@ -364,11 +366,11 @@ class PembayaranTagihanMotor(Document):
 				frappe.db.sql(""" UPDATE `tabTabel Biaya Motor` set tertagih = 0 
 					where parent = '{}' and (type = 'STNK' or type = "BPKB") 
 					and (vendor = '{}' or vendor = '{}') """.format(i.no_invoice,self.supplier_stnk,self.supplier_bpkb))
-				frappe.db.commit()
+				# frappe.db.commit()
 		
 		self.set_status()
 		delete_gl = frappe.db.sql(""" DELETE FROM `tabGL Entry` WHERE voucher_no = "{}" and voucher_type = "{}" """.format(self.name,self.doctype))
-		frappe.db.commit()
+		# frappe.db.commit()
 
 	def validate(self):
 		self.set_status()

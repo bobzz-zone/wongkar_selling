@@ -155,7 +155,7 @@ frappe.ui.form.on('Penerimaan DP', {
 						// item_group: cur_frm.doc.item_group,
 						item_code: cur_frm.doc.item_code,
 						nama_promo: cur_frm.doc.nama_promo,
-						territory_real: cur_frm.doc.territory,
+						territory_real: cur_frm.doc.territory_real,
 						posting_date: cur_frm.doc.tanggal,
 						from_group:1
 					},
