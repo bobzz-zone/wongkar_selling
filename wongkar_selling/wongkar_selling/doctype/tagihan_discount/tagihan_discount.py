@@ -342,6 +342,17 @@ class TagihanDiscount(Document):
 			# frappe.msgprint('Berhasil !')
 		self.set_status()
 
+	def update_tertagih(self):
+		data = frappe.db.get_list('Daftar Tagihan',filters={'parent': self.name},fields=['*'])
+		for i in data:
+			doc = frappe.get_doc('Table Discount',{'parent': i['no_sinv'],'customer': self.customer})
+			print(doc.tertagih, ' xxxx')
+			if doc.tertagih:
+				frappe.throw('Sudah Submit !')
+			doc.tertagih = 1
+			doc.db_update()
+
+
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ('GL Entry')
 		# self.ignore_linked_doctypes = ('GL Entry', 'Stock Ledger Entry')

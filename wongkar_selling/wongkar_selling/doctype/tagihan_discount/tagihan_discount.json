@@ -61,6 +61,7 @@
    "read_only": 1
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "daftar_tagihan",
    "fieldtype": "Table",
    "label": "Daftar Tagihan",
@@ -217,7 +218,7 @@
    "table_fieldname": "list_doc_name"
   }
  ],
- "modified": "2025-12-03 14:26:03.840199",
+ "modified": "2026-04-15 10:09:21.051444",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Tagihan Discount",
