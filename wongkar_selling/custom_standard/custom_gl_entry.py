@@ -460,7 +460,7 @@ def update_outstanding_amt_custom(
 				frappe.db.escape(account), frappe.db.escape(party_account),
 			)
 		else:
-			print('aldksaj')
+			# print('aldksaj')
 			account_condition = "and account in ({0}, {1})".format(
 				frappe.db.escape(account), frappe.db.escape(party_account)
 			)

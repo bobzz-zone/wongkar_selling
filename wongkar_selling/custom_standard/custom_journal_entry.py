@@ -30,7 +30,7 @@ def get_penerimaan_dp(self,method):
 	# self.ignore_linked_doctypes = ('Penerimaan DP')
 	if self.penerimaan_dp:
 		cek = frappe.get_doc("Penerimaan DP",self.penerimaan_dp).docstatus
-		if cek == 1:
+		if cek == 1 and not frappe.flags.repair:
 			frappe.throw("Dokeumen Peneriamaan DP "+self.penerimaan_dp+" masih SUbmit !")
 
 @frappe.whitelist()
@@ -141,8 +141,9 @@ def hitung_outstanding_claim(self,method):
 		if self.tagihan_payment_table and len(self.tagihan_payment_table) > 0:
 			for i in self.tagihan_payment_table:
 				nilai = frappe.get_doc('List Invoice Penagihan Garansi',i.id_detail).outstanding_amount_oli
-				if nilai > i.nilai:
-					frappe.throw('Nilai yang di bayar lebih besar !')
+				hasil = nilai + i.nilai
+				if nilai > hasil:
+					frappe.throw(f'Nilai yang di bayar lebih besar !{i.idx} {i.sales_invoice_sparepart_garansi} {nilai} {i.nilai}')
 				else:
 					hasil = nilai + i.nilai
 					frappe.db.sql(""" UPDATE `tabList Invoice Penagihan Garansi` 
