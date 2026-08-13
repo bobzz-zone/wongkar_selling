@@ -15,7 +15,6 @@
   "dp_ke_2",
   "off_the_road",
   "cut_off",
-  "data_rfo8c",
   "section_break_pkua8",
   "customer",
   "customer_name",
@@ -25,6 +24,7 @@
   "section_break_pydkj",
   "paid_amount",
   "section_break_xs1ng",
+  "territory_real",
   "territory",
   "price_list",
   "nama_promo",
@@ -116,7 +116,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "allow_on_submit": 1,
    "description": "Nama Customer yang membeli",
    "fieldname": "pemilik",
    "fieldtype": "Link",
@@ -129,8 +128,7 @@
    "fetch_from": "pemilik.customer_name",
    "fieldname": "nama_pemilik",
    "fieldtype": "Data",
-   "label": "Nama Pemilik",
-   "read_only": 1
+   "label": "Nama Pemilik"
   },
   {
    "fieldname": "section_break_pydkj",
@@ -150,7 +148,7 @@
    "fetch_if_empty": 1,
    "fieldname": "territory",
    "fieldtype": "Link",
-   "label": "Territory",
+   "label": "Territory Biaya",
    "options": "Territory"
   },
   {
@@ -295,14 +293,18 @@
    "read_only": 1
   },
   {
-   "fieldname": "data_rfo8c",
-   "fieldtype": "Data"
+   "fetch_from": "pemilik.territory",
+   "fetch_if_empty": 1,
+   "fieldname": "territory_real",
+   "fieldtype": "Link",
+   "label": "Territory Real",
+   "options": "Territory"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-31 10:27:49.554613",
+ "modified": "2026-07-22 15:11:40.453320",
  "modified_by": "Administrator",
  "module": "wongkar_selling",
  "name": "Penerimaan DP",

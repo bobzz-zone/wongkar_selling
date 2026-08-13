@@ -30,6 +30,8 @@ class TagihanLeasing(Document):
 		for i in self.list_tagihan_piutang_leasing:
 			# doc = frappe.get_doc('Sales Invoice Penjualan Motor',{'name': i['no_invoice'],'nama_leasing': self.customer,'nama_promo': self.nama_promo})
 			doc = frappe.get_doc('Sales Invoice Penjualan Motor',i.no_invoice) 
+			if doc.tertagih:
+				frappe.throw('Sudah Submit !')
 			doc.tertagih = 1
 			doc.db_update()
 			# frappe.db.commit()

@@ -334,6 +334,8 @@ class TagihanDiscount(Document):
 		data = frappe.db.get_list('Daftar Tagihan',filters={'parent': self.name},fields=['*'])
 		for i in data:
 			doc = frappe.get_doc('Table Discount',{'parent': i['no_sinv'],'customer': self.customer})
+			if doc.tertagih:
+				frappe.throw('Sudah Submit !')
 			doc.tertagih = 1
 			doc.db_update()
 			# frappe.db.commit()

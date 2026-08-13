@@ -121,7 +121,8 @@ class InvoicePenagihanGaransi(Document):
 							group by l.sales_invoice_sparepart_garansi  """.format(i.sales_invoice_sparepart_garansi),as_dict=1)
 			print(tot_tagihan)
 			if tot_tagihan:
-				if tot_tagihan[0]['tertagih_grand_total'] > i.grand_total or tot_tagihan[0]['tertagih_grand_total_oli'] > i.grand_total_oli or tot_tagihan[0]['tertagih_grand_total_sparepart'] > i.grand_total_sparepart:
+				print(f" {tot_tagihan[0]['tertagih_grand_total']} > {i.grand_total} or {tot_tagihan[0]['tertagih_grand_total_oli']} > {i.grand_total_oli} or {tot_tagihan[0]['tertagih_grand_total_sparepart']} > {i.grand_total_sparepart}")
+				if flt(tot_tagihan[0]['tertagih_grand_total'],2) > flt(i.grand_total,2) or flt(tot_tagihan[0]['tertagih_grand_total_oli'],2) > flt(i.grand_total_oli,2) or flt(tot_tagihan[0]['tertagih_grand_total_sparepart'],2) > flt(i.grand_total_sparepart,2):
 					frappe.throw(f"tertagih lebih besar dari tagihan {i.sales_invoice_sparepart_garansi} !")
 				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount',i.grand_total-tot_tagihan[0]['tertagih_grand_total'],debug=0)
 				frappe.db.set_value('Sales Invoice Sparepart Garansi',i.sales_invoice_sparepart_garansi,'outstanding_amount_oli',i.grand_total_oli-tot_tagihan[0]['tertagih_grand_total_oli'],debug=0)
@@ -777,7 +778,8 @@ def get_inv(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 			FROM `tabInvoice Penagihan Garansi` inv 
 			JOIN `tabList Invoice Penagihan Garansi` l ON l.parent = inv.name
 			JOIN `tabSales Invoice Sparepart Garansi Item` s ON s.parent = l.sales_invoice_sparepart_garansi 
-			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} and inv.docstatus = 1
+			WHERE inv.name like '%{}%' and inv.outstanding_amount_oli > 0 AND s.item_code IN {} {} 
+			and inv.docstatus = 1 and inv.type_kpb = 'Non LCR'
 		 """.format(txt,con,kondisi),debug=0)
 
 	return data
