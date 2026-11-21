@@ -80,7 +80,7 @@ frappe.ui.form.on('Journal Entry', {
 		});
 		// }
 	},
-	calculate(frm){
+	calculate_lama(frm){
 		var tmp = []
 		if(cur_frm.doc.accounts){
 			if(cur_frm.doc.accounts[0]){
@@ -127,6 +127,28 @@ frappe.ui.form.on('Journal Entry', {
 			},
 		});
 		
+	},
+	calculate(frm) {
+		let data_awal = (frm.doc.accounts && frm.doc.accounts[0]) ? [frm.doc.accounts[0]] : [];
+		// kirim hanya baris yang bernilai, payload jauh lebih kecil
+		let data = (frm.doc.tagihan_payment_table || []).filter(r => flt(r.nilai) > 0);
+
+		frappe.call({
+			method: "wongkar_selling.wongkar_selling.doctype.invoice_penagihan_garansi.invoice_penagihan_garansi.make_data_claim",
+			args: { data: data, data_awal: data_awal, company: frm.doc.company },
+			freeze: true,
+			freeze_message: __("Menghitung..."),
+			callback: (r) => {
+				if (!r.message || !r.message.length) return;
+				frm.clear_table("accounts");
+				r.message.forEach(d => {
+					if (flt(d.credit) > 0 || flt(d.debit) > 0) {
+						frm.add_child("accounts", d);
+					}
+				});
+				frm.refresh_field("accounts");
+			}
+		});
 	}
 })
 

@@ -837,9 +837,75 @@ def make_je_claim(dt, dn, type_bayar = None):
 	je.append('accounts',hutang_pinv)
 	return je
 
+def get_party_type_from_account(account, default=None):
+	account_type = frappe.get_cached_value("Account", account, "account_type")
+	if account_type == "Receivable":
+		return "Customer"
+	if account_type == "Payable":
+		return "Supplier"
+	return default
 
 @frappe.whitelist()
-def make_data_claim(data,data_awal,company):
+def make_data_claim(data, data_awal, company):
+	from erpnext.accounts.doctype.journal_entry.journal_entry import get_outstanding
+
+	data = json.loads(data) if isinstance(data, str) else data
+	data_awal = json.loads(data_awal) if isinstance(data_awal, str) else data_awal
+
+	tmp = []
+	for i in data_awal:
+		outstanding = get_outstanding({
+			"doctype": i['reference_type'],
+			"docname": i['reference_name'],
+			"party": i['party'],
+			"account": i['account'],
+			"account_currency": i['account_currency'],
+			"company": company
+		})
+		tmp.append({
+			'account': i['account'],
+			'party_type': get_party_type_from_account(i['account'], i.get('party_type') or 'Supplier'),
+			'party': i['party'],
+			'reference_type': i['reference_type'],
+			'reference_name': i['reference_name'],
+			'cost_center': None,
+			'debit': outstanding['debit_in_account_currency'],
+			'debit_in_account_currency': outstanding['debit_in_account_currency'],
+			'credit': 0,
+			'credit_in_account_currency': 0
+		})
+
+	header_cache = {}
+	def get_header(doctype, name):
+		key = (doctype, name)
+		if key not in header_cache:
+			header_cache[key] = frappe.db.get_value(
+				doctype, name, ["debit_to_oli", "customer"], as_dict=True
+			)
+		return header_cache[key]
+
+	for i in data:
+		nilai = flt(i.get('nilai'))
+		if nilai <= 0:
+			continue
+		h = get_header(i['doc_type'], i['doc_name'])
+		tmp.append({
+			'account': h.debit_to_oli,
+			'party_type': get_party_type_from_account(h.debit_to_oli, 'Customer'),
+			'party': h.customer,
+			'reference_type': i['doc_type'],
+			'reference_name': i['doc_name'],
+			'cost_center': None,
+			'credit': nilai,
+			'credit_in_account_currency': nilai,
+			'debit': 0,
+			'debit_in_account_currency': 0
+		})
+
+	return tmp
+
+@frappe.whitelist()
+def make_data_claim_lama(data,data_awal,company):
 	from erpnext.accounts.doctype.journal_entry.journal_entry import get_outstanding
 	data = json.loads(data)
 	data_awal = json.loads(data_awal)
@@ -848,7 +914,8 @@ def make_data_claim(data,data_awal,company):
 	tot_debit = 0
 	for i in data:
 		# frappe.msgprint(str(i['doc_name'])+ ' xxxdd')
-		tot_debit += i['nilai']
+		if i['nilai'] > 0:
+			tot_debit += i['nilai']
 
 	for i in data_awal:
 		# frappe.msgprint(i['account']+ ' sssff')
